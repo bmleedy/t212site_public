@@ -1,0 +1,143 @@
+<link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css"/>
+<script src="js/jquery.js"></script>
+<script src="js/jquery.datetimepicker.js"></script>
+
+<script type="text/javascript">
+var event_id;
+var user_id;
+var registered;
+var user_type;
+var user_first;
+var strTable;
+var outing_name;
+var cost;
+
+function writeRow(element, index, array) {
+	first = element["first"];
+	last = element["last"];
+	userID = element["id"];
+	registerID = element["register_id"];
+	patrolName = element["patrol"];
+	if (element["seat_belts"]) {
+	  user_type = "Adult";
+	} else {
+	  user_type = "Scout";
+	}
+  if (cost==0) {
+		buttonLabel ="Approve";
+	}
+	
+  if (cost==0) {
+		paid = "N/A";
+	} else if (element["paid"]=="0") {
+    paid = "No" ;
+  } else {
+    paid = "Yes" ;
+  }
+  
+  
+  if (element["approved"]!="0") {
+		approved = "Yes";
+	} else {	
+    if (element["show_approved"]=="1") {
+      approved = "<a onclick=approve('"+registerID+"') class='round tiny button'>Approve</a>" ;
+    } else {
+  		approved = "No";
+    }
+	}
+
+	if (patrolName=="Adults") {
+	  seat_belts = element["seat_belts"];
+	  contact_info = element["contactInfo"];
+	} else {
+		seat_belts = "N/A";
+	}
+strTable = strTable + "<tr style='border-top:1pt solid black;'>";
+  if (patrolName != "Adults") {
+		strTable = strTable + writeCell(patrolName, "125px" );}
+  strTable = strTable + writeCell(first + " " + last, "250px" ); 
+
+  if (patrolName=="Adults") {
+    strTable = strTable + writeCell(seat_belts, "125px");
+    strTable = strTable + writeCell(contact_info, "125px"); 
+  } else {
+    strTable = strTable + writeCell(approved, "125px");
+    if (cost != 0) {
+      strTable = strTable + writeCell(paid, "125px");
+    }
+  }
+
+	
+  strTable = strTable + "</tr>";
+  if (cost == 0) {
+    cs = "3";
+  } else {
+    cs = "4";
+  }
+
+  if (user_type == "Scout") {
+    strTable = strTable + "<tr style='border-bottom:1pt solid black;'><td colspan='" + cs + "'>" + element['contactInfo'];
+    if (element['instructions']) {
+      strTable = strTable + "<br><strong>Special Instructions: </strong>" + element['instructions'];
+    }
+    //strTable = strTable + "</td></tr><tr><td colspan='" + cs + "'></td></tr>";
+    strTable = strTable + "</td></tr>";
+  }
+}
+	
+function writeCell(strData, strWidth, strLink) {
+ 	if (strLink == null) {
+ 	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+ 	} else {
+ 	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+ 	}
+}
+
+$(document).ready(function(){
+  	event_id = document.getElementById('id').value;
+		user_id = document.getElementById('user_id').value;
+		var fieldData = {
+			"event_id": event_id
+		};
+		$.ajax({
+   	  url: "api/geteventroster.php",
+   	  type: "post",
+			data: fieldData,
+   	  datatype: 'json',
+			error: function(errorThrown) {
+				console.log(errorThrown);
+			},
+			success: function(data){
+				$('#outingData').append(data['data']);
+				outing_name = data['outing_name'];
+				user_type = data['user_type'];
+				user_first = data['first'];
+				cost = data['cost'];
+				console.log(data);
+				if (data['attendingScouts']) {
+					if (cost==0.00) {
+					  strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th></tr>";
+					} else {
+					  strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th></tr>";
+					}
+					data['attendingScouts'].forEach(writeRow);
+					strTable = strTable + "</table>" ;
+					$("#outingData").append(strTable);
+				}
+				if (data['attendingAdults']) {
+					strTable = "<h5>Adults</h5><table style='border-collapse:collapse'><tr><th>Name</th><th>Seat Belts</th><th>Phone</th></tr>";
+					data['attendingAdults'].forEach(writeRow);
+					strTable = strTable + "</table>" ;
+					$("#outingData").append(strTable);
+				}
+     	}
+		});
+		//$(document).foundation();
+})
+</script>
+<form id="myForm">
+
+	<div id="outingData"></div>
+  
+</form>
+

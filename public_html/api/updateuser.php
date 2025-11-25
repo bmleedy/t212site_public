@@ -1,0 +1,270 @@
+<?php
+if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+  // respond to Ajax request
+} else {
+	echo "Not sure what you are after, but it ain't here.";
+  die();
+}
+
+header('Content-Type: application/json');
+//there should be a permission check here before we allow you to connect and blindly accept
+//  whatever data was thrown at us.  TODO security improvement.
+require 'connect.php';
+
+$user_type = $_POST['user_type'];
+
+$first = $_POST['first'];
+$last = $_POST['last'];
+$email = $_POST['email'];
+//Scout-specifig form fields
+if ($user_type == "Scout") {
+  $rank = $_POST['rank'];
+  $patrol = $_POST['patrol'];
+  $position = $_POST['position'];
+}
+$id = $_POST['id'];
+
+$wm = $_POST['wm'];		// = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
+
+if (!$wm) {
+	validateField($first , "First Name" , "user_first");
+	validateField($last , "Last Name" , "user_last");
+	validateField($email , "Email" , "user_email");
+}
+
+if ($user_type == "Scout") {
+	writeScoutData($id, $rank, $patrol, $position, $mysqli);
+} else {
+	if ( array_key_exists("scout_1", $_POST)) {
+		$scout_1 = $_POST['scout_1'];
+	} else {
+		$scout_1 = NULL;
+	}
+	if ( array_key_exists("scout_2", $_POST)) {
+		$scout_2 = $_POST['scout_2'];
+	} else {
+		$scout_2 = NULL;
+	}
+	if ( array_key_exists("scout_3", $_POST)) {
+		$scout_3 = $_POST['scout_3'];
+	} else {
+		$scout_3 = NULL;
+	}
+	if ( array_key_exists("scout_4", $_POST)) {
+		$scout_4 = $_POST['scout_4'];
+	} else {
+		$scout_4 = NULL;
+	}
+	$mb_list = $_POST['mb_list'];
+	$scoutList = array();
+	if ($scout_1 <> "0" && !is_null($scout_1)) { array_push( $scoutList, $scout_1 ); }
+	if ($scout_2 <> "0" && !is_null($scout_2)) { array_push( $scoutList, $scout_2 ); }
+	if ($scout_3 <> "0" && !is_null($scout_3)) { array_push( $scoutList, $scout_3 ); }
+	if ($scout_4 <> "0" && !is_null($scout_4)) { array_push( $scoutList, $scout_4 ); }
+	validateUnique($scoutList);
+	checkRelationshipsForDeletes($scoutList, $id, $mysqli);
+	writeMeritBadgeData($id, $mb_list, $mysqli);
+	if (!is_null($scout_1)) { writeRelationshipData($scout_1, $user_type, $id, $mysqli); }
+	if (!is_null($scout_2)) { writeRelationshipData($scout_2, $user_type, $id, $mysqli); }
+	if (!is_null($scout_3)) { writeRelationshipData($scout_3, $user_type, $id, $mysqli); }
+	if (!is_null($scout_4)) { writeRelationshipData($scout_4, $user_type, $id, $mysqli); }
+}
+if ($wm) {
+	$returnMsg = array(
+		'status' => 'Success'
+	);
+	echo json_encode($returnMsg);
+	die();
+}
+
+writePhoneData($_POST['phone_id_1'], $_POST['phone_1'], $_POST['phone_type_1'], $id, $mysqli);
+writePhoneData($_POST['phone_id_2'], $_POST['phone_2'], $_POST['phone_type_2'], $id, $mysqli);
+writePhoneData($_POST['phone_id_3'], $_POST['phone_3'], $_POST['phone_type_3'], $id, $mysqli);
+
+$query = "UPDATE users SET user_first=?, user_last=?, user_email=? WHERE user_id=?";
+$statement = $mysqli->prepare($query);
+if ($statement === false) {
+  echo json_encode($mysqli->error);
+	die;
+}
+$rs = $statement->bind_param('ssss', $first, $last, $email, $id);
+if($rs == false) {
+    echo json_encode($statement->error);
+		die;
+}
+if($statement->execute()){
+	$returnMsg = array(
+		'status' => 'Success'
+	);
+	echo json_encode($returnMsg);
+}else{
+	echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
+	die;
+}
+$statement->close();
+
+function validateUnique( $arrayList ) {
+	if (array_unique($arrayList) == $arrayList || count($arrayList)==0) {
+
+	} else {
+		$returnMsg = array(
+			'status' => 'validation',
+			'message' => 'Please do not choose the same scout twice!',
+			'varDiff' => $test,
+			'field' => 'scout_l'
+		);
+	  echo json_encode($returnMsg);
+		die;
+	}
+
+
+}
+
+function validateField( $strValue, $strLabel, $strFieldName) {
+	if ($strValue=="") {
+		$returnMsg = array(
+			'status' => 'validation',
+			'message' => 'Please Enter: ' . $strLabel,
+			'field' => $strFieldName
+		);
+	  echo json_encode($returnMsg);
+		die;
+	}
+}
+
+function writeScoutData($user_id, $rank, $patrol, $position, $mysqli) {
+	$query="SELECT user_id FROM scout_info WHERE user_id=".$user_id;
+	$results = $mysqli->query($query);
+	if ($results->fetch_assoc()) {
+		$query = "UPDATE scout_info SET rank_id=?, patrol_id=?, position_id=? WHERE user_id=?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('ssss', $rank, $patrol, $position, $user_id);
+		$statement->execute();
+	} else {
+		$query = "INSERT INTO scout_info (user_id, rank_id, patrol_id, position_id) VALUES(?, ?, ?, ?)";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('ssss', $user_id, $rank, $patrol, $position);
+		$statement->execute();
+	}
+}
+
+function writeMeritBadgeData($user_id, $mb_list, $mysqli) {
+	/*
+	Query table for current list of mb for this user
+	verify each of those entries is in mb_list, and remove from mb_list (so we don't add)
+	if entry not in mb_list, delete from table
+	if after verification there are remaining items in mb_list, add those to table
+	*/
+	$mb_del_list = array();
+
+	$query="SELECT * FROM mb_counselors WHERE user_id=".$user_id;
+	$results = $mysqli->query($query);
+	while ($row = $results->fetch_assoc()) {
+		$mb_id = $row['mb_id'];
+		if(($key = array_search($mb_id, $mb_list)) !== false) {
+			unset($mb_list[$key]);
+		} else {
+			array_push($mb_del_list , $mb_id);
+		}
+	};
+	if ($mb_list) {
+		$query = "INSERT INTO mb_counselors (mb_id, user_id) VALUES(?, ?)";
+		$statement = $mysqli->prepare($query);
+		foreach($mb_list as $val) {
+			$statement->bind_param('ss', $val, $user_id);
+			$statement->execute();
+		}
+	}
+	if ($mb_del_list) {
+		$query = "DELETE FROM mb_counselors WHERE mb_id=? AND user_id=?";
+		$statement = $mysqli->prepare($query);
+		foreach($mb_del_list as $val) {
+			$statement->bind_param('ss', $val, $user_id);
+			$statement->execute();
+		}
+	}
+}
+
+function checkRelationshipsForDeletes($scoutList, $id, $mysqli){
+	$query = "SELECT scout_id FROM relationships WHERE adult_id=".$id;
+	$results = $mysqli->query($query);
+	while ($row = $results->fetch_assoc()) {
+		$scoutID = $row['scout_id'];
+		if (!in_array($scoutID, $scoutList)) {
+			$query2 = "DELETE FROM relationships WHERE adult_id=? AND scout_id=?" ;
+			$statement = $mysqli->prepare($query2);
+			$statement->bind_param('ss', $id, $scoutID);
+			$statement->execute();
+			$statement->close();
+		}
+	}
+}
+
+function writeRelationshipData($scout_id, $type, $adult_id, $mysqli) {
+	if ($scout_id == "0") {
+		return;
+	}
+	$query = "SELECT type FROM relationships WHERE adult_id='" . $adult_id . "' AND scout_id='" . $scout_id . "'" ;
+	$results = $mysqli->query($query);
+	$row = $results->fetch_assoc();
+
+	if ($row) {
+		if ($row['type'] <> $type) {
+			// Update
+			$query = "UPDATE relationships SET type=? WHERE adult_id=? AND scout_id=?";
+			$statement = $mysqli->prepare($query);
+			$statement->bind_param('sss', $type, $scout_id, $adult_id);
+			if ($statement->execute()){
+				//success
+			}else{
+				echo json_encode( 'Update Relationship Error : ('. $mysqli->errno .') '. $mysqli->error);
+				die;
+			}
+			$statement->close();
+		}
+	} else {
+		// Add
+		$query = "INSERT INTO relationships (scout_id, adult_id, type) VALUES(?, ?, ?)";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('sss', $scout_id, $adult_id, $type);
+		if ($statement->execute()){
+			//success
+		}else{
+			echo json_encode( 'Add Relationship Error : ('. $mysqli->errno .') '. $mysqli->error);
+			die;
+		}
+		$statement->close();
+	}
+}
+
+function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
+	/* 4 Cases
+	No id in field, no data in phone number = do nothing
+	Data in ID field, no data in phone number = delete
+	Data in ID field, data in phone number = update
+	No Data in ID field, data in phone number = create
+	*/
+	if (($id==="") && ($phone==="")) { return true;}
+
+	if ($phone==="") {
+		$query = "DELETE FROM phone WHERE id=?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('s', $id);
+	} else if ($id==="") {
+		$query = "INSERT INTO phone (phone , type , user_id) VALUES(?, ?, ?)";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('sss', $phone, $type, $user_id);
+	} else {
+		$query = "UPDATE phone SET phone=?, type=? WHERE id=?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('sss', $phone, $type, $id);
+	}
+	if ($statement->execute()){
+		//success
+	}else{
+		echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
+		die;
+	}
+	$statement->close();
+}
+?>

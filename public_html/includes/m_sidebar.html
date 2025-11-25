@@ -1,0 +1,70 @@
+<button type="button" onclick="location.href='Mobile.php';" class=" button hidden-for-large-up">Back</button>
+<div class = "visible-for-large-up">
+<div class="large-3 panel columns">
+	<img src="/images/Gig-Harbor.jpg" style ="height:100px; width:275px; margin:0px 0 0 0;">
+	<hr>
+  
+  <?php    if ($user_type != "Scout") {
+  	echo '<a href="EventPay.php"><p><i class="fi-dollar" style="font-size:20px"></i> Pay or Approve Outings</p></a><hr>';
+  } ?>
+
+  <a href="User.php?id=<?php echo $userID;?>">
+	<p><i class="fi-widget" style="font-size:20px"></i>
+	My Profile</p>
+	</a>
+	<hr>
+
+  <?php if ((in_array("ue",$access)) || (in_array("sa",$access))) {
+    echo '<a href="registernew.php"><p><i class="fi-mountains" style="font-size:20px"></i> [Leader] New User</p></a><hr>';
+    echo '<a href="ListDeletes.php"><p><i class="fi-trash" style="font-size:20px"></i> [Leader]  Deleted Users</p></a><hr>';
+  } ?>
+
+
+  <?php if ((in_array("oe",$access)) || (in_array("sa",$access))) {
+    echo '<a href="EventSignups.php"><p><i class="fi-mountains" style="font-size:20px"></i> [Leader] Event Signups</p></a><hr>';
+  } ?>
+
+  <a href="ListEvents.php">
+	<p><i class="fi-mountains" style="font-size:20px"></i>
+	Troop Events & Outings</p>
+	</a>
+	<hr>
+  
+	<a href="Calendar.php">
+	<p><i class="fi-calendar" style="font-size:20px"></i>
+	Troop Calendar</p>
+	</a>
+	<hr>
+
+	<a href="https://www.facebook.com/Troop212/photos">
+	<p><i class="fi-social-facebook" style="font-size:20px"></i>
+	Troop Photos - Facebook</p>
+	</a>
+	<hr>
+
+	<a href="ListScouts.php">
+	<p><i class="fi-address-book" style="font-size:20px"></i>
+	Scout Directory</p>
+	</a>
+	<hr>
+
+	<a href="ListAdults.php">
+	<p><i class="fi-address-book" style="font-size:20px"></i> 
+	Adult Directory</p>
+	</a>
+	<hr>
+
+	<a href="MB_Counselors.php">
+	<p><i class="fi-star" style="font-size:20px"></i> 
+	Merit Badge Counselors</p>
+	</a>
+	<hr>
+
+	<a href="login/index.php?logout">
+	<p><i class="fi-power" style="font-size:20px"></i> 
+	Logoff</p>
+	</a>
+	<hr>
+
+</div>
+</div>

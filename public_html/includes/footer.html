@@ -1,0 +1,59 @@
+<div class = "visible-for-large-up">
+<footer class="row">
+<div class="large-12 columns"><hr>
+<div class="row">
+<div class="large-2 columns">
+<span id="siteseal"><script type="text/javascript" src="https://seal.godaddy.com/getSeal?sealID=xQaTQiVHYT3utQ5GN6WmIKiLHKNbf6gwJ9tHCYaaczWacVNoUnXdDRULJ60C"></script></span>
+</div><div class="large-5 columns">
+<p>Troop 212 - Pacific Harbors Council - Rainier District</p>
+</div>
+<div class="large-5 columns">
+<ul class="inline-list right">
+<!-- li><a href="PaperBoxInfo.php">Paper Box</a></li -->
+<!-- li><a href="Beads.php">Beads</a></li -->
+<!-- li><a href="PatrolAgenda.php">Patrol Agenda</a></li -->
+<li><a href="Links.php">Links</a></li>
+</ul>
+</div>
+</div>
+</div>
+</footer>
+</div>
+
+<!-- Asynchronous page counter script -->
+<script type="text/javascript">
+(function() {
+    // Get the current page URL without query parameters
+    var pageUrl = window.location.pathname;
+
+    // Send the page view data asynchronously
+    // This happens after the page has loaded, so it doesn't affect page load time
+    if (window.fetch) {
+        // Modern browsers - use fetch API
+        fetch('/includes/page_counter.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'page_url=' + encodeURIComponent(pageUrl),
+            // Use no-cors mode to avoid CORS issues
+            mode: 'no-cors',
+            // Don't wait for the response
+            cache: 'no-cache',
+            // Don't send cookies
+            credentials: 'omit'
+        }).catch(function(error) {
+            // Silently fail - we don't want to affect the user experience
+            console.log('Page counter error:', error);
+        });
+    } else {
+        // Fallback for older browsers - use XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/includes/page_counter.php', true); // true for asynchronous
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send('page_url=' + encodeURIComponent(pageUrl));
+    }
+})();
+</script>
+
+</body></html>

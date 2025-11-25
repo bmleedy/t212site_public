@@ -1,0 +1,50 @@
+<script type="text/javascript">
+var strTable;
+var user_id;
+	
+function validateField(strFieldID, strLabel) {
+	var fld = document.getElementById(strFieldID);
+	if ((fld.type=="text")||(fld.type=="select-one")) {
+		if (fld.value =="") {
+			alert(strLabel + " is required.");
+			fld.focus();
+			return false;
+		}
+	}
+}
+	
+	
+$(document).ready(function () {
+	user_id = document.getElementById('user_id').value;
+	var fieldData = {
+		"id": user_id
+	};
+	$.ajax({
+		url: "api/getfamily.php",
+		type: "post",
+		data: fieldData,
+		datatype: 'json',
+		error: function (data) {
+			console.log("fail");
+			console.log(data);
+		},
+		success: function (data) {
+			console.log("success");
+			console.log(data);
+			strTable = "";
+			$('#userdata').empty();        
+			$("#addressData").append("<br /><p>Your address:</h4>");
+			$("#addressData").append(data.addressData);
+		}
+	});
+})
+</script>
+
+
+<div class="row"\>
+	<div class="large-12 columns">
+	<div id='addressData'></div>	
+	</div>
+</div>
+
+

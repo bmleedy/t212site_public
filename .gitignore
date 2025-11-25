@@ -1,0 +1,37 @@
+
+# Ignore registration logs
+public_html/registration_logs/*.log
+public_html/profile_pics/*.jpg
+public_html/profile_pics/*.jpeg
+
+# Ignore common system files
+*.log
+*.tmp
+*.swp
+*.bak
+*.txt
+
+# Ignore IDE/editor folders
+.vscode/
+.idea/
+
+# Ignore node modules (if using Node.js)
+node_modules/
+
+# Ignore composer dependencies (if using PHP Composer)
+vendor/
+
+# Ignore environment files
+.env
+.env.*
+
+# Ignore credentials file
+public_html/CREDENTIALS.json
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore backup files
+*~
+CREDENTIALS_REFACTORING_REPORT.md

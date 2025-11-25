@@ -1,0 +1,25 @@
+# Enable PHP handling and basic security for Apache in the API directory
+
+AddType application/x-httpd-php .php
+AddHandler application/x-httpd-php .php
+
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+Options -Indexes
+
+<Files .htaccess>
+  Require all denied
+</Files>
+
+AddDefaultCharset UTF-8
+
+<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh|bak|inc|swp|dist)$">
+  Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(php)$">
+  Require all granted
+</FilesMatch>
+

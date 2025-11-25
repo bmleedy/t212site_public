@@ -1,0 +1,43 @@
+<link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css"/>
+<script src="js/jquery.js"></script>
+<script src="js/jquery.datetimepicker.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  
+<script type="text/javascript">
+var user_id;
+var strTable;
+
+$(document).ready(function(){
+  	user_id = document.getElementById('user_id').value;
+		is_sa = document.getElementById('is_sa').value;
+		is_wm = document.getElementById('is_wm').value;
+		is_oe = document.getElementById('is_oe').value;
+		is_ue = document.getElementById('is_ue').value;
+		user_type = document.getElementById('user_type').value;
+		if (user_type=="Scout") {
+			strProfile = "Update your contact information, Patrol, Rank & Leadership.";
+		} else {
+			strProfile = "Update your contact information and / or your Merit Badge Counseling list.";
+		}
+		strTable = "<h5>Links</h5>" ;
+		strTable = strTable + "<div class='row'><div class='large-4 columns'><a href='User.php?id="+user_id+"'><i class='fi-widget' style='font-size:20px' /> My Profile</a></div>";
+		strTable = strTable + "<div class='large-8 columns'>" + strProfile + "</div></div><hr>";
+		if (user_type=="Scout") {
+			strTable = strTable + "<div class='row'><div class='large-4 columns'><a href='Patrol.php?id='><i class='fi-widget' style='font-size:20px' /> My Patrol</a></div>";
+		} else {
+			strTable = strTable + "<div class='row'><div class='large-4 columns'><a href='EventPay.php'><p><i class='fi-dollar' style='font-size:20px' /> Pay or Approve Outings</p></a></div>";
+		}
+		
+		//strTable = strTable + "</div>";
+		//strTable = strTable + 
+		//strTable = strTable + 
+		
+		$("#data").append(strTable);
+})
+</script>
+<form id="myForm">
+	<div id="data"></div>
+</form>
+

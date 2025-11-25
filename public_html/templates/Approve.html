@@ -1,0 +1,78 @@
+<script type="text/javascript">
+var reg_id;
+var user_id;
+var event_id;
+var http_ref;
+
+function approve() {
+  var spec = document.getElementById('spec').value
+  var medical = document.getElementById('medical').value
+  var fieldData = {
+    "reg_id": reg_id,
+    "spec_instructions": spec,
+    "medical": medical,
+    "user_id": user_id
+  };
+  $.ajax({
+    url: "api/approve.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function (XMLHttpRequest, textStatus, errorThrown) {
+      console.log("error .ready");
+    },
+    success: function (data) {
+      if (data["status"] == "Success") {
+        alert(data["message"]);
+        if (http_ref.indexOf('event.php') > -1) {
+          location.href = "Event.php?id=" + event_id;
+        } else {
+          location.href = "EventPay.php";
+        }
+      }
+    }
+  });
+}
+
+function setButtons() {
+	buttonData = '<div class="row"><div class="large-12 columns">';
+	buttonData = buttonData + '<a onclick=approve() class="round small button">I Approve</a>' ;
+	buttonData = buttonData + '<div class="clearfix"></div></div></div>';
+	$('#userButtons').empty();
+	$('#userButtons').append(buttonData);
+}
+
+$(document).ready(function () {
+  reg_id = document.getElementById('reg_id').value;
+  user_id = document.getElementById('user_id').value;
+  http_ref = document.getElementById('http_ref').value;
+  var fieldData = {
+    "reg_id": reg_id,
+    "user_id": user_id
+  };
+  $.ajax({
+    url: "api/getapprove.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function (XMLHttpRequest, textStatus, errorThrown) {
+      console.log("error .ready");
+    },
+    success: function (data) {
+      console.log(data);
+      $('#data').append(data['data']);
+      event_id = data['event_id'];
+      setButtons();
+    }
+  });
+  //setButtons();
+  $(document).foundation();
+})
+</script>
+<form id="myForm">
+
+	<div id="data"></div>
+	<div id="userButtons"></div>
+	
+</form>
+

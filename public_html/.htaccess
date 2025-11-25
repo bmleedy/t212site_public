@@ -1,0 +1,33 @@
+# Enable PHP handling and basic security for Apache
+
+# Make sure .php files are executed as PHP
+AddType application/x-httpd-php .php
+AddHandler application/x-httpd-php .php
+
+<FilesMatch \.php$>
+    SetHandler application/x-httpd-php
+</FilesMatch>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect .htaccess itself
+<Files .htaccess>
+  Require all denied
+</Files>
+
+# Allow overrides (if not set in main config)
+# AllowOverride All
+
+# Optional: Set default charset
+AddDefaultCharset UTF-8
+
+# Optional: Block access to sensitive files
+<FilesMatch "\.(htaccess|htpasswd|ini|phps|fla|psd|log|sh|bak|inc|swp|dist)$">
+  Require all denied
+</FilesMatch>
+
+# Block access to credentials file
+<Files "CREDENTIALS.json">
+  Require all denied
+</Files>

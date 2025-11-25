@@ -1,0 +1,195 @@
+<link rel="stylesheet" type="text/css" href="css/jquery.datetimepicker.css"/>
+<script src="js/jquery.js"></script>
+<script src="js/jquery.datetimepicker.js"></script>
+
+<script type="text/javascript">
+var event_id;
+var strTable;
+var outing_name;
+
+function toggleDiv(divName) {
+	$('#'+divName).toggle();
+}
+
+function register(strAction, strUserID, strUserType, strUserName) {
+	if (!confirm("Please click ok if you are " + strUserName)) {
+		return false;  
+	} else if (strAction == "cancel") {
+		if (!confirm(strUserName + "\n\n Do you want to be removed from attending " + outing_name + "?\n\n Click OK if you want to be removed, CANCEL if you still wish to go.")) {
+			return false;
+		}
+	} else if (!confirm(strUserName + "\n\n Do you want to attend the " + outing_name + "?\n\n Click OK if you want to sign up, CANCEL if you do not.")) {
+		return false;  
+	}
+	if (strAction != "cancel") {
+		if (strUserType == "Scout") {
+			seat_belts = "0";
+			paid = "0";
+		} else {
+			paid = "1";
+			var seat_belts = prompt("If you can drive, please enter the total number of seat belts (including driver's). Enter '0' if you cannot drive.", "0");
+			if (seat_belts == null) { 
+				return false; 
+			}
+		}
+	}
+	var fieldData = {
+		"action": strAction,
+		"user_id": strUserID,
+		"pay_id": 0,
+		"user_type": strUserType,
+		"seat_belts": seat_belts,
+		"paid" : 0,
+		"event_id": event_id
+	};
+	$.ajax({
+		url: "api/register.php",
+		type: "post",
+		datatype: 'json',
+		data: fieldData,
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			console.log(errorThrown);
+		},
+		success: function (data) {
+			if (data["status"] == "Success") {
+				alert(data["message"]);
+			  	if ((strAction == 'add') && (strUserType == 'Scout')) {
+					sendParentsEmail(strUserID, strUserName);
+				}
+				location.reload();
+		  	}
+		}
+	})
+}
+
+function approve(regID) {
+	strURL = "Approve.php?id=" + regID; 
+	location.href = strURL;
+}
+
+function sendParentsEmail(strUserID, strUserName) {
+	var fieldData = {
+		"sendTo" : "scout parents",
+		"user_id" : strUserID,
+		"from" : "donotreply@t212.org",
+		"fromName": "Troop 212 Website",
+		"subject": strUserName + " signed up for a Troop 212 Event",
+		"message": strUserName + " has signed up for the " + outing_name + ". You can approve and pay (if applicable) by clicking the link below. Thanks!",
+		"link" : "http://www.t212.org/Event.php?id=" + event_id
+	};
+	$.ajax({
+		url: "api/sendmail.php",
+		type: "post",
+		data: fieldData,
+		datatype: 'json',
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			console.log("error .ready");
+		},
+		success: function(data){
+			console.log(data);
+		}
+	});
+}
+
+function writeRow(element, index, array) {
+	first = element["first"];
+	last = element["last"];
+	userID = element["id"];
+	patrolName = element["patrol"];
+	seat_belts = element["seat_belts"];
+	user_type = element["user_type"];
+	if (element["attending"] != '0') {
+		if (patrolName == "Adults") {
+			status = "Attending!";
+			action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+		} else if (element["approved"] != '0') {
+			if (cost != 0) {
+				if (element["paid"] == "0") {
+					status = "Need Payment";
+					action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+				} else {
+					status = "Completed!";
+					action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+				}	
+			} else {
+				status = "Completed!";
+				action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+			}	 
+		} else {
+			status = "Need Approval";
+			action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+		}
+	} else {
+		status = "Not Attending";
+		action = "<a onclick=register('add','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Sign Up!</a>";
+	}	
+	if (patrolName=="Adults") {
+		seat_belts = element["seat_belts"];
+	} else {
+		seat_belts = "N/A";
+	}
+	strTable = strTable + "<tr>";
+	if (patrolName=="Adults") {
+		strTable = strTable + writeCell(first + " " + last, "250px");
+		strTable = strTable + writeCell(seat_belts, "125px");
+		strTable = strTable + writeCell(status, "125px"); 
+		strTable = strTable + writeCell(action, "125px"); 
+	} else {
+		strTable = strTable + writeCell(patrolName, "125px");
+		strTable = strTable + writeCell(first + " " + last, "250px");
+		strTable = strTable + writeCell(status, "175px"); 
+		strTable = strTable + writeCell(action, "125px"); 
+	}	
+	strTable = strTable + "</tr>";
+}
+	
+function writeCell(strData, strWidth, strLink) {
+ 	if (strLink == null) {
+ 	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+ 	} else {
+ 	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+ 	}
+}
+
+$(document).ready(function(){
+  	event_id = document.getElementById('id').value;
+	var fieldData = {
+		"event_id": event_id
+	};
+	$.ajax({
+		url: "api/getsignups.php",
+		type: "post",
+		data: fieldData,
+		datatype: 'json',
+		error: function(data) {
+			console.log(data);
+		},
+		success: function (data) {
+			console.log(data);
+			$('#outingData').append(data['data']);
+			outing_name = data['outing_name'];
+			cost = data['cost'];
+			if (data['scouts']) {
+				strTable = "<h5>Scouts</h5><table><tr><th>Patrol</th><th>Name</th><th>Attendance</th><th>Action</th></tr>";
+				data['scouts'].forEach(writeRow);
+				strTable = strTable + "</table>" ;
+				$("#attendingData").append(strTable);			  
+			}
+			if (data['adults']) {
+				strTable="<h5>Adults</h5><table><tr><th>Name</th><th>Seat Belts</th><th>Attendance</th><th>Action</th></tr>";
+				data['adults'].forEach(writeRow);
+				strTable = strTable + "</table>" ;
+				$("#attendingData").append(strTable);
+			}
+     		}
+	});
+})
+</script>
+<form id="myForm">
+	<div id="outingData">
+		<a onclick="location.href='/EventSignups.php'" class='round tiny button'>Back to Events</a>
+	</div>
+	<div id="ics"></div>
+	<div id="attendingData"></div>
+</form>
+

@@ -1,0 +1,127 @@
+<?php	
+	$serverName = $_SERVER['SERVER_NAME'];
+	$serverPort = $_SERVER['SERVER_PORT'];
+	$url = dirname('http://' . $serverName . ':' . $serverPort . $_SERVER['REQUEST_URI']);
+	$returnUrl = $url . "/PPReturnPage.php";
+	$cancelUrl =  $url . "/EventPay.php";
+?>
+
+<script type="text/javascript">
+  var strTable;
+  var user_id;
+  function writeCell(strData, strWidth, strLink) {
+  	if (strLink == null) {
+  	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+  	} else {
+  	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+  	}
+  }
+
+  function writeRowApprove(element, index, array) {
+    strStart = element['startdate'];
+    strStart = strStart.replace(/-/g, "/");
+    var startDate = new Date(strStart);
+
+    strTable = strTable + "<tr>";
+    strTable = strTable + writeCell(element["scoutname"], "150px");
+    strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
+    strTable = strTable + writeCell(startDate.toDateString(), "150px");
+    strTable = strTable + writeCell("$" + element["cost"], "75px");
+    strTable = strTable + writeCell("<a onclick=approve('" + element["regid"] + "') class='round tiny button'>Approve</a>", "100px");
+    strTable = strTable + "</tr>";
+  }
+
+  function approve(regID) {
+    strURL = "Approve.php?id=" + regID;
+    location.href = strURL;
+  }
+
+  function writeRow(element, index, array) {
+		strStart = element['startdate'];
+		strStart = strStart.replace(/-/g,"/");
+		var startDate = new Date(strStart);
+		
+		strTable = strTable + "<tr>";
+		strTable = strTable + writeCell("<input type='checkbox' name='pay_cb' id='" + element['regid'] + "' value='" + element['cost'] + "'>", "50px");
+		strTable = strTable + writeCell(element["scoutname"], "150px");
+		strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
+    strTable = strTable + writeCell(startDate.toDateString(), "150px" );
+    strTable = strTable + writeCell( "$" + element["cost"], "75px" );
+    strTable = strTable + "</tr>";
+  }
+  function pay() {
+    var reg_ids='';
+    var total=0;
+    var pay_cb = $('[type=checkbox]');
+    for (i = 0; i < pay_cb.length; i++) {
+      if (pay_cb[i].checked) {
+        if (reg_ids == '') {
+          reg_ids = pay_cb[i].id;
+        } else {
+          reg_ids = reg_ids + ',' + pay_cb[i].id;
+        }
+        total = total + Number(pay_cb[i].value);
+      }
+    }
+    document.getElementById('amount_0').value = total;
+    document.getElementById('reg_ids').value = reg_ids;
+    document.getElementById("myForm").submit();
+    return false;
+  }
+
+	function setButtons(showEdit) {
+	  buttonData = '<button type="button" onclick="pay();" class="tiny button round">Pay for Selected</button>';
+	  $('#userButtons').append(buttonData);
+	}
+
+	$(document).ready(function () {
+	  strID = document.getElementById('user_id').value;
+	  var fieldData = {
+	    "id": strID
+	  };
+	  $.ajax({
+	    url: "api/getpasteventpay.php",
+	    type: "post",
+	    data: fieldData,
+	    datatype: 'json',
+	    error: function (data) {
+	      console.log(data);
+	    },
+	    success: function (data) {
+	      console.log(data);
+	      strTable = "";
+	      $('#userdata').empty();
+	      
+	      if (data.eventDataPay == null) {
+	        $("#userdataPay").append("<p>You do not have any Events to Pay for.</p>");
+	      } else {
+	        $("#userdataPay").append("<p>Please select all events you would like to pay for and click the Pay button.</p>");
+	        strTable = "<table><tr><th></th><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
+	        data['eventDataPay'].forEach(writeRow);
+	        strTable = strTable + "</table>";
+	        $("#userdataPay").append(strTable);
+	        setButtons();
+	      }
+	    }
+	  });
+	})
+</script>
+<form id="myForm" action="PayPal/SimplePay.php" method="post">
+
+<input type="hidden" name="returnUrl" id="returnUrl" value="<?php echo $returnUrl;?>" />
+<input type="hidden" name="cancelUrl" id="cancelUrl" value="<?php echo $cancelUrl;?>" />
+<input type="hidden" name="currencyCode" value="USD" />
+<input type="hidden" name="receiverEmail[]" id="receiveremail_0" value="drochette@t212.org">
+<input type="hidden" name="receiverAmount[]" id="amount_0" value="1.0" class="smallfield">
+<input type="hidden" name="reg_ids" id="reg_ids" value="" />
+
+<div class="row"\>
+	<div class="large-12 columns">
+    <br /><h4>Events which require payment</h4>
+		<div id='userdataPay'></div>
+    <div id="userButtons"></div>
+		
+	</div>
+</div>
+	
+</form>

@@ -1,0 +1,58 @@
+<script type="text/javascript">
+  var strTable;
+  var user_id;
+  function writeCell(strData, strWidth, strLink) {
+    if (strLink == null) {
+      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
+    } else {
+      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
+    }
+  }
+
+  function writeRow(element, index, array) {
+    strStart = element['startdate'];
+    strStart = strStart.replace(/-/g, "/");
+    var startDate = new Date(strStart);
+
+    strTable = strTable + "<tr>";
+    strTable = strTable + writeCell(element["username"], "150px");
+    strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
+    strTable = strTable + writeCell(startDate.toDateString(), "150px");
+    strTable = strTable + writeCell("$" + element["cost"], "75px");
+    strTable = strTable + "</tr>";
+  }
+
+  $(document).ready(function () {
+    reg_ids = document.getElementById('reg_ids').value;
+    var fieldData = {
+      "reg_ids": reg_ids
+    };
+    $.ajax({
+      url: "api/ppupdate2.php",
+      type: "post",
+      data: fieldData,
+      datatype: 'json',
+      error: function (XMLHttpRequest, textStatus, errorThrown) {
+        console.log(errorThrown);
+        console.log(textStatus);
+      },
+      success: function (data) {
+        console.log(data);
+        strTable = "";
+        $('#userdata').empty();
+        $("#userdata").append('<p>Congratulations! You have paid for the following events. Thanks!</p>');
+        strTable = "<table><tr><th>Participant</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
+        data['eventData'].forEach(writeRow);
+        strTable = strTable + "</table>";
+        $("#userdata").append(strTable);
+      }
+    });
+  })
+</script>
+
+<div class="row"\>
+	<div class="large-12 columns">
+		<div id="userButtons"></div>
+		<div id='userdata'></div>
+	</div>
+</div>
