@@ -1,0 +1,19 @@
+<script src="js/jquery.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	var user_id = document.getElementById('user_id').value;
+
+	// Display page title and basic structure
+	$('#attendanceContent').append('<h3>Attendance Tracker</h3>');
+	$('#attendanceContent').append('<p>Welcome to the Attendance Tracker. Select a patrol to view and record attendance.</p>');
+
+	console.log("Attendance page loaded for user ID: " + user_id);
+});
+</script>
+
+<div class="row">
+	<div class="large-12 columns">
+		<div id="attendanceContent"></div>
+	</div>
+</div>

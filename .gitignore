@@ -35,3 +35,4 @@ Thumbs.db
 # Ignore backup files
 *~
 CREDENTIALS_REFACTORING_REPORT.md
+attendance_site_spec.md
