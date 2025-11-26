@@ -14,6 +14,9 @@ $(document).ready(function() {
 	// Add patrol selector section
 	$('#attendanceContent').append('<div class="row"><div class="large-12 columns"><label>Select Patrol:</label><select id="patrolSelector"><option value="">Loading patrols...</option></select></div></div>');
 
+	// Add members table section (initially hidden)
+	$('#attendanceContent').append('<div class="row" id="membersTableContainer" style="display:none;"><div class="large-12 columns"><div id="membersTable"></div></div></div>');
+
 	// Load patrols from database
 	loadPatrols();
 
@@ -50,10 +53,62 @@ function loadPatrols() {
 				$('#patrolSelector').on('change', function() {
 					selectedPatrolId = $(this).val();
 					console.log("Patrol selected: " + selectedPatrolId);
-					// This will be used in the next step to load patrol members
+
+					// Load patrol members when patrol is selected
+					if (selectedPatrolId && selectedPatrolId !== '0') {
+						loadPatrolMembers(selectedPatrolId);
+					} else {
+						// Hide table if no patrol or "None" selected
+						$('#membersTableContainer').hide();
+					}
 				});
 			} else {
 				$('#patrolSelector').html('<option value="">Error: ' + (data.message || 'Unknown error') + '</option>');
+			}
+		}
+	});
+}
+
+function loadPatrolMembers(patrolId) {
+	console.log("Loading members for patrol: " + patrolId);
+
+	// Show loading message
+	$('#membersTable').html('<p>Loading patrol members...</p>');
+	$('#membersTableContainer').show();
+
+	$.ajax({
+		url: "api/getpatrolmembers.php",
+		type: "post",
+		data: { patrol_id: patrolId },
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error loading patrol members:", errorThrown);
+			$('#membersTable').html('<p class="alert-box alert">Error loading patrol members. Please try again.</p>');
+		},
+		success: function(data) {
+			console.log("Patrol members loaded:", data);
+
+			if (data.status === "Success") {
+				if (data.members && data.members.length > 0) {
+					// Build the table
+					var tableHTML = '<h5>Patrol Members</h5>';
+					tableHTML += '<table>';
+					tableHTML += '<thead><tr><th>Name</th></tr></thead>';
+					tableHTML += '<tbody>';
+
+					data.members.forEach(function(member) {
+						tableHTML += '<tr>';
+						tableHTML += '<td>' + member.first + ' ' + member.last + '</td>';
+						tableHTML += '</tr>';
+					});
+
+					tableHTML += '</tbody></table>';
+					$('#membersTable').html(tableHTML);
+				} else {
+					$('#membersTable').html('<p>No members found in this patrol.</p>');
+				}
+			} else {
+				$('#membersTable').html('<p class="alert-box alert">Error: ' + (data.message || 'Unknown error') + '</p>');
 			}
 		}
 	});
