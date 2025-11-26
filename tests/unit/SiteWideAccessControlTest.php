@@ -533,6 +533,16 @@ if (assert_true(
     $failed++;
 }
 
+// Check for Attendance Tracker link (wm, sa, or pl)
+if (assert_true(
+    preg_match('/\(in_array\("wm",\$access\)\).*\(in_array\("sa",\$access\)\).*\(in_array\("pl",\$access\)\).*Attendance\.php/s', $mobileMenuContents),
+    "Mobile menu: Attendance Tracker link requires 'wm', 'sa', or 'pl' access"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
 echo "\n";
 
 // ============================================================================
