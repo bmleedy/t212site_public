@@ -4,8 +4,16 @@ session_start();
 require "includes/authHeader.php";
 
 $user_id = $_SESSION['user_id'];
+
+// Check if user has permission to access this page
+// Allowed: webmaster (wm), scoutmaster (sa), patrol leaders (pl)
+$hasAccess = (in_array("wm", $access) || in_array("sa", $access) || in_array("pl", $access));
+
+// Check if user has extended permissions (scoutmaster or webmaster can edit past dates)
+$canEditPastDates = (in_array("wm", $access) || in_array("sa", $access));
 ?>
 <input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
+<input type="hidden" id="canEditPastDates" value="<?php echo $canEditPastDates ? '1' : '0'; ?>">
 <br>
 <div class='row'>
 	<?php
@@ -19,7 +27,12 @@ $user_id = $_SESSION['user_id'];
 		<div class="panel">
 			<?php
 			if ($login->isUserLoggedIn() == true) {
+				if (!$hasAccess) {
+					echo "<h3>Access Denied</h3>";
+					echo "<p>You are not authorized to view this page. This page is only available to patrol leaders, scoutmasters, and webmasters.</p>";
+				} else {
 					include("templates/Attendance.html");
+				}
 			} else {
 					include("login/views/user_login.php");
 			}
