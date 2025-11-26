@@ -4,13 +4,39 @@
 var user_id;
 var selectedPatrolId = null;
 var defaultPatrolId = null;
+var selectedDate = null; // Currently selected date for attendance
+var canEditPastDates = false; // Whether user can edit dates other than today
 
 $(document).ready(function() {
 	user_id = document.getElementById('user_id').value;
+	canEditPastDates = (document.getElementById('canEditPastDates').value === '1');
 
 	// Display page title and basic structure
 	$('#attendanceContent').append('<h3>Attendance Tracker</h3>');
 	$('#attendanceContent').append('<p>Welcome to the Attendance Tracker. Select a patrol to view and record attendance.</p>');
+
+	// Add date selector section
+	$('#attendanceContent').append('<div class="row"><div class="large-12 columns"><label>Attendance Date:</label><input type="date" id="dateSelector" /></div></div>');
+
+	// Set date selector to current date in Pacific Time
+	setCurrentDate();
+
+	// If user cannot edit past dates, disable the date selector
+	if (!canEditPastDates) {
+		$('#dateSelector').prop('disabled', true);
+		$('#dateSelector').attr('title', 'Patrol leaders can only record attendance for the current date. To update past attendance records, please contact your Scoutmaster or Webmaster.');
+	} else {
+		// For scoutmasters/webmasters, add change event handler
+		$('#dateSelector').on('change', function() {
+			selectedDate = $(this).val();
+			console.log("Date changed to: " + selectedDate);
+
+			// Reload patrol members for the new date if a patrol is selected
+			if (selectedPatrolId && selectedPatrolId !== '0') {
+				loadPatrolMembers(selectedPatrolId);
+			}
+		});
+	}
 
 	// Add patrol selector section
 	$('#attendanceContent').append('<div class="row"><div class="large-12 columns"><label>Select Patrol:</label><select id="patrolSelector"><option value="">Loading patrols...</option></select></div></div>');
@@ -23,6 +49,29 @@ $(document).ready(function() {
 
 	console.log("Attendance page loaded for user ID: " + user_id);
 });
+
+function setCurrentDate() {
+	// Get current date in Pacific Time Zone
+	// JavaScript Date objects use local time, so we need to calculate Pacific Time offset
+	var now = new Date();
+
+	// Convert to Pacific Time (UTC-8 or UTC-7 depending on DST)
+	// Using toLocaleString to get the date in Pacific timezone
+	var pacificTimeString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+	var pacificDate = new Date(pacificTimeString);
+
+	// Format as YYYY-MM-DD for the date input
+	var year = pacificDate.getFullYear();
+	var month = String(pacificDate.getMonth() + 1).padStart(2, '0');
+	var day = String(pacificDate.getDate()).padStart(2, '0');
+	var dateString = year + '-' + month + '-' + day;
+
+	// Set the date selector value
+	$('#dateSelector').val(dateString);
+	selectedDate = dateString;
+
+	console.log("Current date in Pacific Time: " + dateString);
+}
 
 function getUserDefaultPatrol() {
 	$.ajax({
@@ -113,7 +162,10 @@ function loadPatrolMembers(patrolId) {
 	$.ajax({
 		url: "api/getpatrolmembers.php",
 		type: "post",
-		data: { patrol_id: patrolId },
+		data: {
+			patrol_id: patrolId,
+			date: selectedDate // Send selected date to get attendance for that specific date
+		},
 		datatype: 'json',
 		error: function(errorThrown) {
 			console.error("Error loading patrol members:", errorThrown);
@@ -132,18 +184,70 @@ function loadPatrolMembers(patrolId) {
 
 					data.members.forEach(function(member) {
 						tableHTML += '<tr>';
-						tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + member.user_id + '" /></td>';
+						var checked = member.was_present ? ' checked' : '';
+						tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + member.user_id + '"' + checked + ' /></td>';
 						tableHTML += '<td>' + member.first + ' ' + member.last + '</td>';
 						tableHTML += '</tr>';
 					});
 
 					tableHTML += '</tbody></table>';
 					$('#membersTable').html(tableHTML);
+
+					// Set up click event handlers for checkboxes
+					$('.attendance-checkbox').on('change', function() {
+						var checkbox = $(this);
+						var userId = checkbox.data('user-id');
+						var wasPresent = checkbox.is(':checked');
+
+						console.log("Attendance checkbox changed - User: " + userId + ", Present: " + wasPresent);
+
+						// Update attendance via AJAX
+						updateAttendance(userId, wasPresent, checkbox);
+					});
 				} else {
 					$('#membersTable').html('<p>No members found in this patrol.</p>');
 				}
 			} else {
 				$('#membersTable').html('<p class="alert-box alert">Error: ' + (data.message || 'Unknown error') + '</p>');
+			}
+		}
+	});
+}
+
+function updateAttendance(userId, wasPresent, checkbox) {
+	// Disable checkbox while updating
+	checkbox.prop('disabled', true);
+
+	$.ajax({
+		url: "api/updateattendance.php",
+		type: "post",
+		data: {
+			user_id: userId,
+			was_present: wasPresent,
+			date: selectedDate // Send selected date for attendance update
+		},
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error updating attendance:", errorThrown);
+			alert("Error updating attendance. Please try again.");
+
+			// Re-enable checkbox and revert state on error
+			checkbox.prop('disabled', false);
+			checkbox.prop('checked', !wasPresent);
+		},
+		success: function(data) {
+			console.log("Attendance update response:", data);
+
+			// Re-enable checkbox
+			checkbox.prop('disabled', false);
+
+			if (data.status === "Success") {
+				console.log("Attendance " + data.action + " successfully for user " + userId);
+				// Visual feedback could be added here (e.g., brief highlight)
+			} else {
+				alert("Error: " + (data.message || 'Failed to update attendance'));
+				// Revert checkbox state on error
+				checkbox.prop('checked', !wasPresent);
 			}
 		}
 	});

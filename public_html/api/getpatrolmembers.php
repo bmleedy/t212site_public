@@ -10,6 +10,7 @@ header('Content-Type: application/json');
 require 'connect.php';
 
 $patrol_id = isset($_POST['patrol_id']) ? $_POST['patrol_id'] : null;
+$date = isset($_POST['date']) ? $_POST['date'] : null;
 
 if (!$patrol_id || $patrol_id === '0') {
 	// No patrol selected or "None" selected
@@ -19,6 +20,13 @@ if (!$patrol_id || $patrol_id === '0') {
 
 // Get patrol members - only active scouts
 $members = array();
+
+// Get date for attendance lookup - use provided date or current date in Pacific Time Zone
+if (!$date) {
+	$timezone = new DateTimeZone('America/Los_Angeles');
+	$datetime = new DateTime('now', $timezone);
+	$date = $datetime->format('Y-m-d');
+}
 
 $query = "SELECT u.user_id, u.user_first, u.user_last
           FROM users AS u
@@ -31,10 +39,25 @@ $results = $mysqli->query($query);
 
 if ($results) {
 	while ($row = $results->fetch_assoc()) {
+		$user_id = $row['user_id'];
+		$was_present = false;
+
+		// Check if attendance exists for today
+		$attendanceQuery = "SELECT was_present FROM attendance_daily
+		                    WHERE user_id = " . intval($user_id) . "
+		                    AND date = '" . $mysqli->real_escape_string($date) . "'";
+		$attendanceResults = $mysqli->query($attendanceQuery);
+
+		if ($attendanceResults && $attendanceResults->num_rows > 0) {
+			$attendanceRow = $attendanceResults->fetch_assoc();
+			$was_present = (bool)$attendanceRow['was_present'];
+		}
+
 		$members[] = [
 			'user_id' => $row['user_id'],
 			'first' => $row['user_first'],
-			'last' => $row['user_last']
+			'last' => $row['user_last'],
+			'was_present' => $was_present
 		];
 	}
 }
