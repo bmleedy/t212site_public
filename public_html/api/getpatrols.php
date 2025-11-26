@@ -9,11 +9,16 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 header('Content-Type: application/json');
 require 'connect.php';
 
-// Get all patrols from the patrols table
+// Get patrols that have active scouts
 $patrols = array();
 
-// Query patrols table ordered by sort column (common pattern in this codebase)
-$query = "SELECT id, label FROM patrols ORDER BY sort";
+// Query patrols table, but only include patrols with active scouts
+$query = "SELECT DISTINCT p.id, p.label, p.sort
+          FROM patrols AS p
+          INNER JOIN scout_info AS si ON p.id = si.patrol_id
+          INNER JOIN users AS u ON si.user_id = u.user_id
+          WHERE u.user_type = 'Scout'
+          ORDER BY p.sort";
 $results = $mysqli->query($query);
 
 if ($results) {

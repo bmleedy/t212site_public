@@ -56,7 +56,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolsContents, 'SELECT id, label FROM patrols') !== false,
+    strpos($getPatrolsContents, 'FROM patrols') !== false,
     "getpatrols.php queries patrols table"
 )) {
     $passed++;
@@ -65,7 +65,27 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolsContents, 'ORDER BY sort') !== false,
+    strpos($getPatrolsContents, 'INNER JOIN scout_info') !== false &&
+    strpos($getPatrolsContents, 'INNER JOIN users') !== false,
+    "getpatrols.php joins scout_info and users tables"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
+    strpos($getPatrolsContents, "user_type = 'Scout'") !== false,
+    "getpatrols.php filters for patrols with active scouts only"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
+    strpos($getPatrolsContents, 'ORDER BY') !== false &&
+    strpos($getPatrolsContents, 'sort') !== false,
     "getpatrols.php orders by sort column"
 )) {
     $passed++;
