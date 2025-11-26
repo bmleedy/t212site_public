@@ -335,6 +335,24 @@ if (assert_true(
     $failed++;
 }
 
+if (assert_true(
+    strpos($attendanceTemplateContents, 'title="Mark the scout present for the selected date') !== false,
+    "Table header 'Present' has tooltip with instructions"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
+    strpos($attendanceTemplateContents, 'ask your webmaster to make updates for any day') !== false,
+    "Table header tooltip instructs to ask webmaster for past dates"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
 echo "\n";
 
 // ============================================================================
