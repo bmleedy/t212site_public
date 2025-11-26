@@ -3,6 +3,7 @@
 <script type="text/javascript">
 var user_id;
 var selectedPatrolId = null;
+var defaultPatrolId = null;
 
 $(document).ready(function() {
 	user_id = document.getElementById('user_id').value;
@@ -17,11 +18,33 @@ $(document).ready(function() {
 	// Add members table section (initially hidden)
 	$('#attendanceContent').append('<div class="row" id="membersTableContainer" style="display:none;"><div class="large-12 columns"><div id="membersTable"></div></div></div>');
 
-	// Load patrols from database
-	loadPatrols();
+	// Get user's default patrol, then load patrols
+	getUserDefaultPatrol();
 
 	console.log("Attendance page loaded for user ID: " + user_id);
 });
+
+function getUserDefaultPatrol() {
+	$.ajax({
+		url: "api/getuserpatrol.php",
+		type: "post",
+		data: { user_id: user_id },
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error getting user's default patrol:", errorThrown);
+			// Continue loading patrols even if we can't get default
+			loadPatrols();
+		},
+		success: function(data) {
+			console.log("User's default patrol:", data);
+			if (data.status === "Success" && data.patrol_id) {
+				defaultPatrolId = data.patrol_id;
+			}
+			// Load patrols after we know the default
+			loadPatrols();
+		}
+	});
+}
 
 function loadPatrols() {
 	$.ajax({
@@ -45,7 +68,12 @@ function loadPatrols() {
 				// Add each patrol as an option
 				if (data.patrols && data.patrols.length > 0) {
 					data.patrols.forEach(function(patrol) {
-						$('#patrolSelector').append('<option value="' + patrol.id + '">' + patrol.label + '</option>');
+						var selected = '';
+						// Set default selection if this patrol matches the user's default
+						if (defaultPatrolId && patrol.id == defaultPatrolId) {
+							selected = ' selected';
+						}
+						$('#patrolSelector').append('<option value="' + patrol.id + '"' + selected + '>' + patrol.label + '</option>');
 					});
 				}
 
@@ -62,6 +90,12 @@ function loadPatrols() {
 						$('#membersTableContainer').hide();
 					}
 				});
+
+				// If a default patrol was set, automatically load its members
+				if (defaultPatrolId) {
+					console.log("Auto-loading members for default patrol: " + defaultPatrolId);
+					loadPatrolMembers(defaultPatrolId);
+				}
 			} else {
 				$('#patrolSelector').html('<option value="">Error: ' + (data.message || 'Unknown error') + '</option>');
 			}
