@@ -17,13 +17,14 @@ if (!$patrol_id || $patrol_id === '0') {
 	die();
 }
 
-// Get patrol members
+// Get patrol members - only active scouts
 $members = array();
 
 $query = "SELECT u.user_id, u.user_first, u.user_last
           FROM users AS u
           INNER JOIN scout_info AS si ON u.user_id = si.user_id
           WHERE si.patrol_id = " . intval($patrol_id) . "
+          AND u.user_type = 'Scout'
           ORDER BY u.user_last, u.user_first";
 
 $results = $mysqli->query($query);

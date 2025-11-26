@@ -139,6 +139,15 @@ if (assert_true(
 }
 
 if (assert_true(
+    strpos($getPatrolMembersContents, "user_type = 'Scout'") !== false,
+    "getpatrolmembers.php filters for Scout user_type only"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
     strpos($getPatrolMembersContents, 'ORDER BY u.user_last, u.user_first') !== false,
     "getpatrolmembers.php orders by last name, first name"
 )) {
