@@ -127,12 +127,12 @@ function loadPatrolMembers(patrolId) {
 					// Build the table
 					var tableHTML = '<h5>Patrol Members</h5>';
 					tableHTML += '<table>';
-					tableHTML += '<thead><tr><th style="width:80px;">Present</th><th>Name</th></tr></thead>';
+					tableHTML += '<thead><tr><th style="width:80px;text-align:center;">Present</th><th>Name</th></tr></thead>';
 					tableHTML += '<tbody>';
 
 					data.members.forEach(function(member) {
 						tableHTML += '<tr>';
-						tableHTML += '<td><input type="checkbox" class="attendance-checkbox" data-user-id="' + member.user_id + '" /></td>';
+						tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + member.user_id + '" /></td>';
 						tableHTML += '<td>' + member.first + ' ' + member.last + '</td>';
 						tableHTML += '</tr>';
 					});
