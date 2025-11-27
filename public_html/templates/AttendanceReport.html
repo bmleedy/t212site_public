@@ -140,7 +140,14 @@ function buildAttendanceTable(scouts) {
 		if (eventName.length > 15) {
 			eventName = eventName.substring(0, 15);
 		}
-		tableHTML += '<th>' + eventName + '</th>';
+
+		// If event has an event_id, link to Event.php
+		if (eventDate.event_id) {
+			tableHTML += '<th><a href="Event.php?id=' + eventDate.event_id + '">' + eventName + '</a></th>';
+		} else {
+			// No link for Troop Meetings (no event_id)
+			tableHTML += '<th>' + eventName + '</th>';
+		}
 	});
 	tableHTML += '</tr></thead>';
 
