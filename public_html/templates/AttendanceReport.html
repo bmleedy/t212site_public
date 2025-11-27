@@ -16,6 +16,9 @@ $(document).ready(function() {
 	$('#reportContent').append('<h3>Attendance Report</h3>');
 	$('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
 
+	// Add CSV download button
+	$('#reportContent').append('<div class="row"><div class="large-12 columns"><button id="downloadCSV" class="button small">Download CSV</button></div></div>');
+
 	// Add date range selectors
 	$('#reportContent').append('<div class="row"><div class="large-6 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div><div class="large-6 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div></div>');
 
@@ -213,6 +216,11 @@ function buildAttendanceTable(scouts) {
 
 	$('#attendanceTable').html(tableHTML);
 
+	// Set up CSV download button click handler
+	$('#downloadCSV').off('click').on('click', function() {
+		downloadCSV(scouts);
+	});
+
 	// Set up click event handlers for checkboxes (only for editable ones)
 	if (canEditAttendance) {
 		$('.attendance-checkbox').on('change', function() {
@@ -270,6 +278,69 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
 			}
 		}
 	});
+}
+
+function downloadCSV(scouts) {
+	console.log("Generating CSV download...");
+
+	// Build CSV content
+	var csvContent = '';
+
+	// Header row 1: Patrol, Name, then dates (MM/DD format)
+	csvContent += 'Patrol,Name';
+	eventDates.forEach(function(eventDate) {
+		var dateParts = eventDate.date.split('-');
+		var displayDate = dateParts[1] + '/' + dateParts[2];
+		csvContent += ',' + displayDate;
+	});
+	csvContent += '\n';
+
+	// Header row 2: empty, empty, then event names (quoted and escaped)
+	csvContent += ',';
+	eventDates.forEach(function(eventDate) {
+		var eventName = eventDate.event_name;
+		// Escape quotes in event name and wrap in quotes
+		eventName = '"' + eventName.replace(/"/g, '""') + '"';
+		csvContent += ',' + eventName;
+	});
+	csvContent += '\n';
+
+	// Data rows: one per scout
+	scouts.forEach(function(scout) {
+		// Patrol name (quoted)
+		var patrol = scout.patrol || 'No Patrol';
+		csvContent += '"' + patrol.replace(/"/g, '""') + '"';
+
+		// Scout name (quoted)
+		var name = scout.first + ' ' + scout.last;
+		csvContent += ',"' + name.replace(/"/g, '""') + '"';
+
+		// Attendance for each date
+		eventDates.forEach(function(eventDate) {
+			var key = scout.user_id + '-' + eventDate.date;
+			var wasPresent = attendanceData[key] || false;
+			csvContent += ',' + (wasPresent ? '✅' : '');
+		});
+
+		csvContent += '\n';
+	});
+
+	// Create blob and download
+	var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+	var link = document.createElement('a');
+	var url = URL.createObjectURL(blob);
+
+	// Format filename with date range
+	var filename = 'attendance_report_' + startDate + '_to_' + endDate + '.csv';
+
+	link.setAttribute('href', url);
+	link.setAttribute('download', filename);
+	link.style.visibility = 'hidden';
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+
+	console.log("CSV download initiated: " + filename);
 }
 </script>
 
