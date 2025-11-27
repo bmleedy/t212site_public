@@ -5,6 +5,7 @@ var user_id;
 var canEditAttendance = false; // Whether user can edit attendance (wm/sa only)
 var startDate = null; // Start date for attendance report
 var endDate = null; // End date for attendance report
+var eventDates = []; // Array of dates with events
 
 $(document).ready(function() {
 	user_id = document.getElementById('user_id').value;
@@ -58,11 +59,41 @@ function setDefaultDateRange() {
 }
 
 function loadScouts() {
-	console.log("Loading scouts...");
+	console.log("Loading scouts and events...");
 
 	// Show loading message
-	$('#attendanceTable').html('<p>Loading scouts...</p>');
+	$('#attendanceTable').html('<p>Loading attendance data...</p>');
 
+	// Load events first, then scouts
+	$.ajax({
+		url: "api/getattendanceevents.php",
+		type: "post",
+		data: {
+			start_date: startDate,
+			end_date: endDate
+		},
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error loading events:", errorThrown);
+			$('#attendanceTable').html('<p class="alert-box alert">Error loading events. Please try again.</p>');
+		},
+		success: function(eventsData) {
+			console.log("Events loaded:", eventsData);
+
+			if (eventsData.status === "Success") {
+				eventDates = eventsData.dates || [];
+				console.log("Found " + eventDates.length + " event dates");
+
+				// Now load scouts
+				loadScoutsWithEvents();
+			} else {
+				$('#attendanceTable').html('<p class="alert-box alert">Error loading events: ' + (eventsData.message || 'Unknown error') + '</p>');
+			}
+		}
+	});
+}
+
+function loadScoutsWithEvents() {
 	$.ajax({
 		url: "api/getscoutsforattendance.php",
 		type: "post",
@@ -76,22 +107,7 @@ function loadScouts() {
 
 			if (data.status === "Success") {
 				if (data.scouts && data.scouts.length > 0) {
-					// Build the table
-					var tableHTML = '<table>';
-					tableHTML += '<thead><tr><th>Patrol</th><th>Name</th></tr></thead>';
-					tableHTML += '<tbody>';
-
-					data.scouts.forEach(function(scout) {
-						tableHTML += '<tr>';
-						tableHTML += '<td>' + scout.patrol + '</td>';
-						tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
-						tableHTML += '</tr>';
-					});
-
-					tableHTML += '</tbody></table>';
-					$('#attendanceTable').html(tableHTML);
-
-					console.log("Displayed " + data.scouts.length + " scouts");
+					buildAttendanceTable(data.scouts);
 				} else {
 					$('#attendanceTable').html('<p>No scouts found.</p>');
 				}
@@ -100,6 +116,53 @@ function loadScouts() {
 			}
 		}
 	});
+}
+
+function buildAttendanceTable(scouts) {
+	// Build the table with dynamic date columns
+	var tableHTML = '<table>';
+
+	// Build header row 1 (dates)
+	tableHTML += '<thead><tr><th rowspan="2">Patrol</th><th rowspan="2">Name</th>';
+	eventDates.forEach(function(eventDate) {
+		// Format date for display (MM/DD)
+		var dateParts = eventDate.date.split('-');
+		var displayDate = dateParts[1] + '/' + dateParts[2];
+		tableHTML += '<th>' + displayDate + '</th>';
+	});
+	tableHTML += '</tr>';
+
+	// Build header row 2 (event names)
+	tableHTML += '<tr>';
+	eventDates.forEach(function(eventDate) {
+		// Truncate event name to first 15 characters
+		var eventName = eventDate.event_name;
+		if (eventName.length > 15) {
+			eventName = eventName.substring(0, 15);
+		}
+		tableHTML += '<th>' + eventName + '</th>';
+	});
+	tableHTML += '</tr></thead>';
+
+	// Build body rows (one per scout)
+	tableHTML += '<tbody>';
+	scouts.forEach(function(scout) {
+		tableHTML += '<tr>';
+		tableHTML += '<td>' + scout.patrol + '</td>';
+		tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
+
+		// Add empty cells for each date (attendance will be added later)
+		eventDates.forEach(function(eventDate) {
+			tableHTML += '<td></td>';
+		});
+
+		tableHTML += '</tr>';
+	});
+	tableHTML += '</tbody></table>';
+
+	$('#attendanceTable').html(tableHTML);
+
+	console.log("Displayed " + scouts.length + " scouts with " + eventDates.length + " event dates");
 }
 </script>
 
