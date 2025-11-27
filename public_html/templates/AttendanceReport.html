@@ -3,6 +3,8 @@
 <script type="text/javascript">
 var user_id;
 var canEditAttendance = false; // Whether user can edit attendance (wm/sa only)
+var startDate = null; // Start date for attendance report
+var endDate = null; // End date for attendance report
 
 $(document).ready(function() {
 	user_id = document.getElementById('user_id').value;
@@ -11,6 +13,12 @@ $(document).ready(function() {
 	// Display page title and basic structure
 	$('#reportContent').append('<h3>Attendance Report</h3>');
 	$('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
+
+	// Add date range selectors
+	$('#reportContent').append('<div class="row"><div class="large-6 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div><div class="large-6 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div></div>');
+
+	// Set default date range
+	setDefaultDateRange();
 
 	// Add table container
 	$('#reportContent').append('<div class="row"><div class="large-12 columns"><div id="attendanceTable"></div></div></div>');
@@ -21,6 +29,33 @@ $(document).ready(function() {
 	console.log("Attendance Report page loaded for user ID: " + user_id);
 	console.log("Can edit attendance: " + canEditAttendance);
 });
+
+function setDefaultDateRange() {
+	// Get current date in Pacific Time Zone
+	var now = new Date();
+	var pacificTimeString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+	var pacificDate = new Date(pacificTimeString);
+
+	// Format end date as YYYY-MM-DD (today)
+	var endYear = pacificDate.getFullYear();
+	var endMonth = String(pacificDate.getMonth() + 1).padStart(2, '0');
+	var endDay = String(pacificDate.getDate()).padStart(2, '0');
+	endDate = endYear + '-' + endMonth + '-' + endDay;
+
+	// Calculate start date (2 months ago)
+	var twoMonthsAgo = new Date(pacificDate);
+	twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+	var startYear = twoMonthsAgo.getFullYear();
+	var startMonth = String(twoMonthsAgo.getMonth() + 1).padStart(2, '0');
+	var startDay = String(twoMonthsAgo.getDate()).padStart(2, '0');
+	startDate = startYear + '-' + startMonth + '-' + startDay;
+
+	// Set the date selector values
+	$('#startDateSelector').val(startDate);
+	$('#endDateSelector').val(endDate);
+
+	console.log("Date range set: " + startDate + " to " + endDate);
+}
 
 function loadScouts() {
 	console.log("Loading scouts...");
