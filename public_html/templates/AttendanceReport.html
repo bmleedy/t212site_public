@@ -1,0 +1,21 @@
+<script src="js/jquery.js"></script>
+
+<script type="text/javascript">
+var user_id;
+
+$(document).ready(function() {
+	user_id = document.getElementById('user_id').value;
+
+	// Display page title and basic structure
+	$('#reportContent').append('<h3>Attendance Report</h3>');
+	$('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
+
+	console.log("Attendance Report page loaded for user ID: " + user_id);
+});
+</script>
+
+<div class="row">
+	<div class="large-12 columns">
+		<div id="reportContent"></div>
+	</div>
+</div>
