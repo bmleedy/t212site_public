@@ -43,11 +43,12 @@ function loadScouts() {
 				if (data.scouts && data.scouts.length > 0) {
 					// Build the table
 					var tableHTML = '<table>';
-					tableHTML += '<thead><tr><th>Name</th></tr></thead>';
+					tableHTML += '<thead><tr><th>Patrol</th><th>Name</th></tr></thead>';
 					tableHTML += '<tbody>';
 
 					data.scouts.forEach(function(scout) {
 						tableHTML += '<tr>';
+						tableHTML += '<td>' + scout.patrol + '</td>';
 						tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
 						tableHTML += '</tr>';
 					});
