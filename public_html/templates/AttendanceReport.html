@@ -6,6 +6,7 @@ var canEditAttendance = false; // Whether user can edit attendance (wm/sa only)
 var startDate = null; // Start date for attendance report
 var endDate = null; // End date for attendance report
 var eventDates = []; // Array of dates with events
+var attendanceData = {}; // Attendance data keyed by "user_id-date"
 
 $(document).ready(function() {
 	user_id = document.getElementById('user_id').value;
@@ -107,27 +108,46 @@ function loadScouts() {
 }
 
 function loadScoutsWithEvents() {
-	$.ajax({
+	// Load scouts and attendance data in parallel
+	var scoutsPromise = $.ajax({
 		url: "api/getscoutsforattendance.php",
 		type: "post",
-		datatype: 'json',
-		error: function(errorThrown) {
-			console.error("Error loading scouts:", errorThrown);
-			$('#attendanceTable').html('<p class="alert-box alert">Error loading scouts. Please try again.</p>');
-		},
-		success: function(data) {
-			console.log("Scouts loaded:", data);
+		datatype: 'json'
+	});
 
-			if (data.status === "Success") {
-				if (data.scouts && data.scouts.length > 0) {
-					buildAttendanceTable(data.scouts);
-				} else {
-					$('#attendanceTable').html('<p>No scouts found.</p>');
-				}
+	var attendancePromise = $.ajax({
+		url: "api/getattendancedata.php",
+		type: "post",
+		data: {
+			start_date: startDate,
+			end_date: endDate
+		},
+		datatype: 'json'
+	});
+
+	// Wait for both to complete
+	$.when(scoutsPromise, attendancePromise).done(function(scoutsResponse, attendanceResponse) {
+		var scoutsData = scoutsResponse[0];
+		var attendanceDataResponse = attendanceResponse[0];
+
+		console.log("Scouts loaded:", scoutsData);
+		console.log("Attendance loaded:", attendanceDataResponse);
+
+		if (scoutsData.status === "Success" && attendanceDataResponse.status === "Success") {
+			attendanceData = attendanceDataResponse.attendance || {};
+
+			if (scoutsData.scouts && scoutsData.scouts.length > 0) {
+				buildAttendanceTable(scoutsData.scouts);
 			} else {
-				$('#attendanceTable').html('<p class="alert-box alert">Error: ' + (data.message || 'Unknown error') + '</p>');
+				$('#attendanceTable').html('<p>No scouts found.</p>');
 			}
+		} else {
+			var errorMsg = scoutsData.message || attendanceDataResponse.message || 'Unknown error';
+			$('#attendanceTable').html('<p class="alert-box alert">Error: ' + errorMsg + '</p>');
 		}
+	}).fail(function(error) {
+		console.error("Error loading data:", error);
+		$('#attendanceTable').html('<p class="alert-box alert">Error loading data. Please try again.</p>');
 	});
 }
 
@@ -171,9 +191,20 @@ function buildAttendanceTable(scouts) {
 		tableHTML += '<td>' + scout.patrol + '</td>';
 		tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
 
-		// Add empty cells for each date (attendance will be added later)
+		// Add cells for each date with attendance status
 		eventDates.forEach(function(eventDate) {
-			tableHTML += '<td></td>';
+			var key = scout.user_id + '-' + eventDate.date;
+			var wasPresent = attendanceData[key] || false;
+
+			if (canEditAttendance) {
+				// Webmaster/Scoutmaster: show checkboxes
+				var checked = wasPresent ? ' checked' : '';
+				tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + scout.user_id + '" data-date="' + eventDate.date + '"' + checked + ' /></td>';
+			} else {
+				// Patrol Leader: show emoji (✅ if present, empty if not)
+				var display = wasPresent ? '✅' : '';
+				tableHTML += '<td style="text-align:center;">' + display + '</td>';
+			}
 		});
 
 		tableHTML += '</tr>';
