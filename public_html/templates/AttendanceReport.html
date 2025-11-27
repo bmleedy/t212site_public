@@ -282,6 +282,10 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
 
 function downloadCSV(scouts) {
 	console.log("Generating CSV download...");
+	console.log("Scouts count:", scouts.length);
+	console.log("Event dates count:", eventDates.length);
+	console.log("Attendance data keys count:", Object.keys(attendanceData).length);
+	console.log("Sample attendance data:", attendanceData);
 
 	// Build CSV content
 	var csvContent = '';
