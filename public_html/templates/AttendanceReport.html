@@ -323,7 +323,7 @@ function downloadCSV(scouts) {
 		eventDates.forEach(function(eventDate) {
 			var key = scout.user_id + '-' + eventDate.date;
 			var wasPresent = attendanceData[key] || false;
-			csvContent += ',' + (wasPresent ? '✅' : '');
+			csvContent += ',' + (wasPresent ? 'true' : '');
 		});
 
 		csvContent += '\n';
