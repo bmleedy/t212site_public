@@ -21,6 +21,19 @@ $(document).ready(function() {
 	// Set default date range
 	setDefaultDateRange();
 
+	// Add change event handlers to date selectors
+	$('#startDateSelector').on('change', function() {
+		startDate = $(this).val();
+		console.log("Start date changed to: " + startDate);
+		loadScouts(); // Reload table with new date range
+	});
+
+	$('#endDateSelector').on('change', function() {
+		endDate = $(this).val();
+		console.log("End date changed to: " + endDate);
+		loadScouts(); // Reload table with new date range
+	});
+
 	// Add table container
 	$('#reportContent').append('<div class="row"><div class="large-12 columns"><div id="attendanceTable"></div></div></div>');
 
