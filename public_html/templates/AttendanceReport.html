@@ -12,9 +12,59 @@ $(document).ready(function() {
 	$('#reportContent').append('<h3>Attendance Report</h3>');
 	$('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
 
+	// Add table container
+	$('#reportContent').append('<div class="row"><div class="large-12 columns"><div id="attendanceTable"></div></div></div>');
+
+	// Load scouts
+	loadScouts();
+
 	console.log("Attendance Report page loaded for user ID: " + user_id);
 	console.log("Can edit attendance: " + canEditAttendance);
 });
+
+function loadScouts() {
+	console.log("Loading scouts...");
+
+	// Show loading message
+	$('#attendanceTable').html('<p>Loading scouts...</p>');
+
+	$.ajax({
+		url: "api/getscoutsforattendance.php",
+		type: "post",
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error loading scouts:", errorThrown);
+			$('#attendanceTable').html('<p class="alert-box alert">Error loading scouts. Please try again.</p>');
+		},
+		success: function(data) {
+			console.log("Scouts loaded:", data);
+
+			if (data.status === "Success") {
+				if (data.scouts && data.scouts.length > 0) {
+					// Build the table
+					var tableHTML = '<table>';
+					tableHTML += '<thead><tr><th>Name</th></tr></thead>';
+					tableHTML += '<tbody>';
+
+					data.scouts.forEach(function(scout) {
+						tableHTML += '<tr>';
+						tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
+						tableHTML += '</tr>';
+					});
+
+					tableHTML += '</tbody></table>';
+					$('#attendanceTable').html(tableHTML);
+
+					console.log("Displayed " + data.scouts.length + " scouts");
+				} else {
+					$('#attendanceTable').html('<p>No scouts found.</p>');
+				}
+			} else {
+				$('#attendanceTable').html('<p class="alert-box alert">Error: ' + (data.message || 'Unknown error') + '</p>');
+			}
+		}
+	});
+}
 </script>
 
 <div class="row">
