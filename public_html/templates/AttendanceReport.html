@@ -240,7 +240,7 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
 		type: "post",
 		data: {
 			user_id: userId,
-			was_present: wasPresent,
+			was_present: wasPresent ? 1 : 0,  // Convert boolean to 1 or 0
 			date: date
 		},
 		datatype: 'json',
