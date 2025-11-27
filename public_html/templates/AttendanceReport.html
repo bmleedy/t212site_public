@@ -213,7 +213,63 @@ function buildAttendanceTable(scouts) {
 
 	$('#attendanceTable').html(tableHTML);
 
+	// Set up click event handlers for checkboxes (only for editable ones)
+	if (canEditAttendance) {
+		$('.attendance-checkbox').on('change', function() {
+			var checkbox = $(this);
+			var userId = checkbox.data('user-id');
+			var date = checkbox.data('date');
+			var wasPresent = checkbox.is(':checked');
+
+			console.log("Attendance checkbox changed - User: " + userId + ", Date: " + date + ", Present: " + wasPresent);
+
+			// Update attendance via AJAX
+			updateAttendance(userId, date, wasPresent, checkbox);
+		});
+	}
+
 	console.log("Displayed " + scouts.length + " scouts with " + eventDates.length + " event dates");
+}
+
+function updateAttendance(userId, date, wasPresent, checkbox) {
+	// Disable checkbox while updating
+	checkbox.prop('disabled', true);
+
+	$.ajax({
+		url: "api/updateattendance.php",
+		type: "post",
+		data: {
+			user_id: userId,
+			was_present: wasPresent,
+			date: date
+		},
+		datatype: 'json',
+		error: function(errorThrown) {
+			console.error("Error updating attendance:", errorThrown);
+			alert("Error updating attendance. Please try again.");
+
+			// Re-enable checkbox and revert state on error
+			checkbox.prop('disabled', false);
+			checkbox.prop('checked', !wasPresent);
+		},
+		success: function(data) {
+			console.log("Attendance update response:", data);
+
+			// Re-enable checkbox
+			checkbox.prop('disabled', false);
+
+			if (data.status === "Success") {
+				console.log("Attendance " + data.action + " successfully for user " + userId + " on " + date);
+				// Update local attendance data
+				var key = userId + '-' + date;
+				attendanceData[key] = wasPresent;
+			} else {
+				alert("Error: " + (data.message || 'Failed to update attendance'));
+				// Revert checkbox state on error
+				checkbox.prop('checked', !wasPresent);
+			}
+		}
+	});
 }
 </script>
 
