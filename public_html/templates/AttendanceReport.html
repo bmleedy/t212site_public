@@ -197,13 +197,13 @@ function buildAttendanceTable(scouts) {
 			var wasPresent = attendanceData[key] || false;
 
 			if (canEditAttendance) {
-				// Webmaster/Scoutmaster: show checkboxes
+				// Webmaster/Scoutmaster: show editable checkboxes
 				var checked = wasPresent ? ' checked' : '';
 				tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + scout.user_id + '" data-date="' + eventDate.date + '"' + checked + ' /></td>';
 			} else {
-				// Patrol Leader: show emoji (✅ if present, empty if not)
-				var display = wasPresent ? '✅' : '';
-				tableHTML += '<td style="text-align:center;">' + display + '</td>';
+				// Patrol Leader: show disabled checkboxes (non-editable)
+				var checked = wasPresent ? ' checked' : '';
+				tableHTML += '<td style="text-align:center;"><input type="checkbox" disabled' + checked + ' /></td>';
 			}
 		});
 
