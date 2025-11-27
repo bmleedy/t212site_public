@@ -143,6 +143,7 @@ function loadPatrols() {
 				// If a default patrol was set, automatically load its members
 				if (defaultPatrolId) {
 					console.log("Auto-loading members for default patrol: " + defaultPatrolId);
+					selectedPatrolId = defaultPatrolId; // Set selectedPatrolId so date changes work
 					loadPatrolMembers(defaultPatrolId);
 				}
 			} else {
