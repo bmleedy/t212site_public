@@ -244,7 +244,7 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
 	checkbox.prop('disabled', true);
 
 	$.ajax({
-		url: "api/updateattendance.php",
+		url: "api/updateattendance_debug.php",
 		type: "post",
 		data: {
 			user_id: userId,
