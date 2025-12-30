@@ -8,10 +8,11 @@ ini_set('error_log', __DIR__ . '/updateattendance_errors.log');
 error_reporting(E_ALL);
 
 // Log the request
+$headers = function_exists('getallheaders') ? getallheaders() : $_SERVER;
 file_put_contents(__DIR__ . '/updateattendance_debug.log',
     date('Y-m-d H:i:s') . " - Request received\n" .
     "POST data: " . print_r($_POST, true) . "\n" .
-    "Headers: " . print_r(getallheaders(), true) . "\n\n",
+    "Headers: " . print_r($headers, true) . "\n\n",
     FILE_APPEND
 );
 
