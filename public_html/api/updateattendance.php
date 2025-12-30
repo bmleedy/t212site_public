@@ -102,19 +102,26 @@ if ($results && $results->num_rows > 0) {
 	$insertQuery = "INSERT INTO attendance_daily (user_id, date, was_present)
 	                VALUES (" . $user_id . ", '" . $mysqli->real_escape_string($date) . "', " . $was_present . ")";
 
-	if ($mysqli->query($insertQuery)) {
-		echo json_encode([
-			'status' => 'Success',
-			'message' => 'Attendance recorded',
-			'action' => 'created',
-			'user_id' => $user_id,
-			'date' => $date,
-			'was_present' => (bool)$was_present
-		]);
-	} else {
+	try {
+		if ($mysqli->query($insertQuery)) {
+			echo json_encode([
+				'status' => 'Success',
+				'message' => 'Attendance recorded',
+				'action' => 'created',
+				'user_id' => $user_id,
+				'date' => $date,
+				'was_present' => (bool)$was_present
+			]);
+		} else {
+			echo json_encode([
+				'status' => 'Error',
+				'message' => 'Failed to record attendance: ' . $mysqli->error
+			]);
+		}
+	} catch (Exception $e) {
 		echo json_encode([
 			'status' => 'Error',
-			'message' => 'Failed to record attendance: ' . $mysqli->error
+			'message' => 'Database error: ' . $e->getMessage()
 		]);
 	}
 }
