@@ -33,13 +33,18 @@ if ($results) {
 		$key = $row['user_id'] . '-' . $row['date'];
 		$attendance[$key] = (bool)$row['was_present'];
 	}
-}
-
-$returnMsg = array(
+	$returnMsg = array(
 	'status' => 'Success',
 	'attendance' => $attendance
 );
-
 echo json_encode($returnMsg);
+} else {
+	// error handling:
+      echo json_encode([
+          'status' => 'Error',
+          'message' => 'Database query failed: ' . $mysqli->error
+      	]);
+}
+
 die();
 ?>
