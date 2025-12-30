@@ -136,11 +136,17 @@ class Credentials {
     }
 
     /**
-     * Get database name (extracted from username, e.g., u321706752_t212)
+     * Get database name
      *
      * @return string
      */
     public function getDatabaseName() {
+        // First check if database_name is explicitly defined
+        if (isset($this->credentials['database_name'])) {
+            return $this->credentials['database_name'];
+        }
+
+        // Fallback: extract from username (legacy behavior)
         $user = $this->getDatabaseUser();
         // Database name is typically the username without the 'db' suffix
         // e.g., u321706752_t212db -> u321706752_t212
