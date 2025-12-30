@@ -1,4 +1,20 @@
 <?php
+// Catch all fatal errors and output JSON
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'Error',
+            'message' => 'Fatal error: ' . $error['message'] . ' in ' . $error['file'] . ' on line ' . $error['line']
+        ]);
+    }
+});
+
+// Enable error reporting temporarily for debugging
+ini_set('display_errors', 0); // Don't display, just log
+error_reporting(E_ALL);
+
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 	// respond to Ajax request
 } else {
@@ -7,7 +23,26 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 }
 
 header('Content-Type: application/json');
-require 'connect.php';
+
+// Try to require connect.php with error handling
+try {
+    require 'connect.php';
+} catch (Exception $e) {
+    echo json_encode([
+        'status' => 'Error',
+        'message' => 'Connection error: ' . $e->getMessage()
+    ]);
+    die();
+}
+
+// Check if mysqli object exists
+if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
+    echo json_encode([
+        'status' => 'Error',
+        'message' => 'Database connection object not created'
+    ]);
+    die();
+}
 
 $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : null;
 $was_present = isset($_POST['was_present']) ? $_POST['was_present'] : null;
