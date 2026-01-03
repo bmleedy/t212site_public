@@ -24,7 +24,12 @@ if ($user_type == "Scout") {
 }
 $id = $_POST['id'];
 
-$wm = $_POST['wm'];		// = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
+if (array_key_exists("wm", $_POST)) {
+	$wm = $_POST['wm'];
+} else {
+	$wm = 0;  // Default to 0 when not provided
+}
+// $wm = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
 
 if (!$wm) {
 	validateField($first , "First Name" , "user_first");
