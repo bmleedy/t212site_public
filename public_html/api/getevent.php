@@ -13,7 +13,17 @@ $user_id = $_POST['user_id'];
 $edit = $_POST['edit'];
 $showMailto = $_POST['showMailto'];
 
-if ($event_id != "New") {	
+// Initialize variables
+$user_type = null;
+$user_first = null;
+$registered = null;
+$attendingScouts = null;
+$attendingAdults = null;
+$sic_id = 0;
+$aic_id = 0;
+$type = "";
+
+if ($event_id != "New") {
 	// Get User Type (Scout, Dad, etc)
 	$query="SELECT user_type, user_first FROM users WHERE user_id=".$user_id;
 	$results = $mysqli->query($query);
@@ -154,7 +164,6 @@ if ($event_id != "New") {
 		}
 	}
 
-	$attendingScouts = null;
 	$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, patrol_id, user_email, reg.id as register_id, reg.approved_by FROM registration AS reg, users AS u, scout_info AS si WHERE reg.attending=1 AND u.user_type='Scout' AND reg.user_id = u.user_id AND reg.user_id = si.user_id AND reg.event_id=" . $event_id . " ORDER BY patrol_id, user_last, user_first" ;
 	$results = $mysqli->query($query);
 	while ($row = $results->fetch_assoc()) {
@@ -190,7 +199,6 @@ if ($event_id != "New") {
 		}		
 	}
 
-	$attendingAdults = null;
 	$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, user_email, reg.id as register_id FROM registration AS reg, users AS u WHERE reg.attending=1 AND u.user_type<>'Scout' AND reg.user_id = u.user_id AND reg.event_id=" . $event_id . " ORDER BY user_last, user_first" ;
 	$results = $mysqli->query($query);
 	while ($row = $results->fetch_assoc()) {
