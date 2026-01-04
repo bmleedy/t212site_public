@@ -22,6 +22,8 @@ $attendingAdults = null;
 $sic_id = 0;
 $aic_id = 0;
 $type = "";
+$sic = "";
+$aic = "";
 
 if ($event_id != "New") {
 	// Get User Type (Scout, Dad, etc)
