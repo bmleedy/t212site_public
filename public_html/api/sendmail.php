@@ -42,15 +42,27 @@ if (EMAIL_USE_SMTP) {
 
   error_log("Sending email to " . $sendTo . " from " . $from . " (" . $fromName . ") with subject: " . $subject);
 	if ($sendTo=="scout parents") {
-    // error_log("Sending email to all parents of scout " . $user_id);
-    // Get emails of all parents of the scout
-		$query = "SELECT parent.user_email FROM users as u JOIN users AS parent ON u.family_id = parent.family_id WHERE parent.user_type IN ('mom','dad') AND u.user_id=" . $user_id;
-    // error_log("Query to get scout parents: " . $query);
+    // Get emails of all parents of the scout, checking their notification preferences
+		$query = "SELECT parent.user_email, parent.notif_preferences FROM users as u JOIN users AS parent ON u.family_id = parent.family_id WHERE parent.user_type IN ('mom','dad') AND u.user_id=" . $user_id;
 		$results = $mysqli->query($query);
-    // error_log("contents of results query: " . json_encode($results->fetch_assoc()));
 		while ($row = $results->fetch_assoc()) {
-      error_log("Adding email address: " . $row['user_email']);
-			$mail->AddAddress($row['user_email']);
+      // Check if parent wants scout signup emails
+      $send_email = true;  // Default: send email (opted in)
+
+      if ($row['notif_preferences']) {
+        $prefs = json_decode($row['notif_preferences'], true);
+        // Check 'scsu' (Scout SignUp) preference
+        // Only skip email if explicitly set to false
+        if (isset($prefs['scsu']) && $prefs['scsu'] === false) {
+          $send_email = false;
+          error_log("Parent " . $row['user_email'] . " has opted out of scout signup emails");
+        }
+      }
+
+      if ($send_email) {
+        error_log("Adding email address: " . $row['user_email']);
+        $mail->AddAddress($row['user_email']);
+      }
 		}
 	} else {
     error_log("Sending email to " . $sendTo);
