@@ -8,12 +8,24 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 
 header('Content-Type: application/json');
 require 'connect.php';
-$query="SELECT * FROM users WHERE user_type not in ('Scout', 'Delete', 'Alumni','Alum-D','Alum-M','Alum-O') ORDER BY user_last asc, user_first asc";
+$query="SELECT user_id, user_first, user_last, user_email, user_type, notif_preferences FROM users WHERE user_type not in ('Scout', 'Delete', 'Alumni','Alum-D','Alum-M','Alum-O') ORDER BY user_last asc, user_first asc";
 $results = $mysqli->query($query);
 $adults = null;
 
 while ($row = $results->fetch_object()) {
 	$id =  $row->user_id;
+
+	// Check if this adult wants roster emails (for the email buttons)
+	$include_in_roster_emails = true;  // Default: include (opted in)
+
+	if ($row->notif_preferences) {
+		$prefs = json_decode($row->notif_preferences, true);
+		// Check 'rost' (Roster) preference
+		if (isset($prefs['rost']) && $prefs['rost'] === false) {
+			$include_in_roster_emails = false;
+		}
+	}
+
 	$phones = null;
 
   $query2="SELECT * FROM phone WHERE user_id=" . $id;
@@ -23,11 +35,11 @@ while ($row = $results->fetch_object()) {
 			$phones[] = "<a href='tel:" . $row2->phone . "'>" . $row2->phone . "</a> " . $row2->type ;
 		}
 	}
-		
+
 	$adults[] = [
     'first' => $row->user_first,
     'last' => $row->user_last,
-    'email'=> $row->user_email,
+    'email'=> $include_in_roster_emails ? $row->user_email : '',  // Only include email if opted in
 	'id'=>$id,
 	'phone'=>$phones,
 	'user_type'=>$row->user_type
