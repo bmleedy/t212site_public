@@ -22,6 +22,7 @@ $user_name = $row->user_name;
 $user_id = $row->user_id;
 $user_type = $row->user_type;
 $family_id = $row->family_id;
+$notif_preferences = $row->notif_preferences;
 
 if ($edit && !$wm) {
 	$varFirst = '<input type="text" id="user_first" required value="'. $user_first . '"/>';
@@ -144,6 +145,60 @@ for ($i = 1; $i <= 3; $i++) {
 	}
 };
 
+// Build notification preferences section
+require_once '../includes/notification_types.php';
+
+// Parse existing preferences (if any)
+$prefs_array = array();
+if ($notif_preferences) {
+	$prefs_array = json_decode($notif_preferences, true);
+	if (!is_array($prefs_array)) {
+		$prefs_array = array();
+	}
+}
+
+$varNotifPrefs = '<div class="row"><div class="large-12 columns"><h5>Notification Preferences</h5></div></div>';
+$varNotifPrefs .= '<div class="row">';
+
+// Build checkboxes in two columns
+$half = ceil(count($notification_types) / 2);
+$column_count = 0;
+
+foreach ($notification_types as $index => $notif) {
+	// Start new column
+	if ($index == 0 || $index == $half) {
+		$varNotifPrefs .= '<div class="large-6 columns">';
+	}
+
+	$key = $notif['key'];
+	$display_name = $notif['display_name'];
+	$tooltip = $notif['tooltip'];
+
+	// Default to checked (opted in) if no preference is set, or if preference is true
+	$is_checked = '';
+	if (!isset($prefs_array[$key]) || $prefs_array[$key] === true) {
+		$is_checked = 'checked';
+	}
+
+	if ($edit && !$wm) {
+		$varNotifPrefs .= '<label title="' . htmlspecialchars($tooltip) . '">';
+		$varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . $key . '" id="notif_' . $key . '" value="' . $key . '" ' . $is_checked . ' />';
+		$varNotifPrefs .= ' ' . htmlspecialchars($display_name);
+		$varNotifPrefs .= '</label><br>';
+	} else {
+		// Display mode - show preferences as text
+		$status = ($is_checked === 'checked') ? 'Enabled' : 'Disabled';
+		$varNotifPrefs .= '<p><strong>' . htmlspecialchars($display_name) . ':</strong> ' . $status . '</p>';
+	}
+
+	// Close column
+	if ($index == $half - 1 || $index == count($notification_types) - 1) {
+		$varNotifPrefs .= '</div>';
+	}
+}
+
+$varNotifPrefs .= '</div>';
+
 $varData = $varFamilyID .
 '<input type="hidden" id="phone_id_1" value="'. $varID[0] . '" />
 <input type="hidden" id="phone_id_2" value="'. $varID[1] . '" />
@@ -220,7 +275,8 @@ $varData = $varFamilyID .
         $varFamilyIDData .
     '</div>
 
-  </div>'
+  </div>' .
+	$varNotifPrefs
 
 	;
 

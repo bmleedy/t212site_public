@@ -30,6 +30,15 @@
 				mb_list.push(inputElements[i].value);
 			}
 		}
+
+		// Collect notification preferences
+		var notif_prefs = {};
+		var notifElements = document.getElementsByClassName('notifPrefCheckbox');
+		for (var j = 0; notifElements[j]; ++j) {
+			var key = notifElements[j].value;
+			notif_prefs[key] = notifElements[j].checked;
+		}
+
 		var fieldData = {
 			"user_type": $('#user_type').val(),
 			"first": $('#user_first').val(),
@@ -57,6 +66,7 @@
 			"state": $('#state').val(),
 			"zip": $('#zip').val(),
 			"mb_list": mb_list,
+			"notif_prefs": notif_prefs,
 			"wm": webMaster,
 			"family_id": family_id,
 			"id": strID

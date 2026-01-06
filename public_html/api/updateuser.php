@@ -16,6 +16,13 @@ $user_type = $_POST['user_type'];
 $first = $_POST['first'];
 $last = $_POST['last'];
 $email = $_POST['email'];
+
+// Handle notification preferences
+$notif_prefs_json = NULL;
+if (array_key_exists('notif_prefs', $_POST) && is_array($_POST['notif_prefs'])) {
+	$notif_prefs_json = json_encode($_POST['notif_prefs']);
+}
+
 //Scout-specifig form fields
 if ($user_type == "Scout") {
   $rank = $_POST['rank'];
@@ -86,13 +93,13 @@ writePhoneData($_POST['phone_id_1'], $_POST['phone_1'], $_POST['phone_type_1'], 
 writePhoneData($_POST['phone_id_2'], $_POST['phone_2'], $_POST['phone_type_2'], $id, $mysqli);
 writePhoneData($_POST['phone_id_3'], $_POST['phone_3'], $_POST['phone_type_3'], $id, $mysqli);
 
-$query = "UPDATE users SET user_first=?, user_last=?, user_email=? WHERE user_id=?";
+$query = "UPDATE users SET user_first=?, user_last=?, user_email=?, notif_preferences=? WHERE user_id=?";
 $statement = $mysqli->prepare($query);
 if ($statement === false) {
   echo json_encode($mysqli->error);
 	die;
 }
-$rs = $statement->bind_param('ssss', $first, $last, $email, $id);
+$rs = $statement->bind_param('sssss', $first, $last, $email, $notif_prefs_json, $id);
 if($rs == false) {
     echo json_encode($statement->error);
 		die;
