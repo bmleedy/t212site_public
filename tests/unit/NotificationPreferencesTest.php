@@ -296,8 +296,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($userTemplateContents, '"notif_prefs": notif_prefs') !== false,
-    "User.html includes notif_prefs in fieldData"
+    strpos($userTemplateContents, '"notif_prefs": JSON.stringify(notif_prefs)') !== false,
+    "User.html includes notif_prefs in fieldData (as JSON string)"
 )) {
     $passed++;
 } else {
@@ -335,8 +335,9 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateUserContents, 'json_encode($_POST[\'notif_prefs\'])') !== false,
-    "updateuser.php encodes preferences as JSON"
+    strpos($updateUserContents, 'json_decode($notif_prefs') !== false ||
+    strpos($updateUserContents, 'is_string($notif_prefs)') !== false,
+    "updateuser.php handles JSON string preferences"
 )) {
     $passed++;
 } else {
@@ -411,10 +412,11 @@ if (assert_true(
     $failed++;
 }
 
-// Check that only arrays are accepted for notif_prefs
+// Check that preferences are validated (either as string or array)
 if (assert_true(
-    strpos($updateUserContents, 'is_array($_POST[\'notif_prefs\'])') !== false,
-    "updateuser.php validates that notif_prefs is an array"
+    strpos($updateUserContents, 'is_string($notif_prefs)') !== false ||
+    strpos($updateUserContents, 'is_array($notif_prefs)') !== false,
+    "updateuser.php validates notif_prefs type"
 )) {
     $passed++;
 } else {

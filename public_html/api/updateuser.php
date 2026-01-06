@@ -11,6 +11,9 @@ header('Content-Type: application/json');
 //  whatever data was thrown at us.  TODO security improvement.
 require 'connect.php';
 
+// Debug: Log what we received (remove after debugging)
+error_log("POST data received: " . print_r($_POST, true));
+
 $user_type = $_POST['user_type'];
 
 $first = $_POST['first'];
@@ -19,8 +22,33 @@ $email = $_POST['email'];
 
 // Handle notification preferences
 $notif_prefs_json = NULL;
-if (array_key_exists('notif_prefs', $_POST) && is_array($_POST['notif_prefs'])) {
-	$notif_prefs_json = json_encode($_POST['notif_prefs']);
+if (array_key_exists('notif_prefs', $_POST)) {
+	$notif_prefs = $_POST['notif_prefs'];
+
+	// Check if it's already a JSON string
+	if (is_string($notif_prefs)) {
+		// Decode it to validate, then re-encode to ensure proper format
+		$decoded = json_decode($notif_prefs, true);
+		if ($decoded !== null && is_array($decoded)) {
+			$notif_prefs_json = $notif_prefs;  // Use the JSON string as-is
+			error_log("Notification preferences (JSON string) being saved: " . $notif_prefs_json);
+		}
+	} else if (is_array($notif_prefs)) {
+		// If it came as an array (shouldn't happen now but handle it)
+		$clean_prefs = array();
+		foreach ($notif_prefs as $key => $value) {
+			// Convert string booleans to actual booleans
+			if ($value === 'true' || $value === true) {
+				$clean_prefs[$key] = true;
+			} else if ($value === 'false' || $value === false) {
+				$clean_prefs[$key] = false;
+			} else {
+				$clean_prefs[$key] = ($value === 'on' || $value === '1' || $value === 1);
+			}
+		}
+		$notif_prefs_json = json_encode($clean_prefs);
+		error_log("Notification preferences (array) being saved: " . $notif_prefs_json);
+	}
 }
 
 //Scout-specifig form fields
