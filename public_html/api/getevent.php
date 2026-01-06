@@ -64,8 +64,8 @@ $checked = "";
 $mailto = "<a href='mailto:";
 $sep = "";
 $family_id = "";
-		
-if ($event_id != "New") {	
+
+if ($event_id != "New") {
 	$query="SELECT * FROM events WHERE id=".$event_id;
 	$results = $mysqli->query($query);
 	if ($results) {
@@ -83,7 +83,7 @@ if ($event_id != "New") {
 		$reg_open = $row['reg_open'];
 		$type_id = $row['type_id'];
 		$type = getLabel('event_types',$type_id,$mysqli);
-		
+
 		if ($sic_id > 0) {
 			$query2="SELECT user_first,user_last FROM users WHERE user_id=".$sic_id;
 			$results2 = $mysqli->query($query2);
@@ -100,10 +100,10 @@ if ($event_id != "New") {
 				$aic = $row2['user_first'] . ' ' . $row2['user_last'];
 			}
 		}
-	}	
+	}
 }
-	
-if ($edit=="1" || $event_id=="New") { 
+
+if ($edit=="1" || $event_id=="New") {
 	$varname = '<input type="text" id="name" required value="'. $name . '"/>';
 	$varlocation = '<input type="text" id="location" required value="'. $location . '"/>';
 	$vardescription = '<textarea id="description" required>'. $description . '</textarea>';
@@ -136,7 +136,7 @@ if ($edit=="1" || $event_id=="New") {
 	} else {
 		$varopen = '<p>Sign ups for this event are disabled</p>';
 	}
-	
+
 }
 
 $returnData = '<div class="row">';
@@ -156,7 +156,7 @@ $returnData = $returnData . '<div class="large-2 columns"><label>Event Type</lab
 $returnData = $returnData . '<div class="row">';
 $returnData = $returnData . '<div class="large-12 columns"><label>Event Description' . $vardescription . '</label>';
 
-if ($event_id != "New") {	
+if ($event_id != "New") {
 	$isParentOf[] = [];
 	if ($user_type <> "Scout") {
 		$query = "SELECT scout_id FROM relationships WHERE adult_id=".$user_id;
@@ -186,22 +186,34 @@ if ($event_id != "New") {
 		];
 		$mailto = $mailto . $sep . $row['user_email'];
 		$sep = ";";
-		
+
 		$query2 = "SELECT family_id FROM users WHERE user_id=" . $row['user_id'];
 		$results2 = $mysqli->query($query2);
 		if ($row2 = $results2->fetch_assoc()) {
 			$family_id = $row2["family_id"];
-			$query3 = "SELECT user_email FROM users WHERE user_type !='Scout' AND family_id=" . $family_id;
+			// Get parent emails, checking notification preferences
+			$query3 = "SELECT user_email, notif_preferences FROM users WHERE user_type !='Scout' AND family_id=" . $family_id;
 			$results3 = $mysqli->query($query3);
 			while ($row3 = $results3->fetch_assoc()) {
-				if (strpos($mailto, $row3['user_email'])===false) {
+				// Check if this parent wants event emails
+				$include_email = true;  // Default: include (opted in)
+
+				if ($row3['notif_preferences']) {
+					$prefs = json_decode($row3['notif_preferences'], true);
+					// Check 'evnt' (Event) preference
+					if (isset($prefs['evnt']) && $prefs['evnt'] === false) {
+						$include_email = false;
+					}
+				}
+
+				if ($include_email && strpos($mailto, $row3['user_email'])===false) {
 					$mailto = $mailto . $sep . $row3['user_email'];
 				}
 			}
-		}		
+		}
 	}
 
-	$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, user_email, reg.id as register_id FROM registration AS reg, users AS u WHERE reg.attending=1 AND u.user_type<>'Scout' AND reg.user_id = u.user_id AND reg.event_id=" . $event_id . " ORDER BY user_last, user_first" ;
+	$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, user_email, notif_preferences, reg.id as register_id FROM registration AS reg, users AS u WHERE reg.attending=1 AND u.user_type<>'Scout' AND reg.user_id = u.user_id AND reg.event_id=" . $event_id . " ORDER BY user_last, user_first" ;
 	$results = $mysqli->query($query);
 	while ($row = $results->fetch_assoc()) {
 		$attendingAdults[] = [
@@ -213,11 +225,24 @@ if ($event_id != "New") {
 			'first' => $row['user_first'],
 			'last' => $row['user_last']
 		];
-		if (strpos($mailto, $row['user_email'])===false) {
+
+		// Check if this adult wants event emails
+		$include_email = true;  // Default: include (opted in)
+
+		if ($row['notif_preferences']) {
+			$prefs = json_decode($row['notif_preferences'], true);
+			// Check 'evnt' (Event) preference
+			if (isset($prefs['evnt']) && $prefs['evnt'] === false) {
+				$include_email = false;
+			}
+		}
+
+		// Add the user to the mailto list, but only if the adult is opted in.
+		if ($include_email && strpos($mailto, $row['user_email'])===false) {
 			$mailto = $mailto . $sep . $row['user_email'];
 			$sep = ";";
 		}
-		
+
 	}
 }
 
@@ -249,7 +274,7 @@ function getDDL($strTable,$strSelect,$strDefault,$mysqli) {
 	$query = 'SELECT * FROM '.$strTable.' ORDER BY sort';
 	$results = $mysqli->query($query);
 	$returnDDL = '<select id="'.$strSelect.'"><option value="">-Select-</option>';
-	
+
 	while ($row = $results->fetch_assoc()) {
 		$label = $row['label'];
 		$id = $row['id'];
@@ -268,7 +293,7 @@ function getUserDDL($mysqli,$user_type,$def_id) {
 	$query = "SELECT user_first, user_last, user_id FROM users WHERE user_type='".$user_type."' ORDER BY user_last, user_first" ;
 	$results = $mysqli->query($query);
 	$returnDDL = "";
-	
+
 	while ($row = $results->fetch_assoc()) {
 		$label = $row['user_last'] . ", " . $row['user_first'];
 		$user_id = $row['user_id'];
@@ -292,5 +317,5 @@ function getLabel($strTable,$id,$mysqli){
 	} else {
 		return "";
 	}
-}	
+}
 ?>
