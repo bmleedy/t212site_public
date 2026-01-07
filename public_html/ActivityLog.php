@@ -18,7 +18,7 @@ require "includes/authHeader.php"; ?>
 			if ($login->isUserLoggedIn() == true) {
 				// Check if user is webmaster (you can adjust this check as needed)
 				// Assuming webmasters have a specific access level or user_type
-				if (in_array('webmaster', $access) || in_array('superadmin', $access)) {
+				if (in_array('wm', $access) || in_array('sa', $access)) {
 					include("templates/ActivityLog.html");
 				} else {
 					echo "<h2>Access Denied</h2>";
