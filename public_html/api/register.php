@@ -33,6 +33,10 @@ if ($action=="cancel") {
 	$statement->bind_param('sss', $attending, $event_id, $user_id);
 	$statement->execute();
 	$statement->close();
+
+	// Send notification to Scout in Charge and Adult in Charge
+	sendCancellationNotification($event_id, $user_id, $mysqli);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Cancelled',
@@ -137,5 +141,176 @@ if($statement->execute()){
 $statement->close();
 
 
+
+/**
+ * Send cancellation notification to Scout in Charge and Adult in Charge
+ *
+ * @param int $event_id The event ID
+ * @param int $user_id The user who cancelled
+ * @param mysqli $mysqli Database connection
+ */
+function sendCancellationNotification($event_id, $user_id, $mysqli) {
+	// Get event details and SIC/AIC IDs
+	$query = "SELECT name, sic_id, aic_id FROM events WHERE id = ?";
+	$statement = $mysqli->prepare($query);
+	$statement->bind_param('s', $event_id);
+	$statement->execute();
+	$result = $statement->get_result();
+	$event = $result->fetch_assoc();
+	$statement->close();
+
+	if (!$event) {
+		error_log("Could not find event $event_id for cancellation notification");
+		return;
+	}
+
+	$event_name = $event['name'];
+	$sic_id = $event['sic_id'];
+	$aic_id = $event['aic_id'];
+
+	// Get user who cancelled
+	$query = "SELECT user_first, user_last FROM users WHERE user_id = ?";
+	$statement = $mysqli->prepare($query);
+	$statement->bind_param('s', $user_id);
+	$statement->execute();
+	$result = $statement->get_result();
+	$user = $result->fetch_assoc();
+	$statement->close();
+
+	if (!$user) {
+		error_log("Could not find user $user_id for cancellation notification");
+		return;
+	}
+
+	$user_name = $user['user_first'] . ' ' . $user['user_last'];
+
+	// Collect recipient emails (SIC and AIC who want cancellation notifications)
+	$recipients = array();
+
+	// Check Scout in Charge
+	if ($sic_id > 0) {
+		$query = "SELECT user_email, notif_preferences, user_first, user_last FROM users WHERE user_id = ?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('s', $sic_id);
+		$statement->execute();
+		$result = $statement->get_result();
+		$sic = $result->fetch_assoc();
+		$statement->close();
+
+		if ($sic) {
+			$send_to_sic = true;  // Default: send (opted in)
+
+			if ($sic['notif_preferences']) {
+				$prefs = json_decode($sic['notif_preferences'], true);
+				// Check 'canc' (Cancellation) preference
+				if (isset($prefs['canc']) && $prefs['canc'] === false) {
+					$send_to_sic = false;
+					error_log("SIC " . $sic['user_email'] . " has opted out of cancellation notifications");
+				}
+			}
+
+			if ($send_to_sic) {
+				$recipients[] = array(
+					'email' => $sic['user_email'],
+					'name' => $sic['user_first'] . ' ' . $sic['user_last'],
+					'role' => 'Scout in Charge'
+				);
+			}
+		}
+	}
+
+	// Check Adult in Charge
+	if ($aic_id > 0) {
+		$query = "SELECT user_email, notif_preferences, user_first, user_last FROM users WHERE user_id = ?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('s', $aic_id);
+		$statement->execute();
+		$result = $statement->get_result();
+		$aic = $result->fetch_assoc();
+		$statement->close();
+
+		if ($aic) {
+			$send_to_aic = true;  // Default: send (opted in)
+
+			if ($aic['notif_preferences']) {
+				$prefs = json_decode($aic['notif_preferences'], true);
+				// Check 'canc' (Cancellation) preference
+				if (isset($prefs['canc']) && $prefs['canc'] === false) {
+					$send_to_aic = false;
+					error_log("AIC " . $aic['user_email'] . " has opted out of cancellation notifications");
+				}
+			}
+
+			if ($send_to_aic) {
+				$recipients[] = array(
+					'email' => $aic['user_email'],
+					'name' => $aic['user_first'] . ' ' . $aic['user_last'],
+					'role' => 'Adult in Charge'
+				);
+			}
+		}
+	}
+
+	// If no recipients, don't send
+	if (empty($recipients)) {
+		error_log("No recipients for cancellation notification (event $event_id)");
+		return;
+	}
+
+	// Load PHPMailer
+	require_once('../login/config/config.php');
+	require_once('../login/translations/en.php');
+	require_once('../login/libraries/PHPMailer.php');
+
+	$mail = new PHPMailer;
+	if (EMAIL_USE_SMTP) {
+		$mail->IsSMTP();
+		$mail->SMTPAuth = EMAIL_SMTP_AUTH;
+		if (defined(EMAIL_SMTP_ENCRYPTION)) {
+			$mail->SMTPSecure = EMAIL_SMTP_ENCRYPTION;
+		}
+		$mail->Host = EMAIL_SMTP_HOST;
+		$mail->Username = EMAIL_SMTP_USERNAME;
+		$mail->Password = EMAIL_SMTP_PASSWORD;
+		$mail->Port = EMAIL_SMTP_PORT;
+	} else {
+		$mail->IsMail();
+	}
+
+	$mail->From = "donotreply@t212.org";
+	$mail->FromName = "Troop 212 Website";
+
+	// Add all recipients
+	foreach ($recipients as $recipient) {
+		$mail->AddAddress($recipient['email']);
+		error_log("Sending cancellation notification to " . $recipient['name'] . " (" . $recipient['role'] . "): " . $recipient['email']);
+	}
+
+	$mail->Subject = "Cancellation: $user_name cancelled for $event_name";
+
+	$body = "Hello,\n\n";
+	$body .= "$user_name has cancelled their registration for the event: $event_name.\n\n";
+	$body .= "You are receiving this notification because you are the ";
+
+	if (count($recipients) == 1) {
+		$body .= $recipients[0]['role'];
+	} else {
+		$body .= "Scout in Charge or Adult in Charge";
+	}
+
+	$body .= " for this event.\n\n";
+	$body .= "You can view the updated event roster at:\n";
+	$body .= "http://www.t212.org/Event.php?id=$event_id\n\n";
+	$body .= "If you do not want to receive these cancellation notifications, you can opt out in your notification preferences on your User profile page.\n\n";
+	$body .= "- Troop 212 Website";
+
+	$mail->Body = $body;
+
+	if(!$mail->Send()) {
+		error_log("Failed to send cancellation notification: " . $mail->ErrorInfo);
+	} else {
+		error_log("Cancellation notification sent successfully for event $event_id");
+	}
+}
 
 ?>

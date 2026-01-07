@@ -24,6 +24,11 @@ $notification_types = array(
         'key' => 'evnt',  // EVeNT
         'display_name' => 'Event Emails',
         'tooltip' => 'Check this box to receive emails from organizers of events you have signed up for.'
+    ),
+    array(
+        'key' => 'canc',  // CANCellation
+        'display_name' => 'Cancellation Notifications',
+        'tooltip' => 'Check this box to receive email notifications when someone cancels registration for an event you are organizing (Scout in Charge or Adult in Charge).'
     )
 );
 

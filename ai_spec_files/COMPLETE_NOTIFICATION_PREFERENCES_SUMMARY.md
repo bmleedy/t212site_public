@@ -13,7 +13,7 @@ Successfully implemented a complete notification preferences system for the Troo
 - `public_html/templates/User.html` - Preference UI and form submission
 
 **Features:**
-- ✅ Three notification types: Scout Signup (scsu), Roster (rost), Event (evnt)
+- ✅ Four notification types: Scout Signup (scsu), Roster (rost), Event (evnt), Cancellation (canc)
 - ✅ Two-column checkbox layout on User.php
 - ✅ Tooltips explaining each preference
 - ✅ Edit mode shows checkboxes, view mode shows status text
@@ -89,14 +89,37 @@ Successfully implemented a complete notification preferences system for the Troo
 
 ---
 
+### 5. Cancellation Notification Preference (canc)
+**Files Modified:**
+- `public_html/api/register.php`
+
+**How It Works:**
+- When someone cancels registration for an event, system notifies Scout in Charge (SIC) and Adult in Charge (AIC)
+- `register.php` calls `sendCancellationNotification()` after updating registration table
+- Function queries event to get SIC and AIC IDs
+- Checks each organizer's `canc` preference before adding to recipients
+- Organizers opted OUT are excluded from cancellation notification emails
+- Sends personalized email with user name, event name, link to event roster, and opt-out instructions
+
+**Default Behavior:**
+- SIC and AIC receive cancellation emails unless explicitly opted out
+- NULL or missing preference = send email ✅
+- `canc: true` = send email ✅
+- `canc: false` = don't send email ❌
+
+**Tests:** 52 tests passing
+
+---
+
 ## Complete Test Suite Results
 ```
 ✅ NotificationPreferencesTest.php:        44 tests passed
 ✅ ScoutSignupEmailPreferenceTest.php:     22 tests passed
 ✅ EventEmailPreferenceTest.php:           21 tests passed
 ✅ RosterEmailPreferenceTest.php:          24 tests passed
+✅ CancellationNotificationTest.php:       52 tests passed
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   TOTAL:                                 111 tests passed ✅
+   TOTAL:                                 163 tests passed ✅
 ```
 
 ## Files Modified Summary
@@ -109,6 +132,7 @@ Successfully implemented a complete notification preferences system for the Troo
 | `public_html/api/sendmail.php` | Scout signup emails | Check `scsu` preference for parents |
 | `public_html/api/getevent.php` | Event emails | Check `evnt` preference for parents/adults |
 | `public_html/api/getadults.php` | Roster emails | Check `rost` preference for adults |
+| `public_html/api/register.php` | Cancellation notifications | Check `canc` preference for SIC/AIC |
 
 ## Files Created Summary
 
@@ -120,10 +144,12 @@ Successfully implemented a complete notification preferences system for the Troo
 | `tests/unit/ScoutSignupEmailPreferenceTest.php` | Scout signup tests |
 | `tests/unit/EventEmailPreferenceTest.php` | Event email tests |
 | `tests/unit/RosterEmailPreferenceTest.php` | Roster email tests |
+| `tests/unit/CancellationNotificationTest.php` | Cancellation notification tests |
 | `ai_spec_files/notification_preferences_IMPLEMENTATION.md` | Core docs |
 | `ai_spec_files/scout_signup_email_preference_IMPLEMENTATION.md` | Signup docs |
 | `ai_spec_files/event_email_preference_IMPLEMENTATION.md` | Event docs |
 | `ai_spec_files/roster_email_preference_IMPLEMENTATION.md` | Roster docs |
+| `ai_spec_files/cancellation_notification_IMPLEMENTATION.md` | Cancellation docs |
 | `verify_implementation.php` | Implementation verification script |
 | `public_html/test_notif_checkbox.html` | Debug tool |
 
@@ -136,7 +162,8 @@ Successfully implemented a complete notification preferences system for the Troo
 {
   "scsu": true,   // Receive scout signup emails
   "rost": false,  // Don't receive roster broadcast emails
-  "evnt": true    // Receive event emails
+  "evnt": true,   // Receive event emails
+  "canc": true    // Receive cancellation notifications
 }
 ```
 
@@ -163,12 +190,18 @@ Successfully implemented a complete notification preferences system for the Troo
 - Can opt out of scout signup notifications
 - Can opt out of event organizer emails
 - Can opt out of roster broadcast emails
+- Can opt out of cancellation notifications (if they're SIC/AIC)
 - Still appear on rosters and in event lists
 
 **Adults (Non-Parents):**
 - Can opt out of event organizer emails
 - Can opt out of roster broadcast emails
+- Can opt out of cancellation notifications (if they're SIC/AIC)
 - Still appear on rosters and in event lists
+
+**Event Organizers (SIC/AIC):**
+- Can opt out of cancellation notifications for their events
+- Still shown as organizers on event pages
 
 **Scouts:**
 - Always receive event communications (can't opt out)
@@ -207,7 +240,7 @@ The system is designed for easy expansion:
 
 ✅ All code written and tested
 ✅ Database migration script created
-✅ 111 automated tests passing
+✅ 163 automated tests passing
 ✅ Documentation complete
 
 **To Deploy:**
@@ -241,8 +274,8 @@ The system is designed for easy expansion:
 The notification preferences system is fully implemented, tested, and ready for production use. Users now have granular control over which email notifications they receive while maintaining a safe default of receiving all communications unless explicitly opted out.
 
 **Total Implementation:**
-- 6 files modified
-- 11 files created
-- 111 automated tests
-- 3 notification types
+- 7 files modified
+- 12 files created
+- 163 automated tests
+- 4 notification types
 - 1 happy development team! 🎉
