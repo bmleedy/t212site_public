@@ -17,8 +17,8 @@ if ( array_key_exists("id", $_GET) ) {
 
 $showEdit = 0;
 
-// Give webmaster access even if they're not the current user
-if (in_array("wm",$access) && ($id <> $userID)) {
+// Give webmaster access
+if (in_array("wm",$access)) {
 	$wm = 1;
 } else {
 	$wm = 0;
