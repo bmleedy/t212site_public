@@ -372,8 +372,50 @@ function sendCancellationNotification($event_id, $user_id, $mysqli) {
 
 	if(!$mail->Send()) {
 		error_log("Failed to send cancellation notification: " . $mail->ErrorInfo);
+
+		// Log failed cancellation email
+		$recipient_emails = array();
+		foreach ($recipients as $r) {
+			$recipient_emails[] = $r['email'];
+		}
+
+		log_activity(
+			$mysqli,
+			'send_cancellation_email_failed',
+			array(
+				'to' => $recipient_emails,
+				'subject' => $mail->Subject,
+				'event_id' => $event_id,
+				'cancelled_by_user_id' => $user_id,
+				'error' => $mail->ErrorInfo
+			),
+			false,
+			"Failed to send cancellation notification for event $event_id",
+			$user_id
+		);
 	} else {
 		error_log("Cancellation notification sent successfully for event $event_id");
+
+		// Log successful cancellation email
+		$recipient_emails = array();
+		foreach ($recipients as $r) {
+			$recipient_emails[] = $r['email'];
+		}
+
+		log_activity(
+			$mysqli,
+			'send_cancellation_email',
+			array(
+				'to' => $recipient_emails,
+				'subject' => $mail->Subject,
+				'event_id' => $event_id,
+				'cancelled_by_user_id' => $user_id,
+				'recipient_count' => count($recipient_emails)
+			),
+			true,
+			"Cancellation notification sent for event $event_id to " . count($recipient_emails) . " recipient(s)",
+			$user_id
+		);
 	}
 }
 

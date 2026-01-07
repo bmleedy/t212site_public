@@ -698,9 +698,80 @@ class Login
 
         if(!$mail->Send()) {
             $this->errors[] = MESSAGE_PASSWORD_RESET_MAIL_FAILED . $mail->ErrorInfo;
+
+            // Log failed password reset email
+            if (file_exists(__DIR__ . '/../../includes/activity_logger.php')) {
+                require_once(__DIR__ . '/../../includes/activity_logger.php');
+                require_once(__DIR__ . '/../../includes/credentials.php');
+
+                try {
+                    $creds = Credentials::getInstance();
+                    $mysqli_log = new mysqli(
+                        $creds->getDatabaseHost(),
+                        $creds->getDatabaseUser(),
+                        $creds->getDatabasePassword(),
+                        $creds->getDatabaseName()
+                    );
+
+                    if (!$mysqli_log->connect_error) {
+                        log_activity(
+                            $mysqli_log,
+                            'send_password_reset_email_failed',
+                            array(
+                                'to' => array($user_email),
+                                'subject' => EMAIL_PASSWORDRESET_SUBJECT,
+                                'user_name' => $user_name,
+                                'error' => $mail->ErrorInfo
+                            ),
+                            false,
+                            "Failed to send password reset email to $user_email",
+                            null
+                        );
+                        $mysqli_log->close();
+                    }
+                } catch (Exception $e) {
+                    // Silently fail logging - don't break password reset flow
+                }
+            }
+
             return false;
         } else {
             $this->messages[] = MESSAGE_PASSWORD_RESET_MAIL_SUCCESSFULLY_SENT;
+
+            // Log successful password reset email
+            if (file_exists(__DIR__ . '/../../includes/activity_logger.php')) {
+                require_once(__DIR__ . '/../../includes/activity_logger.php');
+                require_once(__DIR__ . '/../../includes/credentials.php');
+
+                try {
+                    $creds = Credentials::getInstance();
+                    $mysqli_log = new mysqli(
+                        $creds->getDatabaseHost(),
+                        $creds->getDatabaseUser(),
+                        $creds->getDatabasePassword(),
+                        $creds->getDatabaseName()
+                    );
+
+                    if (!$mysqli_log->connect_error) {
+                        log_activity(
+                            $mysqli_log,
+                            'send_password_reset_email',
+                            array(
+                                'to' => array($user_email),
+                                'subject' => EMAIL_PASSWORDRESET_SUBJECT,
+                                'user_name' => $user_name
+                            ),
+                            true,
+                            "Password reset email sent to $user_email",
+                            null
+                        );
+                        $mysqli_log->close();
+                    }
+                } catch (Exception $e) {
+                    // Silently fail logging - don't break password reset flow
+                }
+            }
+
             return true;
         }
     }

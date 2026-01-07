@@ -11,6 +11,7 @@ require_once('../login/config/config.php');
 require_once('../login/translations/en.php');
 require_once('../login/libraries/PHPMailer.php');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 $sendTo = $_POST['sendTo'];
 $from = $_POST['from'];
 $user_id = $_POST['user_id'];
@@ -81,13 +82,50 @@ $body = $message . $newLine . $newLine . $link;
 		
 // the link to your register.php, please set this value in config/email_verification.php
 $mail->Body = $body;
+
+// Collect all recipient addresses for logging
+$recipients = array();
+foreach ($mail->getAllRecipientAddresses() as $email => $name) {
+	$recipients[] = $email;
+}
+
 error_log("Sending email!)");
 if(!$mail->Send()) {
+	// Log failed email send
+	log_activity(
+		$mysqli,
+		'send_email_failed',
+		array(
+			'to' => $recipients,
+			'subject' => $subject,
+			'from' => $from,
+			'error' => $mail->ErrorInfo
+		),
+		false,
+		"Failed to send email: " . $subject,
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => "Error",
 		'info' => $mail->ErrorInfo
 	);
 } else {
+	// Log successful email send
+	log_activity(
+		$mysqli,
+		'send_email',
+		array(
+			'to' => $recipients,
+			'subject' => $subject,
+			'from' => $from,
+			'recipient_count' => count($recipients)
+		),
+		true,
+		"Email sent: " . $subject . " to " . count($recipients) . " recipient(s)",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => "Success!"
 	);

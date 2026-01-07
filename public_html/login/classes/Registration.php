@@ -277,8 +277,80 @@ class Registration
 
         if(!$mail->Send()) {
             $this->errors[] = MESSAGE_VERIFICATION_MAIL_NOT_SENT . $mail->ErrorInfo;
+
+            // Log failed verification email
+            if (file_exists(__DIR__ . '/../../includes/activity_logger.php')) {
+                require_once(__DIR__ . '/../../includes/activity_logger.php');
+                require_once(__DIR__ . '/../../includes/credentials.php');
+
+                try {
+                    $creds = Credentials::getInstance();
+                    $mysqli = new mysqli(
+                        $creds->getDatabaseHost(),
+                        $creds->getDatabaseUser(),
+                        $creds->getDatabasePassword(),
+                        $creds->getDatabaseName()
+                    );
+
+                    if (!$mysqli->connect_error) {
+                        log_activity(
+                            $mysqli,
+                            'send_verification_email_failed',
+                            array(
+                                'to' => array('mscdaryl@gmail.com'),
+                                'subject' => EMAIL_VERIFICATION_SUBJECT,
+                                'user_email' => $user_email,
+                                'user_type' => $user_type,
+                                'error' => $mail->ErrorInfo
+                            ),
+                            false,
+                            "Failed to send verification email for $user_email",
+                            null
+                        );
+                        $mysqli->close();
+                    }
+                } catch (Exception $e) {
+                    // Silently fail logging - don't break registration flow
+                }
+            }
+
             return false;
         } else {
+            // Log successful verification email
+            if (file_exists(__DIR__ . '/../../includes/activity_logger.php')) {
+                require_once(__DIR__ . '/../../includes/activity_logger.php');
+                require_once(__DIR__ . '/../../includes/credentials.php');
+
+                try {
+                    $creds = Credentials::getInstance();
+                    $mysqli = new mysqli(
+                        $creds->getDatabaseHost(),
+                        $creds->getDatabaseUser(),
+                        $creds->getDatabasePassword(),
+                        $creds->getDatabaseName()
+                    );
+
+                    if (!$mysqli->connect_error) {
+                        log_activity(
+                            $mysqli,
+                            'send_verification_email',
+                            array(
+                                'to' => array('mscdaryl@gmail.com'),
+                                'subject' => EMAIL_VERIFICATION_SUBJECT,
+                                'user_email' => $user_email,
+                                'user_type' => $user_type
+                            ),
+                            true,
+                            "Verification email sent for $user_email",
+                            null
+                        );
+                        $mysqli->close();
+                    }
+                } catch (Exception $e) {
+                    // Silently fail logging - don't break registration flow
+                }
+            }
+
             return true;
         }
     }
