@@ -57,13 +57,17 @@
 	<hr>
 
 	<a href="MB_Counselors.php">
-	<p><i class="fi-star" style="font-size:20px"></i> 
+	<p><i class="fi-star" style="font-size:20px"></i>
 	Merit Badge Counselors</p>
 	</a>
 	<hr>
 
+  <?php if ((in_array("wm",$access)) || (in_array("sa",$access))) {
+    echo '<a href="ActivityLog.php"><p><i class="fi-list" style="font-size:20px"></i> [Leader] Activity Log</p></a><hr>';
+  } ?>
+
 	<a href="login/index.php?logout">
-	<p><i class="fi-power" style="font-size:20px"></i> 
+	<p><i class="fi-power" style="font-size:20px"></i>
 	Logoff</p>
 	</a>
 	<hr>
