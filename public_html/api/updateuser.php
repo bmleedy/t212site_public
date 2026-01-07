@@ -10,6 +10,7 @@ header('Content-Type: application/json');
 //there should be a permission check here before we allow you to connect and blindly accept
 //  whatever data was thrown at us.  TODO security improvement.
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Debug: Log what we received (remove after debugging)
 error_log("POST data received: " . print_r($_POST, true));
@@ -137,8 +138,35 @@ if($statement->execute()){
 		'status' => 'Success'
 	);
 	echo json_encode($returnMsg);
+
+	// Log successful user update
+	log_activity(
+		$mysqli,
+		'update_user',
+		array(
+			'user_id' => $id,
+			'user_type' => $user_type,
+			'fields_updated' => array('first', 'last', 'email', 'notif_prefs')
+		),
+		true,
+		"User profile updated for user ID: $id",
+		$id
+	);
 }else{
 	echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
+
+	// Log failed user update
+	log_activity(
+		$mysqli,
+		'update_user',
+		array(
+			'user_id' => $id,
+			'error' => $mysqli->error
+		),
+		false,
+		"Failed to update user profile for user ID: $id",
+		$id
+	);
 	die;
 }
 $statement->close();

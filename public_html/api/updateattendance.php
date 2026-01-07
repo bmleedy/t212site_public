@@ -27,6 +27,7 @@ header('Content-Type: application/json');
 // Try to require connect.php with error handling
 try {
     require 'connect.php';
+    require_once(__DIR__ . '/../includes/activity_logger.php');
 } catch (Exception $e) {
     echo json_encode([
         'status' => 'Error',
@@ -83,6 +84,16 @@ if ($results && $results->num_rows > 0) {
 	                WHERE id = " . $record_id;
 
 	if ($mysqli->query($updateQuery)) {
+		// Log update
+		log_activity(
+			$mysqli,
+			'update_attendance',
+			array('user_id' => $user_id, 'date' => $date, 'was_present' => $was_present),
+			true,
+			"Attendance updated for user $user_id on $date",
+			$user_id
+		);
+
 		echo json_encode([
 			'status' => 'Success',
 			'message' => 'Attendance updated',
@@ -92,6 +103,16 @@ if ($results && $results->num_rows > 0) {
 			'was_present' => (bool)$was_present
 		]);
 	} else {
+		// Log failure
+		log_activity(
+			$mysqli,
+			'update_attendance',
+			array('user_id' => $user_id, 'date' => $date, 'error' => $mysqli->error),
+			false,
+			"Failed to update attendance for user $user_id on $date",
+			$user_id
+		);
+
 		echo json_encode([
 			'status' => 'Error',
 			'message' => 'Failed to update attendance: ' . $mysqli->error
@@ -104,6 +125,16 @@ if ($results && $results->num_rows > 0) {
 
 	try {
 		if ($mysqli->query($insertQuery)) {
+			// Log insert
+			log_activity(
+				$mysqli,
+				'create_attendance',
+				array('user_id' => $user_id, 'date' => $date, 'was_present' => $was_present),
+				true,
+				"New attendance record created for user $user_id on $date",
+				$user_id
+			);
+
 			echo json_encode([
 				'status' => 'Success',
 				'message' => 'Attendance recorded',
@@ -113,12 +144,32 @@ if ($results && $results->num_rows > 0) {
 				'was_present' => (bool)$was_present
 			]);
 		} else {
+			// Log failure
+			log_activity(
+				$mysqli,
+				'create_attendance',
+				array('user_id' => $user_id, 'date' => $date, 'error' => $mysqli->error),
+				false,
+				"Failed to create attendance record for user $user_id on $date",
+				$user_id
+			);
+
 			echo json_encode([
 				'status' => 'Error',
 				'message' => 'Failed to record attendance: ' . $mysqli->error
 			]);
 		}
 	} catch (Exception $e) {
+		// Log exception
+		log_activity(
+			$mysqli,
+			'create_attendance',
+			array('user_id' => $user_id, 'date' => $date, 'exception' => $e->getMessage()),
+			false,
+			"Exception while creating attendance for user $user_id on $date",
+			$user_id
+		);
+
 		echo json_encode([
 			'status' => 'Error',
 			'message' => 'Database error: ' . $e->getMessage()

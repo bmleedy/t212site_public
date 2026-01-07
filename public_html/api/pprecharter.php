@@ -7,6 +7,7 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 }
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 $rc_ids= explode("," , $_POST['rc_ids']);
 
 // Process rows, updating scout's user table entry to indicate recharter and boyslife
@@ -36,6 +37,16 @@ foreach ($rc_ids as &$id) {
 	];
 }
 $statement->close();
+
+// Log batch recharter update
+log_activity(
+	$mysqli,
+	'batch_recharter_update',
+	array('rc_ids' => $rc_ids, 'count' => count($rc_ids)),
+	true,
+	"Batch recharter update completed for " . count($rc_ids) . " scouts",
+	null
+);
 
 $returnMsg = array(
 	'status' => 'Success',

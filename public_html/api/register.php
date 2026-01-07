@@ -10,6 +10,7 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 }
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 $user_id = $_POST['user_id'];
 $event_id = $_POST['event_id'];
 $action = $_POST['action'];
@@ -37,6 +38,16 @@ if ($action=="cancel") {
 	// Send notification to Scout in Charge and Adult in Charge
 	sendCancellationNotification($event_id, $user_id, $mysqli);
 
+	// Log cancellation
+	log_activity(
+		$mysqli,
+		'cancel_registration',
+		array('event_id' => $event_id, 'user_id' => $user_id),
+		true,
+		"User cancelled registration for event $event_id",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Cancelled',
@@ -53,6 +64,17 @@ if ($action=="pay") {
 	$statement->bind_param('sss', $paid, $event_id, $user_id);
 	$statement->execute();
 	$statement->close();
+
+	// Log payment update
+	log_activity(
+		$mysqli,
+		'mark_registration_paid',
+		array('event_id' => $event_id, 'user_id' => $user_id),
+		true,
+		"Registration marked as paid for event $event_id",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Yes',
@@ -70,6 +92,17 @@ if ($action=="restore") {
 	$statement->bind_param('ssss', $attending, $seat_belts, $event_id, $user_id);
 	$statement->execute();
 	$statement->close();
+
+	// Log restoration
+	log_activity(
+		$mysqli,
+		'restore_registration',
+		array('event_id' => $event_id, 'user_id' => $user_id, 'seat_belts' => $seat_belts),
+		true,
+		"Registration restored for event $event_id",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Yes',
@@ -86,6 +119,17 @@ if ($action=="seatbelts") {
 	$statement->bind_param('sss', $seat_belts, $event_id, $user_id);
 	$statement->execute();
 	$statement->close();
+
+	// Log seat belt update
+	log_activity(
+		$mysqli,
+		'update_seatbelts',
+		array('event_id' => $event_id, 'user_id' => $user_id, 'seat_belts' => $seat_belts),
+		true,
+		"Updated seat belts to $seat_belts for event $event_id",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Yes',
@@ -128,6 +172,16 @@ if($rs == false) {
 	die;
 }
 if($statement->execute()){
+	// Log new registration
+	log_activity(
+		$mysqli,
+		'new_registration',
+		array('event_id' => $event_id, 'user_id' => $user_id, 'seat_belts' => $seat_belts, 'paid' => $paid),
+		true,
+		"New registration created for event $event_id",
+		$user_id
+	);
+
 	$returnMsg = array(
 		'status' => 'Success',
 		'signed_up' => 'Yes',
@@ -135,6 +189,16 @@ if($statement->execute()){
 	);
 	echo json_encode($returnMsg);
 }else{
+	// Log failed registration
+	log_activity(
+		$mysqli,
+		'new_registration',
+		array('event_id' => $event_id, 'user_id' => $user_id, 'error' => $mysqli->error),
+		false,
+		"Failed to create registration for event $event_id",
+		$user_id
+	);
+
 	echo ( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
 	die;
 }

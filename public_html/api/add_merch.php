@@ -26,6 +26,7 @@ if( $_SERVER[ 'CONTENT_TYPE' ] === 'application/json' ) {
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 //Collect what I need for this transaction
 $user_id = $_SESSION['user_id']; //this should never be not set - todo: return an error if not set
@@ -78,9 +79,27 @@ if(str_contains($_SERVER["HTTP_REFERER"], "ClassBOrder.php")) {
 			$statement = $mysqli->prepare($query);
 			$statement->bind_param('ss', $order_page, $user_id);
 			if ($statement->execute()) {
-				// nothing to do. it was successful
+				// Log order creation
+				log_activity(
+					$mysqli,
+					'create_order',
+					array('order_page' => $order_page, 'user_id' => $user_id),
+					true,
+					"New order created for user $user_id on page $order_page",
+					$user_id
+				);
 				$statement->close();
 			} else {
+				// Log failure
+				log_activity(
+					$mysqli,
+					'create_order',
+					array('order_page' => $order_page, 'user_id' => $user_id, 'error' => $mysqli->error),
+					false,
+					"Failed to create order for user $user_id",
+					$user_id
+				);
+
 				echo ( 'Error creating new order in db: ('. $mysqli->errno .') '. $mysqli->error);
 				$statement->close();
 				die;
@@ -104,9 +123,27 @@ $query = "CALL update_order_item({$order_id}, '{$item_id}', {$item_qty})";
 //error_log($query);
 $statement = $mysqli->prepare($query);
 if ($statement->execute()) {
-	// nothing to do. it was successful
+	// Log merchandise item update
+	log_activity(
+		$mysqli,
+		'update_order_item',
+		array('order_id' => $order_id, 'item_id' => $item_id, 'item_qty' => $item_qty),
+		true,
+		"Order item updated: Order $order_id, Item $item_id, Qty $item_qty",
+		$user_id
+	);
 	$statement->close();
 } else {
+	// Log failure
+	log_activity(
+		$mysqli,
+		'update_order_item',
+		array('order_id' => $order_id, 'item_id' => $item_id, 'error' => $mysqli->error),
+		false,
+		"Failed to update order item for order $order_id",
+		$user_id
+	);
+
 	echo ( 'Error creating new order in db: ('. $mysqli->errno .') '. $mysqli->error);
 	$statement->close();
 	die;

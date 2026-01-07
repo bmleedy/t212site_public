@@ -7,6 +7,7 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 }
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 $name = $_POST['name'];
 $location = $_POST['location'];
 $description = $_POST['description'];
@@ -43,11 +44,31 @@ if ($id != 'New') {
 			die;
 	}
 	if($statement->execute()){
+		// Log successful event update
+		log_activity(
+			$mysqli,
+			'update_event',
+			array('event_id' => $id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+			true,
+			"Event $id updated: $name",
+			null
+		);
+
 		$returnMsg = array(
 			'status' => 'Success'
 		);
 		echo json_encode($returnMsg);
 	}else{
+		// Log failed event update
+		log_activity(
+			$mysqli,
+			'update_event',
+			array('event_id' => $id, 'error' => $mysqli->error),
+			false,
+			"Failed to update event $id",
+			null
+		);
+
 		echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
 		die;
 	}
@@ -64,18 +85,39 @@ if ($id != 'New') {
 	$rs = $statement->bind_param('sssssssssss', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type);
 	if($rs == false) {
 			$returnMsg = array(
-				'status' => 'error', 
+				'status' => 'error',
 				'message' => $startdate
 			);
 			echo json_encode($returnMsg);
 			die;
 	}
 	if($statement->execute()){
+		// Log successful event creation
+		$new_event_id = $mysqli->insert_id;
+		log_activity(
+			$mysqli,
+			'create_event',
+			array('event_id' => $new_event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+			true,
+			"New event created: $name (ID: $new_event_id)",
+			null
+		);
+
 		$returnMsg = array(
 			'status' => 'Success'
 		);
 		echo json_encode($returnMsg);
 	}else{
+		// Log failed event creation
+		log_activity(
+			$mysqli,
+			'create_event',
+			array('name' => $name, 'error' => $mysqli->error),
+			false,
+			"Failed to create event: $name",
+			null
+		);
+
 		echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
 		die;
 	}

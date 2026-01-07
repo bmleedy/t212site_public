@@ -8,6 +8,7 @@ if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 $reg_ids= explode("," , $_POST['reg_ids']);
 
@@ -48,6 +49,16 @@ foreach ($reg_ids as &$id) {
 	}
 }
 $statement->close();
+
+// Log batch payment update
+log_activity(
+	$mysqli,
+	'batch_payment_update',
+	array('reg_ids' => $reg_ids, 'count' => count($reg_ids)),
+	true,
+	"Batch payment update completed for " . count($reg_ids) . " registrations",
+	null
+);
 
 $returnMsg = array(
 	'status' => 'Success',
