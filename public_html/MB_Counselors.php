@@ -3,7 +3,6 @@
 session_start();
 require "includes/authHeader.php"; ?>
 
-<br>
 <div class='row'>
 	<?php 
 		if ($login->isUserLoggedIn() == true) {
