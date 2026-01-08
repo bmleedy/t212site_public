@@ -24,4 +24,3 @@ if ($mysqli->connect_error) {
 	print "fail ";
    die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
 }
-?>

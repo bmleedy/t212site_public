@@ -1,16 +1,34 @@
 <?php
+// Prevent any output before JSON header
+error_reporting(0);
+ini_set('display_errors', '0');
+
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	echo "Not sure what you are after, but it ain't here.";
+	header('Content-Type: application/json');
+	echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 
 header('Content-Type: application/json');
 require 'connect.php';
+
+// Check for database connection errors
+if (!isset($mysqli) || $mysqli->connect_error) {
+    echo json_encode(['error' => 'Database connection failed']);
+    die();
+}
+
 $query="SELECT * FROM mb_counselors AS mbc JOIN mb_list AS mbl WHERE mbc.mb_id = mbl.id ORDER BY mb_name";
 $results = $mysqli->query($query);
-$counselors = null;
+
+if (!$results) {
+    echo json_encode(['error' => 'Query failed: ' . $mysqli->error]);
+    die();
+}
+
+$counselors = [];
 
 while ($row = $results->fetch_object()) {
 	$id = $row->user_id;
@@ -28,5 +46,3 @@ while ($row = $results->fetch_object()) {
 }
 
 echo json_encode($counselors);
-
-?> 
