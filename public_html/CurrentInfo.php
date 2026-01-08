@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<?php require "includes/header.html"; ?>
+<?php
+require_once(__DIR__ . '/api/connect.php');
+require "includes/header.html";
+?>
 <br />
 
 <div class='row'>
@@ -56,6 +59,37 @@
       <td>Once Yearly in November</td>
       <td>Scout Leaders, all welcome</td>
     </tr>
+  </tbody>
+</table>
+
+<h4>Troop Committee</h4>
+<p>The Scoutmasters and committee support the troop through many different roles. We are proud of the strong group of involved parents (and some grandparents!) who take the time to help the troop in different capacities.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th width="200">Role</th>
+      <th width="200">Name</th>
+    </tr>
+  </thead>
+  <tbody>
+<?php
+$query = "SELECT c.role_name, u.user_first, u.user_last
+          FROM committee c
+          LEFT JOIN users u ON c.user_id = u.user_id
+          ORDER BY c.sort_order ASC";
+$result = $mysqli->query($query);
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $role_name = htmlspecialchars($row['role_name']);
+        $user_name = htmlspecialchars($row['user_first'] . ' ' . $row['user_last']);
+        echo "    <tr>\n";
+        echo "      <td>{$role_name}</td>\n";
+        echo "      <td>{$user_name}</td>\n";
+        echo "    </tr>\n";
+    }
+}
+?>
   </tbody>
 </table>
 

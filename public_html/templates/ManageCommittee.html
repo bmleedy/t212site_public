@@ -1,0 +1,496 @@
+<h3>Manage Committee</h3>
+<p>Edit committee roles and assignments. Changes are saved when you click the Submit button.</p>
+
+<div class="row">
+  <div class="large-12 columns">
+    <div id="errorMessages" style="display: none;" class="alert-box alert"></div>
+    <div id="successMessage" style="display: none;" class="alert-box success"></div>
+  </div>
+</div>
+
+<!-- New Committee Role Form -->
+<div class="row">
+  <div class="large-12 columns">
+    <h4>Add New Committee Role</h4>
+    <div class="row">
+      <div class="large-3 columns">
+        <label>Role Name
+          <input type="text" id="newRoleName" placeholder="e.g., Scoutmaster" maxlength="100">
+        </label>
+      </div>
+      <div class="large-4 columns">
+        <label>Assigned User
+          <select id="newUserId">
+            <option value="">-- Select User --</option>
+          </select>
+        </label>
+      </div>
+      <div class="large-2 columns">
+        <label>Sort Order
+          <input type="number" id="newSortOrder" placeholder="e.g., 10" min="0">
+        </label>
+      </div>
+      <div class="large-3 columns">
+        <label>&nbsp;</label>
+        <button id="addRoleButton" class="button success">Add Role</button>
+      </div>
+    </div>
+    <hr>
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+    <h4>Existing Committee Roles</h4>
+    <table id="committeeTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Role Name</th>
+          <th>Assigned User</th>
+          <th>Sort Order</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="committeeTableBody">
+        <!-- Rows will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="row">
+  <div class="large-12 columns">
+    <button id="submitButton" class="button">Submit Changes</button>
+    <button id="cancelButton" class="button secondary">Cancel</button>
+  </div>
+</div>
+
+<!-- Confirmation Dialog -->
+<div id="deleteConfirmDialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+  <div style="background: white; width: 400px; margin: 100px auto; padding: 20px; border-radius: 5px;">
+    <h4>Confirm Deletion</h4>
+    <p id="deleteConfirmMessage"></p>
+    <button id="confirmDeleteButton" class="button alert">Delete</button>
+    <button id="cancelDeleteButton" class="button secondary">Cancel</button>
+  </div>
+</div>
+
+<script>
+$(document).ready(function() {
+  var roles = [];
+  var originalRoles = [];
+  var users = [];
+  var roleToDelete = null;
+
+  // Load users and roles on page load
+  loadUsers().then(function() {
+    loadRoles();
+  });
+
+  function loadUsers() {
+    return $.ajax({
+      url: 'api/getactiveusers.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          users = data.users;
+          populateUserDropdowns();
+        } else {
+          showError('Failed to load users: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        showError('Failed to load users. Please refresh the page.');
+      }
+    });
+  }
+
+  function populateUserDropdowns() {
+    var options = '<option value="">-- Select User --</option>';
+    users.forEach(function(user) {
+      options += '<option value="' + user.user_id + '">' + escapeHtml(user.user_first + ' ' + user.user_last) + '</option>';
+    });
+    $('#newUserId').html(options);
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+  }
+
+  function loadRoles() {
+    $.ajax({
+      url: 'api/getallcommittee.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          roles = data.roles;
+          originalRoles = JSON.parse(JSON.stringify(roles)); // Deep copy
+          renderTable();
+        } else {
+          showError('Failed to load committee roles: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        showError('Failed to load committee roles. Please refresh the page.');
+      }
+    });
+  }
+
+  // Add new role functionality
+  $('#addRoleButton').on('click', function() {
+    hideMessages();
+
+    var newName = $('#newRoleName').val().trim();
+    var newUserId = $('#newUserId').val();
+    var newSort = $('#newSortOrder').val().trim();
+
+    // Validate inputs
+    if (!newName) {
+      showError('Please enter a role name.');
+      return;
+    }
+
+    if (!newUserId) {
+      showError('Please select a user.');
+      return;
+    }
+
+    if (!newSort) {
+      showError('Please enter a sort order.');
+      return;
+    }
+
+    var sortValue = parseInt(newSort);
+    if (isNaN(sortValue) || sortValue < 0) {
+      showError('Sort order must be a positive number.');
+      return;
+    }
+
+    // Disable button during submission
+    $('#addRoleButton').prop('disabled', true).text('Adding...');
+
+    // Submit to API
+    $.ajax({
+      url: 'api/createcommittee.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      data: {
+        role_name: newName,
+        user_id: newUserId,
+        sort_order: sortValue
+      },
+      success: function(data) {
+        $('#addRoleButton').prop('disabled', false).text('Add Role');
+
+        if (data.status === 'Success') {
+          showSuccess('Committee role "' + newName + '" created successfully!');
+
+          // Clear form
+          $('#newRoleName').val('');
+          $('#newUserId').val('');
+          $('#newSortOrder').val('');
+
+          // Reload roles
+          loadRoles();
+        } else {
+          showError('Failed to create role: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        $('#addRoleButton').prop('disabled', false).text('Add Role');
+        showError('Failed to create role. Please try again.');
+      }
+    });
+  });
+
+  function renderTable() {
+    // Sort roles by sort order
+    roles.sort(function(a, b) {
+      return parseInt(a.sort_order) - parseInt(b.sort_order);
+    });
+
+    var tbody = $('#committeeTableBody');
+    tbody.empty();
+
+    roles.forEach(function(role) {
+      var row = $('<tr>').attr('data-id', role.role_id);
+
+      // ID column (read-only)
+      row.append($('<td>').text(role.role_id));
+
+      // Role Name column (editable)
+      var nameCell = $('<td>');
+      var nameInput = $('<input>')
+        .attr('type', 'text')
+        .attr('data-field', 'role_name')
+        .attr('data-id', role.role_id)
+        .val(role.role_name)
+        .addClass('committee-input');
+      nameCell.append(nameInput);
+      row.append(nameCell);
+
+      // User column (dropdown)
+      var userCell = $('<td>');
+      var userSelect = $('<select>')
+        .attr('data-field', 'user_id')
+        .attr('data-id', role.role_id)
+        .addClass('committee-input');
+
+      userSelect.append('<option value="">-- Select User --</option>');
+      users.forEach(function(user) {
+        var option = $('<option>')
+          .val(user.user_id)
+          .text(user.user_first + ' ' + user.user_last);
+        if (user.user_id == role.user_id) {
+          option.prop('selected', true);
+        }
+        userSelect.append(option);
+      });
+      userCell.append(userSelect);
+      row.append(userCell);
+
+      // Sort Order column (editable)
+      var sortCell = $('<td>');
+      var sortInput = $('<input>')
+        .attr('type', 'number')
+        .attr('data-field', 'sort_order')
+        .attr('data-id', role.role_id)
+        .val(role.sort_order)
+        .addClass('committee-input');
+      sortCell.append(sortInput);
+      row.append(sortCell);
+
+      // Actions column
+      var actionsCell = $('<td>');
+      var deleteButton = $('<button>')
+        .addClass('button tiny alert')
+        .attr('data-id', role.role_id)
+        .text('Delete')
+        .on('click', function() {
+          confirmDelete(role);
+        });
+      actionsCell.append(deleteButton);
+      row.append(actionsCell);
+
+      tbody.append(row);
+    });
+
+    // Add change handlers to inputs
+    $('.committee-input').on('change', function() {
+      var id = $(this).attr('data-id');
+      var field = $(this).attr('data-field');
+      var value = $(this).val();
+
+      updateRoleData(id, field, value);
+    });
+
+    // Add blur handler for sort order to re-render on change
+    $('input[data-field="sort_order"]').on('blur', function() {
+      renderTable();
+    });
+  }
+
+  function updateRoleData(id, field, value) {
+    var role = roles.find(function(r) { return r.role_id == id; });
+    if (role) {
+      role[field] = value;
+
+      // Mark as modified
+      role.modified = true;
+    }
+  }
+
+  function confirmDelete(role) {
+    roleToDelete = role;
+    $('#deleteConfirmMessage').text('Are you sure you want to delete the role "' + role.role_name + '"? This action cannot be undone.');
+    $('#deleteConfirmDialog').show();
+  }
+
+  $('#confirmDeleteButton').on('click', function() {
+    if (roleToDelete) {
+      deleteRole(roleToDelete.role_id);
+      $('#deleteConfirmDialog').hide();
+      roleToDelete = null;
+    }
+  });
+
+  $('#cancelDeleteButton').on('click', function() {
+    $('#deleteConfirmDialog').hide();
+    roleToDelete = null;
+  });
+
+  function deleteRole(id) {
+    $.ajax({
+      url: 'api/deletecommittee.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      data: {
+        role_id: id
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          // Remove from local array
+          roles = roles.filter(function(r) { return r.role_id != id; });
+          renderTable();
+          showSuccess('Role deleted successfully.');
+        } else {
+          showError('Failed to delete role: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        showError('Failed to delete role. Please try again.');
+      }
+    });
+  }
+
+  $('#submitButton').on('click', function() {
+    hideMessages();
+
+    // Validate all roles
+    var validationErrors = [];
+
+    roles.forEach(function(role, index) {
+      // Validate role name
+      if (!role.role_name || role.role_name.trim() === '') {
+        validationErrors.push('Row ' + (index + 1) + ': Role name cannot be empty.');
+      }
+
+      // Validate user is selected
+      if (!role.user_id) {
+        validationErrors.push('Row ' + (index + 1) + ': Please select a user.');
+      }
+
+      // Validate sort order: must be a number
+      var sortValue = parseInt(role.sort_order);
+      if (isNaN(sortValue)) {
+        validationErrors.push('Row ' + (index + 1) + ': Sort order must be a number.');
+      }
+    });
+
+    if (validationErrors.length > 0) {
+      showError(validationErrors.join('<br>'));
+      return;
+    }
+
+    // Find modified roles
+    var modifiedRoles = roles.filter(function(role) {
+      return role.modified;
+    });
+
+    if (modifiedRoles.length === 0) {
+      showError('No changes to save.');
+      return;
+    }
+
+    // Submit changes
+    var completed = 0;
+    var errors = [];
+
+    modifiedRoles.forEach(function(role) {
+      $.ajax({
+        url: 'api/updatecommittee.php',
+        type: 'POST',
+        dataType: 'json',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+          role_id: role.role_id,
+          role_name: role.role_name,
+          user_id: role.user_id,
+          sort_order: role.sort_order
+        },
+        success: function(data) {
+          completed++;
+
+          if (data.status !== 'Success') {
+            errors.push('Role ' + role.role_name + ': ' + (data.message || 'Unknown error'));
+          }
+
+          if (completed === modifiedRoles.length) {
+            if (errors.length > 0) {
+              showError('Some updates failed:<br>' + errors.join('<br>'));
+            } else {
+              showSuccess('All changes saved successfully.');
+              loadRoles(); // Reload to get fresh data
+            }
+          }
+        },
+        error: function() {
+          completed++;
+          errors.push('Role ' + role.role_name + ': Network error');
+
+          if (completed === modifiedRoles.length) {
+            showError('Some updates failed:<br>' + errors.join('<br>'));
+          }
+        }
+      });
+    });
+  });
+
+  $('#cancelButton').on('click', function() {
+    loadRoles(); // Reload original data
+    hideMessages();
+  });
+
+  function showError(message) {
+    $('#errorMessages').html(message).show();
+    $('#successMessage').hide();
+  }
+
+  function showSuccess(message) {
+    $('#successMessage').html(message).show();
+    $('#errorMessages').hide();
+  }
+
+  function hideMessages() {
+    $('#errorMessages').hide();
+    $('#successMessage').hide();
+  }
+});
+</script>
+
+<style>
+#committeeTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#committeeTable th,
+#committeeTable td {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+#committeeTable th {
+  background-color: #f4f4f4;
+  text-align: left;
+}
+
+.committee-input {
+  width: 100%;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+#deleteConfirmDialog button {
+  margin-right: 10px;
+}
+</style>
