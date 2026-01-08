@@ -206,6 +206,19 @@ function validateField( $strValue, $strLabel, $strFieldName) {
 }
 
 function writeScoutData($user_id, $rank, $patrol, $position, $mysqli) {
+	// Get the current position before updating
+	$query="SELECT position_id FROM scout_info WHERE user_id=?";
+	$statement = $mysqli->prepare($query);
+	$statement->bind_param('s', $user_id);
+	$statement->execute();
+	$result = $statement->get_result();
+	$old_position = null;
+	if ($row = $result->fetch_assoc()) {
+		$old_position = $row['position_id'];
+	}
+	$statement->close();
+
+	// Update or insert scout info
 	$query="SELECT user_id FROM scout_info WHERE user_id=".$user_id;
 	$results = $mysqli->query($query);
 	if ($results->fetch_assoc()) {
@@ -219,6 +232,10 @@ function writeScoutData($user_id, $rank, $patrol, $position, $mysqli) {
 		$statement->bind_param('ssss', $user_id, $rank, $patrol, $position);
 		$statement->execute();
 	}
+
+	// Sync permissions based on position change
+	// Position ID 1 = Patrol Leader (should have 'pl' permission)
+	syncPositionPermissions($user_id, $old_position, $position, $mysqli);
 }
 
 function writeMeritBadgeData($user_id, $mb_list, $mysqli) {
@@ -367,4 +384,89 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
 		die;
 	}
 	$statement->close();
+}
+
+/**
+ * Synchronize user permissions based on scout position changes
+ * Position ID 1 = Patrol Leader (gets 'pl' permission)
+ */
+function syncPositionPermissions($user_id, $old_position, $new_position, $mysqli) {
+	// Position ID 1 = Patrol Leader
+	$PATROL_LEADER_ID = 1;
+
+	// Only process if position actually changed
+	if ($old_position == $new_position) {
+		return;
+	}
+
+	// Get current user_access
+	$query = "SELECT user_access FROM users WHERE user_id=?";
+	$statement = $mysqli->prepare($query);
+	$statement->bind_param('s', $user_id);
+	$statement->execute();
+	$result = $statement->get_result();
+	$row = $result->fetch_assoc();
+	$current_access = $row['user_access'];
+	$statement->close();
+
+	// Convert to array
+	$access_array = array_filter(explode('.', $current_access));
+	$original_access = $current_access;
+	$permission_changed = false;
+
+	// Adding Patrol Leader position
+	if ($new_position == $PATROL_LEADER_ID && !in_array('pl', $access_array)) {
+		$access_array[] = 'pl';
+		$permission_changed = true;
+		$change_description = "Added 'pl' permission (assigned Patrol Leader position)";
+	}
+	// Removing Patrol Leader position
+	else if ($old_position == $PATROL_LEADER_ID && $new_position != $PATROL_LEADER_ID) {
+		$access_array = array_diff($access_array, array('pl'));
+		$permission_changed = true;
+		$change_description = "Removed 'pl' permission (removed from Patrol Leader position)";
+	}
+
+	// Update database if permission changed
+	if ($permission_changed) {
+		$new_access = implode('.', $access_array);
+
+		$query = "UPDATE users SET user_access=? WHERE user_id=?";
+		$statement = $mysqli->prepare($query);
+		$statement->bind_param('ss', $new_access, $user_id);
+
+		if ($statement->execute()) {
+			// Log successful permission sync
+			log_activity(
+				$mysqli,
+				'sync_position_permissions',
+				array(
+					'user_id' => $user_id,
+					'old_position' => $old_position,
+					'new_position' => $new_position,
+					'old_access' => $original_access,
+					'new_access' => $new_access
+				),
+				true,
+				$change_description . " for user ID: $user_id",
+				$user_id
+			);
+		} else {
+			// Log failed permission sync
+			log_activity(
+				$mysqli,
+				'sync_position_permissions',
+				array(
+					'user_id' => $user_id,
+					'old_position' => $old_position,
+					'new_position' => $new_position,
+					'error' => $mysqli->error
+				),
+				false,
+				"Failed to sync permissions for user ID: $user_id",
+				$user_id
+			);
+		}
+		$statement->close();
+	}
 }

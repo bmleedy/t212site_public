@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<?php require "includes/header.html"; ?>
+<?php
+session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
+session_start();
+require "includes/authHeader.php";
+?>
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
+	<?php
+		if ($login->isUserLoggedIn() == true) {
+			require "includes/m_sidebar.html";
+		} else {
+			require "includes/sidebar.html";
+		}
+	?>
 	<div class="large-9 columns">
 		<div class="panel">
-			<p>Patrol Corners Sample Agenda</p>
+			<h3>Patrol Corners Sample Agenda</h3>
 			<p>Patrol Name: ________________________________________</p>
 			<br>
 			<ol>
