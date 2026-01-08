@@ -76,10 +76,10 @@ require_once( 'login/inc_login.php');
     </div>
   </a>
 
-  <a href="Scoutmaster.php">
+  <a href="OutingsPublic.php">
     <div class="large-3 columns">
       <div class="panel">
-        <p><i class="fi-star" style="font-size:20px"></i> Scoutmaster</p>
+        <p><i class="fi-mountains" style="font-size:20px"></i> Recent Events</p>
       </div>
     </div>
   </a>
