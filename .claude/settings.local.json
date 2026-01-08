@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php tests/test_runner.php:*)",
+      "Bash(php -r:*)",
+      "Bash(php:*)",
+      "Bash(find:*)",
+      "Bash(mysql --version:*)",
+      "Bash(mysql:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

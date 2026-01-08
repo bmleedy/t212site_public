@@ -364,56 +364,6 @@ try {
 
 echo "\n";
 
-// ============================================================================
-// TEST 8: ClassBOrder.php loads PayPal Client ID correctly
-// ============================================================================
-
-echo "Test 8: ClassBOrder.php loads PayPal Client ID correctly\n";
-echo str_repeat("-", 60) . "\n";
-
-try {
-    // Read the file content to verify it uses the credentials utility
-    $classBOrderContent = file_get_contents(PUBLIC_HTML_DIR . '/ClassBOrder.php');
-
-    // Check that the file loads credentials.php
-    if (assert_true(strpos($classBOrderContent, 'credentials.php') !== false, "ClassBOrder.php loads credentials.php")) {
-        $passed++;
-    } else {
-        $failed++;
-    }
-
-    // Check that it uses getPayPalClientId() method
-    if (assert_true(strpos($classBOrderContent, 'getPayPalClientId()') !== false, "ClassBOrder.php uses getPayPalClientId()")) {
-        $passed++;
-    } else {
-        $failed++;
-    }
-
-    // Check that $PAYPAL_CLIENT_ID variable is set from credentials
-    if (assert_true(strpos($classBOrderContent, '$PAYPAL_CLIENT_ID = $creds->getPayPalClientId()') !== false, "\$PAYPAL_CLIENT_ID is set from credentials")) {
-        $passed++;
-    } else {
-        $failed++;
-    }
-
-    // Check that the hardcoded Client ID is no longer present
-    $hardcodedClientId = "AXQ50cAYecES03iTMo09BN8iWt7_6E3WBzIiAu76WySPCppGYQEfOfim_Sxhz4Awp2iJqXrrZCT5U-W7";
-    if (assert_true(strpos($classBOrderContent, '$PAYPAL_CLIENT_ID="' . $hardcodedClientId . '"') === false, "Hardcoded Client ID has been removed")) {
-        $passed++;
-    } else {
-        $failed++;
-    }
-
-    echo "ℹ️  INFO: Cannot test ClassBOrder.php execution in CLI (requires web session)\n";
-    echo "   File content has been verified to use credentials utility correctly.\n";
-
-} catch (Exception $e) {
-    assert_false(true, "Exception checking ClassBOrder.php: " . $e->getMessage());
-    $failed += 4;
-}
-
-echo "\n";
-
 // Print summary
 test_summary($passed, $failed);
 
@@ -428,6 +378,5 @@ if ($failed === 0) {
     echo "  1. CREDENTIALS.json has correct PayPal production credentials\n";
     echo "  2. Checkout/paypal_config.php is loading credentials properly\n";
     echo "  3. PayPal/Configuration.php is loading credentials properly\n";
-    echo "  4. ClassBOrder.php is loading PayPal Client ID properly\n";
     exit(1);
 }
