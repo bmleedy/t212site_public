@@ -75,4 +75,3 @@ $returnMsg = array(
 
 echo json_encode($returnMsg);
 die();
-?>

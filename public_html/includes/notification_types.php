@@ -31,5 +31,3 @@ $notification_types = array(
         'tooltip' => 'Check this box to receive email notifications when someone cancels registration for an event you are organizing (Scout in Charge or Adult in Charge).'
     )
 );
-
-?>

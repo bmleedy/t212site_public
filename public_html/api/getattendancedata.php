@@ -46,4 +46,3 @@ if ($results) {
 $stmt->close();
 
 die();
-?>

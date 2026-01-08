@@ -57,4 +57,3 @@ while ($row = $results->fetch_object()) {
 
 echo json_encode($adults);
 die();
-?>
