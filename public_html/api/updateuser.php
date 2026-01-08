@@ -1,8 +1,13 @@
 <?php
+// Prevent any output before JSON header
+error_reporting(0);
+ini_set('display_errors', '0');
+
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	echo "Not sure what you are after, but it ain't here.";
+	header('Content-Type: application/json');
+	echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 
@@ -335,4 +340,3 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
 	}
 	$statement->close();
 }
-?>
