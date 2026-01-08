@@ -21,363 +21,363 @@ var nbrSeatBelts=0;
 var strPrompt;
 
 function toggleDiv(divName) {
-	$('#'+divName).toggle();
+  $('#'+divName).toggle();
 }
 function editDoc() {
-	strURL = location.href + "&edit=1" ;
-	location.href = strURL;
+  strURL = location.href + "&edit=1" ;
+  location.href = strURL;
 }
 function printRoster() {
-	strURL = "EventRoster.php?id=" + event_id ;
-	location.href = strURL;
+  strURL = "EventRoster.php?id=" + event_id ;
+  location.href = strURL;
 }
 function register(strAction,strPayID) {
-	paid = 0;
-	console.log("Register function called with action: " + strAction);
-	// IF the registration is not a cancelation or payment.
-	// Check whether the current event has any conflicts with the user's existing registrations
-	if (strAction == "add") {
-		console.log("Checking for registration conflicts for user ID: " + user_id);
-		var fieldData = {
-			"user_id": user_id,
-			"event_id": event_id
-		};
-		$.ajax({
-			url: "api/getregistrationconflictsforuser.php",
-			type: "get",
-			data: fieldData,
-			datatype: 'json',
-			error: function(errorThrown) {
-				console.log(errorThrown);
-			},
-			success: function(data) {
-				if (data) {
-					var userconfirmed = confirm("You have a conflict with another event you are registered for. Do you want to continue?");
-					if (!userconfirmed) {
-						return false;
-					} else {
-						console.log("User confirmed to continue despite conflict.");
-					}
-				}
-			}
-		});
-	}
+  paid = 0;
+  console.log("Register function called with action: " + strAction);
+  // IF the registration is not a cancelation or payment.
+  // Check whether the current event has any conflicts with the user's existing registrations
+  if (strAction == "add") {
+    console.log("Checking for registration conflicts for user ID: " + user_id);
+    var fieldData = {
+      "user_id": user_id,
+      "event_id": event_id
+    };
+    $.ajax({
+      url: "api/getregistrationconflictsforuser.php",
+      type: "get",
+      data: fieldData,
+      datatype: 'json',
+      error: function(errorThrown) {
+        console.log(errorThrown);
+      },
+      success: function(data) {
+        if (data) {
+          var userconfirmed = confirm("You have a conflict with another event you are registered for. Do you want to continue?");
+          if (!userconfirmed) {
+            return false;
+          } else {
+            console.log("User confirmed to continue despite conflict.");
+          }
+        }
+      }
+    });
+  }
 
-	// register for the event
-	if (strAction=="pay") {
-		var r = confirm("You are about to pay for this event.");
-		if (r != true) {
-			return false;
-		}
-		paid = 1;
-	} else if (strAction != "cancel") {
-		if (user_type == "Scout") {
-			seat_belts = "0";
-			paid = "0";
-		} else {
-			paid = "0";
-			if (outing_name=="Family outing") {
-				strPrompt = "In order for us to purchase food we need an accurate count of attendees. Please enter the total number of people you are bringing, including any Scout(s) who have signed up independently.";
-			} else {
-				strPrompt = "If you can drive, please enter the total number of seat belts (including driver's). Enter '0' if you cannot drive.";
-			}
-			var seat_belts = prompt(strPrompt, "0");
-			if (seat_belts == null) { return false; }
-		}
-	}
-	var fieldData = {
-			"action": strAction,
-			"user_id": user_id,
-			"pay_id": strPayID,
-			"user_type": user_type,
-			"seat_belts": seat_belts,
-			"paid" : paid,
-			"event_id": event_id,
-			"drive":"tbd" // This is a placeholder, can be used to indicate if the user is driving or not
-	};
-	$.ajax({
- 	  url: "api/register.php" ,
- 	  type: "post",
- 	  datatype: 'json',
-		data: fieldData,
-		error: function(errorThrown) {
-			console.error(errorThrown);
-		},
-		success: function(data){
-			if (data["status"]=="Success") {
-				if ((strAction=='add')&&
-					(user_type=='Scout')) {
-					console.warn("Sending email to parents after registration.");
-					sendParentsEmail();
-					console.warn("Email sent to parents.");}
-				alert(data["message"]);
-			}
-		}
-	})
+  // register for the event
+  if (strAction=="pay") {
+    var r = confirm("You are about to pay for this event.");
+    if (r != true) {
+      return false;
+    }
+    paid = 1;
+  } else if (strAction != "cancel") {
+    if (user_type == "Scout") {
+      seat_belts = "0";
+      paid = "0";
+    } else {
+      paid = "0";
+      if (outing_name=="Family outing") {
+        strPrompt = "In order for us to purchase food we need an accurate count of attendees. Please enter the total number of people you are bringing, including any Scout(s) who have signed up independently.";
+      } else {
+        strPrompt = "If you can drive, please enter the total number of seat belts (including driver's). Enter '0' if you cannot drive.";
+      }
+      var seat_belts = prompt(strPrompt, "0");
+      if (seat_belts == null) { return false; }
+    }
+  }
+  var fieldData = {
+      "action": strAction,
+      "user_id": user_id,
+      "pay_id": strPayID,
+      "user_type": user_type,
+      "seat_belts": seat_belts,
+      "paid" : paid,
+      "event_id": event_id,
+      "drive":"tbd" // This is a placeholder, can be used to indicate if the user is driving or not
+  };
+  $.ajax({
+    url: "api/register.php" ,
+    type: "post",
+    datatype: 'json',
+    data: fieldData,
+    error: function(errorThrown) {
+      console.error(errorThrown);
+    },
+    success: function(data){
+      if (data["status"]=="Success") {
+        if ((strAction=='add')&&
+          (user_type=='Scout')) {
+          console.warn("Sending email to parents after registration.");
+          sendParentsEmail();
+          console.warn("Email sent to parents.");}
+        alert(data["message"]);
+      }
+    }
+  })
 }
 
 
 function submitDoc() {
-	if ($('#reg_open').is(':checked')){
-		reg_open = "1";
-	} else {
-		reg_open = "0";
-	}
-	var fieldData = {
-		"name": $('#name').val(),
-		"reg_open":reg_open ,
-		"sic": $('#sic').val(),
-		"aic": $('#aic').val(),
-		"type": $('#type').val(),
-		"location": $('#location').val(),
-		"description": $('#description').val(),
-		"startdate": $('#startdate').val(),
-		"enddate": $('#enddate').val(),
-		"cost": $('#cost').val(),
-		"adult_cost": $('#adult_cost').val(),
-		"id": event_id
-	};
-	console.log(fieldData);
+  if ($('#reg_open').is(':checked')){
+    reg_open = "1";
+  } else {
+    reg_open = "0";
+  }
+  var fieldData = {
+    "name": $('#name').val(),
+    "reg_open":reg_open ,
+    "sic": $('#sic').val(),
+    "aic": $('#aic').val(),
+    "type": $('#type').val(),
+    "location": $('#location').val(),
+    "description": $('#description').val(),
+    "startdate": $('#startdate').val(),
+    "enddate": $('#enddate').val(),
+    "cost": $('#cost').val(),
+    "adult_cost": $('#adult_cost').val(),
+    "id": event_id
+  };
+  console.log(fieldData);
 
-	$.ajax({
-		url: "api/amd_event.php" ,
-		type: "post",
-		datatype: 'json',
-		data: fieldData,
-		error: function(errorThrown) {
-			console.log(errorThrown);
-		},
-		success: function(data){
-			console.log(data);
-			if (data["status"]=="validation") {
-				alert(data["message"]);
-				$("#" + data["field"]).focus()
-			} else if (data["status"]=="Success") {
-				alert("Details have been Submitted!");
-				if (event_id=='New') {
-					strURL = "ListEvents.php?";
-				} else {
-					strURL = "Event.php?id=" + event_id
-				}
-				location.href = strURL;
-			}
-		}
-	})
+  $.ajax({
+    url: "api/amd_event.php" ,
+    type: "post",
+    datatype: 'json',
+    data: fieldData,
+    error: function(errorThrown) {
+      console.log(errorThrown);
+    },
+    success: function(data){
+      console.log(data);
+      if (data["status"]=="validation") {
+        alert(data["message"]);
+        $("#" + data["field"]).focus()
+      } else if (data["status"]=="Success") {
+        alert("Details have been Submitted!");
+        if (event_id=='New') {
+          strURL = "ListEvents.php?";
+        } else {
+          strURL = "Event.php?id=" + event_id
+        }
+        location.href = strURL;
+      }
+    }
+  })
 }
 function approve(regID) {
   strURL = "Approve.php?id=" + regID;
-	location.href = strURL;
+  location.href = strURL;
 }
 
 function setButtons(varEdit, showEdit, registered) {
-	buttonData = '<div class = "row"><div class="large-12 columns">';
-	if (showPR=="1") {
-		buttonData = buttonData + '<a onclick="printRoster()" class="round tiny button">Print Roster</a>&nbsp;';
-	}
-	if ((varEdit=="1") || (event_id=="New")) {
-		buttonData = buttonData + '<a onclick="submitDoc()" class="round tiny button right">Submit</a><div class="clearfix"></div>';
-	} else {
-		if (registered=="Yes"){
-			buttonData = buttonData + "<a onclick=register('cancel') class='round tiny button'>Plans Changed - I can't go</a>&nbsp;";
-	if (user_type != "Scout") {
-		buttonData = buttonData + "<a onclick=register('seatbelts') class='round tiny button'>Change # of Seat Belts</a>" ;
-	}
-		} else if (registered=="Cancelled"){
-			buttonData = buttonData + "<a onclick=register('restore') class='round tiny button'>Plans Changed - I can go again!</a>" ;
-		} else {
-			if (reg_open==1 || user_type!="Scout") {
-				buttonData = buttonData + "<a onclick=register('add') class='round tiny button'>Sign Me Up!</a>" ;
-			}
-		}
-		if (showEdit=="1") {
-			buttonData = buttonData + '&nbsp;<a onclick="editDoc()" class="round tiny button">Edit</a>';
-		}
-	}
-	buttonData = buttonData + '<div class="clearfix"></div></div></div>';
-	$('#userButtons').empty();
-	$('#userButtons').append(buttonData);
+  buttonData = '<div class = "row"><div class="large-12 columns">';
+  if (showPR=="1") {
+    buttonData = buttonData + '<a onclick="printRoster()" class="round tiny button">Print Roster</a>&nbsp;';
+  }
+  if ((varEdit=="1") || (event_id=="New")) {
+    buttonData = buttonData + '<a onclick="submitDoc()" class="round tiny button right">Submit</a><div class="clearfix"></div>';
+  } else {
+    if (registered=="Yes"){
+      buttonData = buttonData + "<a onclick=register('cancel') class='round tiny button'>Plans Changed - I can't go</a>&nbsp;";
+  if (user_type != "Scout") {
+    buttonData = buttonData + "<a onclick=register('seatbelts') class='round tiny button'>Change # of Seat Belts</a>" ;
+  }
+    } else if (registered=="Cancelled"){
+      buttonData = buttonData + "<a onclick=register('restore') class='round tiny button'>Plans Changed - I can go again!</a>" ;
+    } else {
+      if (reg_open==1 || user_type!="Scout") {
+        buttonData = buttonData + "<a onclick=register('add') class='round tiny button'>Sign Me Up!</a>" ;
+      }
+    }
+    if (showEdit=="1") {
+      buttonData = buttonData + '&nbsp;<a onclick="editDoc()" class="round tiny button">Edit</a>';
+    }
+  }
+  buttonData = buttonData + '<div class="clearfix"></div></div></div>';
+  $('#userButtons').empty();
+  $('#userButtons').append(buttonData);
 }
 /*
 function sendReminders() {
-	var fieldData = {
-		"event_id" : event_id
-	};
-	$.ajax({
-		url: "api/sendreminders.php",
-		type: "post",
-		data: fieldData,
-		datatype: 'json',
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			console.log("error .ready");
-		},
-		success: function(data){
-			console.log(data);
-   		}
-	});
+  var fieldData = {
+    "event_id" : event_id
+  };
+  $.ajax({
+    url: "api/sendreminders.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+      console.log("error .ready");
+    },
+    success: function(data){
+      console.log(data);
+      }
+  });
 }
 */
 function dtPicker(strDate, strField) {
-	//varSplit = strDate.split(' ');
-	$('#'+strField).datetimepicker({
-		dayOfWeekStart : 1,
-		lang:					'en',
-		format: 			'Y-m-d H:i',
-		showSecond:		false,
-	});
-	$('#'+strField).datetimepicker({value:strDate,step:30});
+  //varSplit = strDate.split(' ');
+  $('#'+strField).datetimepicker({
+    dayOfWeekStart : 1,
+    lang:         'en',
+    format:       'Y-m-d H:i',
+    showSecond:   false,
+  });
+  $('#'+strField).datetimepicker({value:strDate,step:30});
 }
 
 function sendParentsEmail() {
-	var fieldData = {
-		"sendTo" : "scout parents",
-		"user_id" : user_id,
-		"from" : "donotreply@t212.org",
-		"fromName": "Troop 212 Website",
-		"subject" : user_first + " signed up for a Troop 212 Event",
-		"message" : user_first + " has signed up for the " + outing_name + ". You can approve and pay (if applicable) by clicking the link below. Thanks!",
-		"link" : location.href
-	};
-	$.ajax({
-		url: "api/sendmail.php",
-		type: "post",
-		data: fieldData,
-		datatype: 'json',
-		error: function(data) {
-			console.log(data);
-		},
-		success: function(data){
-			console.log(data);
-   		}
-	});
+  var fieldData = {
+    "sendTo" : "scout parents",
+    "user_id" : user_id,
+    "from" : "donotreply@t212.org",
+    "fromName": "Troop 212 Website",
+    "subject" : user_first + " signed up for a Troop 212 Event",
+    "message" : user_first + " has signed up for the " + outing_name + ". You can approve and pay (if applicable) by clicking the link below. Thanks!",
+    "link" : location.href
+  };
+  $.ajax({
+    url: "api/sendmail.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function(data) {
+      console.log(data);
+    },
+    success: function(data){
+      console.log(data);
+      }
+  });
 }
 
 
 function writeRow(element, index, array) {
-	first = element["first"];
-	last = element["last"];
-	userID = element["id"];
-	registerID = element["register_id"];
-	patrolName = element["patrol"];
+  first = element["first"];
+  last = element["last"];
+  userID = element["id"];
+  registerID = element["register_id"];
+  patrolName = element["patrol"];
 
-	if (cost==0) {
-		buttonLabel ="Approve";
-	}
+  if (cost==0) {
+    buttonLabel ="Approve";
+  }
 
-	if (cost==0) {
-		paid = "N/A";
-		status = "" ;
-	} else if (element["paid"]=="0") {
-		paid = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No" ;
-		if (showPayButton=="1") {
-			status = "<a onclick=pay('" + userID + "','" + first + "') class='round tiny button'>Mark Paid</a>";
-		}
-	} else {
-		paid = "Yes" ;
-		status = "";
-	}
-	if (element["approved"]!="0") {
-		approved = "Yes";
-	} else {
-		if (element["show_approved"]=="1") {
-			approved = "<a onclick=approve('"+registerID+"') class='round tiny button'>Approve</a>" ;
-		} else {
-			approved = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No";
-		}
-	}
+  if (cost==0) {
+    paid = "N/A";
+    status = "" ;
+  } else if (element["paid"]=="0") {
+    paid = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No" ;
+    if (showPayButton=="1") {
+      status = "<a onclick=pay('" + userID + "','" + first + "') class='round tiny button'>Mark Paid</a>";
+    }
+  } else {
+    paid = "Yes" ;
+    status = "";
+  }
+  if (element["approved"]!="0") {
+    approved = "Yes";
+  } else {
+    if (element["show_approved"]=="1") {
+      approved = "<a onclick=approve('"+registerID+"') class='round tiny button'>Approve</a>" ;
+    } else {
+      approved = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No";
+    }
+  }
 
-	if (patrolName=="Adults") {
-		nbrAdults++;
-		seat_belts = element["seat_belts"];
-		nbrSeatBelts = nbrSeatBelts + Number(seat_belts);
-	} else {
-		nbrScouts++;
-		seat_belts = "N/A";
-	}
-	strTable = strTable + "<tr>";
-	if (patrolName != "Adults") {
-		strTable = strTable + writeCell(patrolName, "125px" );
-	}
-	strTable = strTable + writeCell(first + " " + last, "250px" );
-	if (patrolName=="Adults") {
-		strTable = strTable + writeCell(seat_belts, "125px" );
-		if (adult_cost != 0) {
-			strTable = strTable + writeCell(paid, "125px" );
-			if (status !="") {
-				strTable = strTable + writeCell(status, "125px" );
-			}
-		}
-	} else {
-		strTable = strTable + writeCell(approved, "125px" );
-		if (cost != 0) {
-			strTable = strTable + writeCell(paid, "125px" );
-			if (status !="") {
-				strTable = strTable + writeCell(status, "125px" );
-			}
-		}
-	}
-	strTable = strTable + "</tr>";
+  if (patrolName=="Adults") {
+    nbrAdults++;
+    seat_belts = element["seat_belts"];
+    nbrSeatBelts = nbrSeatBelts + Number(seat_belts);
+  } else {
+    nbrScouts++;
+    seat_belts = "N/A";
+  }
+  strTable = strTable + "<tr>";
+  if (patrolName != "Adults") {
+    strTable = strTable + writeCell(patrolName, "125px" );
+  }
+  strTable = strTable + writeCell(first + " " + last, "250px" );
+  if (patrolName=="Adults") {
+    strTable = strTable + writeCell(seat_belts, "125px" );
+    if (adult_cost != 0) {
+      strTable = strTable + writeCell(paid, "125px" );
+      if (status !="") {
+        strTable = strTable + writeCell(status, "125px" );
+      }
+    }
+  } else {
+    strTable = strTable + writeCell(approved, "125px" );
+    if (cost != 0) {
+      strTable = strTable + writeCell(paid, "125px" );
+      if (status !="") {
+        strTable = strTable + writeCell(status, "125px" );
+      }
+    }
+  }
+  strTable = strTable + "</tr>";
 }
 
 function pay(strUserID, strUserName) {
-	if (!confirm( "Do you want to mark " + strUserName + "'s registration for " + outing_name + " as paid?\n\n Click OK if you want to sign up, CANCEL if you do not.")) {
-		return false;
-	}
+  if (!confirm( "Do you want to mark " + strUserName + "'s registration for " + outing_name + " as paid?\n\n Click OK if you want to sign up, CANCEL if you do not.")) {
+    return false;
+  }
 
-	var fieldData = {
-		"user_id": strUserID,
-		"paid" : 1,
-		"event_id": event_id
-	};
-	console.log(fieldData);
-	$.ajax({
-		url: "api/pay.php",
-		type: "post",
-		datatype: 'json',
-		data: fieldData,
-		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			console.log(errorThrown);
-		},
-		success: function (data) {
-			if (data["status"] == "Success") {
-				alert(data["message"]);
-				location.reload();
-			}
-		}
-	})
+  var fieldData = {
+    "user_id": strUserID,
+    "paid" : 1,
+    "event_id": event_id
+  };
+  console.log(fieldData);
+  $.ajax({
+    url: "api/pay.php",
+    type: "post",
+    datatype: 'json',
+    data: fieldData,
+    error: function (XMLHttpRequest, textStatus, errorThrown) {
+      console.log(errorThrown);
+    },
+    success: function (data) {
+      if (data["status"] == "Success") {
+        alert(data["message"]);
+        location.reload();
+      }
+    }
+  })
 }
 
 
 function writeCell(strData, strWidth, strLink) {
-	if (strLink == null) {
-		return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-	} else {
-		return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-	}
+  if (strLink == null) {
+    return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+  } else {
+    return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+  }
 }
 
 $(document).ready(function(){
-	event_id = document.getElementById('id').value;
-	user_id = document.getElementById('user_id').value;
-	varEdit = document.getElementById('edit').value;
-	showEdit = document.getElementById('showEdit').value;
-	showPR = document.getElementById('showPR').value;
-	showPayButton = document.getElementById('showPayButton').value;
-	var fieldData = {
-		"edit": varEdit,
-		"user_id" : user_id,
-		"event_id": event_id,
-		"showMailto": showEdit
-	};
-	$.ajax({
-		url: "api/getevent.php",
-		type: "post",
-		data: fieldData,
-		datatype: 'json',
-		error: function(errorThrown) {
-			console.log(errorThrown);
-		},
-		success: function(data){
-			// Check if the event start date is in the past and warn the user
+  event_id = document.getElementById('id').value;
+  user_id = document.getElementById('user_id').value;
+  varEdit = document.getElementById('edit').value;
+  showEdit = document.getElementById('showEdit').value;
+  showPR = document.getElementById('showPR').value;
+  showPayButton = document.getElementById('showPayButton').value;
+  var fieldData = {
+    "edit": varEdit,
+    "user_id" : user_id,
+    "event_id": event_id,
+    "showMailto": showEdit
+  };
+  $.ajax({
+    url: "api/getevent.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function(errorThrown) {
+      console.log(errorThrown);
+    },
+    success: function(data){
+      // Check if the event start date is in the past and warn the user
             if (data['startdate']) {
                 var startDate = new Date(data['startdate']);
                 var now = new Date();
@@ -387,52 +387,52 @@ $(document).ready(function(){
                     $('body').prepend(warningBanner);
                 }
             }
-			$('#outingData').append(data['data']);
-			dtPicker(data['startdate'], 'startdate');
-			dtPicker(data['enddate'], 'enddate');
-			registered = data['registered'];
-			reg_open = data['reg_open'];
-			outing_name = data['outing_name'];
-			user_type = data['user_type'];
-			user_first = data['first'];
-			cost = data['cost'];
-			adult_cost = data['adult_cost'];
-			setButtons(varEdit, showEdit, registered);
-			console.log(data);
-			if (data['attendingScouts']) {
-				if (cost==0.00) {
-					strTable="<h5>Scouts</h5><table><tr><th>Patrol</th><th>Name</th><th>Approved?</th></tr>";
-				} else {
-					if (showPayButton=="1") {
-						strTable="<h5>Scouts</h5><table id=\"scouttable\"><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th><th></th></tr>";
-					} else {
-						strTable="<h5>Scouts</h5><table id=\"scouttable\"><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th></tr>";
-					}
-				}
-				data['attendingScouts'].forEach(writeRow);
-				strTable = strTable + "</table>" ;
-				$("#attendingData").append(strTable);
-				$("#attendingData").append("<h6>Number of Scouts Attending: " + nbrScouts + "</h6><br>");
-			}
-			if (data['attendingAdults']) {
-				if (outing_name=="Family outing") {
-					strTable="<h5>Adults</h5><table id=\"adulttable\"><tr><th>Name</th><th># in Group</th></tr>";
-				} else {
-					strTable="<h5>Adults</h5><table id=\"adulttable\"><tr><th>Name</th><th>Seat Belts</th><th>Paid?</th></tr>";
-				}
-				data['attendingAdults'].forEach(writeRow);
-				strTable = strTable + "<tr><td><b>Total Seat Belts</b></td><td><b>" + nbrSeatBelts + "</b></td></tr>" ;
-				strTable = strTable + "</table>" ;
-				$("#attendingData").append(strTable);
-				$("#attendingData").append("<h6>Number of Adults Attending: " + nbrAdults + "</h6>");
-				headcount = nbrAdults + nbrScouts;
-				$("#attendingData").append("<h6>Total Head Count: " + headcount + "</h6>");
-			}
-			if (window.initSortableTables) {
-				window.initSortableTables();
-			}
-		}
-	});
+      $('#outingData').append(data['data']);
+      dtPicker(data['startdate'], 'startdate');
+      dtPicker(data['enddate'], 'enddate');
+      registered = data['registered'];
+      reg_open = data['reg_open'];
+      outing_name = data['outing_name'];
+      user_type = data['user_type'];
+      user_first = data['first'];
+      cost = data['cost'];
+      adult_cost = data['adult_cost'];
+      setButtons(varEdit, showEdit, registered);
+      console.log(data);
+      if (data['attendingScouts']) {
+        if (cost==0.00) {
+          strTable="<h5>Scouts</h5><table><tr><th>Patrol</th><th>Name</th><th>Approved?</th></tr>";
+        } else {
+          if (showPayButton=="1") {
+            strTable="<h5>Scouts</h5><table id=\"scouttable\"><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th><th></th></tr>";
+          } else {
+            strTable="<h5>Scouts</h5><table id=\"scouttable\"><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th></tr>";
+          }
+        }
+        data['attendingScouts'].forEach(writeRow);
+        strTable = strTable + "</table>" ;
+        $("#attendingData").append(strTable);
+        $("#attendingData").append("<h6>Number of Scouts Attending: " + nbrScouts + "</h6><br>");
+      }
+      if (data['attendingAdults']) {
+        if (outing_name=="Family outing") {
+          strTable="<h5>Adults</h5><table id=\"adulttable\"><tr><th>Name</th><th># in Group</th></tr>";
+        } else {
+          strTable="<h5>Adults</h5><table id=\"adulttable\"><tr><th>Name</th><th>Seat Belts</th><th>Paid?</th></tr>";
+        }
+        data['attendingAdults'].forEach(writeRow);
+        strTable = strTable + "<tr><td><b>Total Seat Belts</b></td><td><b>" + nbrSeatBelts + "</b></td></tr>" ;
+        strTable = strTable + "</table>" ;
+        $("#attendingData").append(strTable);
+        $("#attendingData").append("<h6>Number of Adults Attending: " + nbrAdults + "</h6>");
+        headcount = nbrAdults + nbrScouts;
+        $("#attendingData").append("<h6>Total Head Count: " + headcount + "</h6>");
+      }
+      if (window.initSortableTables) {
+        window.initSortableTables();
+      }
+    }
+  });
 
 })
 
@@ -440,68 +440,68 @@ $(document).ready(function(){
 //////////////////////////////////////////////////////////////////
 // CSV download functions
 //////////////////////////////////////////////////////////////////
-	function tableToCSV() {
-		// Variable to store the final csv data
-		let csv_data = [];
+  function tableToCSV() {
+    // Variable to store the final csv data
+    let csv_data = [];
 
-		// Get each row of scout data
-		let rows = document.getElementById('scouttable').getElementsByTagName('tr');
-		for (let i = 0; i < rows.length; i++) {
+    // Get each row of scout data
+    let rows = document.getElementById('scouttable').getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
 
-			// Get each column data
-			let cols = rows[i].querySelectorAll('td,th');
+      // Get each column data
+      let cols = rows[i].querySelectorAll('td,th');
 
-			// Stores each csv row data
-			let csvrow = [];
-			for (let j = 0; j < cols.length; j++) {
+      // Stores each csv row data
+      let csvrow = [];
+      for (let j = 0; j < cols.length; j++) {
 
-				let element_text = cols[j].innerText;
-				element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
-				csvrow.push(element_text.replace(/\n/g, " | "));
+        let element_text = cols[j].innerText;
+        element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
+        csvrow.push(element_text.replace(/\n/g, " | "));
 
-				// Get the text data of each cell of
-				// a row and push it to csvrow
-				//csvrow.push(cols[j].innerHTML);
-			}
+        // Get the text data of each cell of
+        // a row and push it to csvrow
+        //csvrow.push(cols[j].innerHTML);
+      }
 
-			// Combine each column value with comma
-			csv_data.push(csvrow.join(","));
-		}
+      // Combine each column value with comma
+      csv_data.push(csvrow.join(","));
+    }
 
 
-		csv_data.push('\n\n\n\n');
-		csv_data.push('Adult Data ');
+    csv_data.push('\n\n\n\n');
+    csv_data.push('Adult Data ');
 
 
         // Get each row of adult data
-		let adult_rows = document.getElementById('adulttable').getElementsByTagName('tr');
+    let adult_rows = document.getElementById('adulttable').getElementsByTagName('tr');
 
-		for (let i = 0; i < adult_rows.length; i++) {
+    for (let i = 0; i < adult_rows.length; i++) {
 
-			// Get each column data
-			let adult_cols = adult_rows[i].querySelectorAll('td,th');
+      // Get each column data
+      let adult_cols = adult_rows[i].querySelectorAll('td,th');
 
-			// Stores each csv row data
-			let csvrow = [];
-			for (let j = 0; j < adult_cols.length; j++) {
+      // Stores each csv row data
+      let csvrow = [];
+      for (let j = 0; j < adult_cols.length; j++) {
 
-				let element_text = adult_cols[j].innerText;
-				element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
-				csvrow.push(element_text.replace(/\n/g, " | "));
-			}
+        let element_text = adult_cols[j].innerText;
+        element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
+        csvrow.push(element_text.replace(/\n/g, " | "));
+      }
 
-			// Combine each column value with comma
-			csv_data.push(csvrow.join(","));
-		}
+      // Combine each column value with comma
+      csv_data.push(csvrow.join(","));
+    }
 
-		// Combine each row data with new line character
-		csv_data = csv_data.join('\n');
+    // Combine each row data with new line character
+    csv_data = csv_data.join('\n');
 
-		// Call this function to download csv file
+    // Call this function to download csv file
         downloadCSVFile(csv_data);
-	}
+  }
 
-	function downloadCSVFile(csv_data) {
+  function downloadCSVFile(csv_data) {
 
     // Create CSV file object and feed our
     // csv_data into it
@@ -529,10 +529,10 @@ $(document).ready(function(){
 
 </script>
 <form id="myForm">
-	<div id="outingData"></div>
-	<div id="ics"></div>
-	<div id="userButtons"></div>
-	<div id="attendingData"></div>
+  <div id="outingData"></div>
+  <div id="ics"></div>
+  <div id="userButtons"></div>
+  <div id="attendingData"></div>
 </form>
 
 <button type="button" onclick="tableToCSV()">

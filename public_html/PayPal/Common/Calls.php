@@ -9,10 +9,10 @@
 <?php
 include 'menu.html';
 ?>
-	<table align="center">
-		<tr>
-			<td>PayPal Adaptive Payments SDK Samples</td>
-		</tr>
-	</table>
+  <table align="center">
+    <tr>
+      <td>PayPal Adaptive Payments SDK Samples</td>
+    </tr>
+  </table>
 </body>
 </html>

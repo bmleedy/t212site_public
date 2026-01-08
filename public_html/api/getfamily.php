@@ -14,7 +14,7 @@ $edit = validate_bool_post('edit', false);
 
 // Authorization check - user can only view their own data unless they have permission
 if ($id != $current_user_id) {
-	require_user_access($id, $current_user_id);
+  require_user_access($id, $current_user_id);
 }
 
 $address1 = "";
@@ -29,30 +29,30 @@ $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
-	$family_id = $row["family_id"];
-	if ($family_id == null) {
-		//skip
-	} else {
-		$stmt2 = $mysqli->prepare("SELECT * FROM families WHERE family_id=?");
-		$stmt2->bind_param("i", $family_id);
-		$stmt2->execute();
-		$result2 = $stmt2->get_result();
-		if ($result2->num_rows) {
-			if ($row2 = $result2->fetch_assoc()) {
-				$address1 = $row2["address1"];
-				$address2 = $row2["address2"];
-				$city = $row2["city"];
-				$state = $row2["state"];
-				$zip = $row2["zip"];
-			}
-		}
-		$stmt2->close();
-	}
+  $family_id = $row["family_id"];
+  if ($family_id == null) {
+    //skip
+  } else {
+    $stmt2 = $mysqli->prepare("SELECT * FROM families WHERE family_id=?");
+    $stmt2->bind_param("i", $family_id);
+    $stmt2->execute();
+    $result2 = $stmt2->get_result();
+    if ($result2->num_rows) {
+      if ($row2 = $result2->fetch_assoc()) {
+        $address1 = $row2["address1"];
+        $address2 = $row2["address2"];
+        $city = $row2["city"];
+        $state = $row2["state"];
+        $zip = $row2["zip"];
+      }
+    }
+    $stmt2->close();
+  }
 }
 $stmt->close();
 
 if ($state=="") {
-	$state="WA";
+  $state="WA";
 }
 
 if ($edit) {
@@ -82,7 +82,7 @@ $addressData = $addressData . escape_html($zip). '</div></div>';
 
 $returnData = 'success';
 $returnMsg = array(
-	'addressData' => $addressData
+  'addressData' => $addressData
 );
 
 echo json_encode($returnMsg);
@@ -92,21 +92,21 @@ die;
 /******************* Functions *****************/
 function getStateDDL($strState) {
 
-	$strDDL = '<select id="state" name="state">';
+  $strDDL = '<select id="state" name="state">';
 
-	$abbrevs = array("AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY");
+  $abbrevs = array("AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY");
 
-	$states = array('Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District Of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming');
+  $states = array('Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut','Delaware','District Of Columbia','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa','Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan','Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire','New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio','Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota','Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia','Wisconsin','Wyoming');
 
-	for ($i = 0; $i <= 50; $i++){
-		if ($abbrevs[$i]==$strState) {
-			$strDDL = $strDDL . '<option selected="selected" value="' . escape_html($abbrevs[$i]) . '">' . escape_html($states[$i]) ;
-		} else{
-			$strDDL = $strDDL . '<option value="' . escape_html($abbrevs[$i]) . '">' . escape_html($states[$i]) ;
-		}
-	}
+  for ($i = 0; $i <= 50; $i++){
+    if ($abbrevs[$i]==$strState) {
+      $strDDL = $strDDL . '<option selected="selected" value="' . escape_html($abbrevs[$i]) . '">' . escape_html($states[$i]) ;
+    } else{
+      $strDDL = $strDDL . '<option value="' . escape_html($abbrevs[$i]) . '">' . escape_html($states[$i]) ;
+    }
+  }
 
-	$strDDL = $strDDL . '</select>';
-	return $strDDL;
+  $strDDL = $strDDL . '</select>';
+  return $strDDL;
 }
 ?>

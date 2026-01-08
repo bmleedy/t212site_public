@@ -2,446 +2,446 @@
 <p>Edit patrol names and display order. Changes are saved when you click the Submit button.</p>
 
 <div class="row">
-	<div class="large-12 columns">
-		<div id="errorMessages" style="display: none;" class="alert-box alert"></div>
-		<div id="successMessage" style="display: none;" class="alert-box success"></div>
-	</div>
+  <div class="large-12 columns">
+    <div id="errorMessages" style="display: none;" class="alert-box alert"></div>
+    <div id="successMessage" style="display: none;" class="alert-box success"></div>
+  </div>
 </div>
 
 <!-- New Patrol Form -->
 <div class="row">
-	<div class="large-12 columns">
-		<h4>Add New Patrol</h4>
-		<div class="row">
-			<div class="large-4 columns">
-				<label>Patrol Name
-					<input type="text" id="newPatrolName" placeholder="e.g., Eagles" maxlength="50">
-				</label>
-			</div>
-			<div class="large-3 columns">
-				<label>Sort Order
-					<input type="number" id="newPatrolSort" placeholder="e.g., 10" min="0">
-				</label>
-			</div>
-			<div class="large-5 columns">
-				<label>&nbsp;</label>
-				<button id="addPatrolButton" class="button success">Add Patrol</button>
-			</div>
-		</div>
-		<hr>
-	</div>
+  <div class="large-12 columns">
+    <h4>Add New Patrol</h4>
+    <div class="row">
+      <div class="large-4 columns">
+        <label>Patrol Name
+          <input type="text" id="newPatrolName" placeholder="e.g., Eagles" maxlength="50">
+        </label>
+      </div>
+      <div class="large-3 columns">
+        <label>Sort Order
+          <input type="number" id="newPatrolSort" placeholder="e.g., 10" min="0">
+        </label>
+      </div>
+      <div class="large-5 columns">
+        <label>&nbsp;</label>
+        <button id="addPatrolButton" class="button success">Add Patrol</button>
+      </div>
+    </div>
+    <hr>
+  </div>
 </div>
 
 <div class="row">
-	<div class="large-12 columns">
-		<h4>Existing Patrols</h4>
-		<table id="patrolsTable">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Patrol Name</th>
-					<th>Sort Order</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody id="patrolsTableBody">
-				<!-- Rows will be inserted here by JavaScript -->
-			</tbody>
-		</table>
-	</div>
+  <div class="large-12 columns">
+    <h4>Existing Patrols</h4>
+    <table id="patrolsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Patrol Name</th>
+          <th>Sort Order</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="patrolsTableBody">
+        <!-- Rows will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <div class="row">
-	<div class="large-12 columns">
-		<button id="submitButton" class="button">Submit Changes</button>
-		<button id="cancelButton" class="button secondary">Cancel</button>
-	</div>
+  <div class="large-12 columns">
+    <button id="submitButton" class="button">Submit Changes</button>
+    <button id="cancelButton" class="button secondary">Cancel</button>
+  </div>
 </div>
 
 <!-- Confirmation Dialog -->
 <div id="deleteConfirmDialog" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-	<div style="background: white; width: 400px; margin: 100px auto; padding: 20px; border-radius: 5px;">
-		<h4>Confirm Deletion</h4>
-		<p id="deleteConfirmMessage"></p>
-		<button id="confirmDeleteButton" class="button alert">Delete</button>
-		<button id="cancelDeleteButton" class="button secondary">Cancel</button>
-	</div>
+  <div style="background: white; width: 400px; margin: 100px auto; padding: 20px; border-radius: 5px;">
+    <h4>Confirm Deletion</h4>
+    <p id="deleteConfirmMessage"></p>
+    <button id="confirmDeleteButton" class="button alert">Delete</button>
+    <button id="cancelDeleteButton" class="button secondary">Cancel</button>
+  </div>
 </div>
 
 <script>
 $(document).ready(function() {
-	var patrols = [];
-	var originalPatrols = [];
-	var patrolToDelete = null;
+  var patrols = [];
+  var originalPatrols = [];
+  var patrolToDelete = null;
 
-	// Load patrols on page load
-	loadPatrols();
+  // Load patrols on page load
+  loadPatrols();
 
-	function loadPatrols() {
-		$.ajax({
-			url: 'api/getallpatrols.php',
-			type: 'POST',
-			dataType: 'json',
-			headers: {
-				'X-Requested-With': 'XMLHttpRequest'
-			},
-			success: function(data) {
-				if (data.status === 'Success') {
-					patrols = data.patrols;
-					originalPatrols = JSON.parse(JSON.stringify(patrols)); // Deep copy
-					renderTable();
-				} else {
-					showError('Failed to load patrols: ' + (data.message || 'Unknown error'));
-				}
-			},
-			error: function() {
-				showError('Failed to load patrols. Please refresh the page.');
-			}
-		});
-	}
+  function loadPatrols() {
+    $.ajax({
+      url: 'api/getallpatrols.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          patrols = data.patrols;
+          originalPatrols = JSON.parse(JSON.stringify(patrols)); // Deep copy
+          renderTable();
+        } else {
+          showError('Failed to load patrols: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        showError('Failed to load patrols. Please refresh the page.');
+      }
+    });
+  }
 
-	// Add new patrol functionality
-	$('#addPatrolButton').on('click', function() {
-		hideMessages();
+  // Add new patrol functionality
+  $('#addPatrolButton').on('click', function() {
+    hideMessages();
 
-		var newName = $('#newPatrolName').val().trim();
-		var newSort = $('#newPatrolSort').val().trim();
+    var newName = $('#newPatrolName').val().trim();
+    var newSort = $('#newPatrolSort').val().trim();
 
-		// Validate inputs
-		if (!newName) {
-			showError('Please enter a patrol name.');
-			return;
-		}
+    // Validate inputs
+    if (!newName) {
+      showError('Please enter a patrol name.');
+      return;
+    }
 
-		if (!/^[a-zA-Z]+$/.test(newName)) {
-			showError('Patrol name must be a single word containing only letters (no spaces or special characters).');
-			return;
-		}
+    if (!/^[a-zA-Z]+$/.test(newName)) {
+      showError('Patrol name must be a single word containing only letters (no spaces or special characters).');
+      return;
+    }
 
-		if (!newSort) {
-			showError('Please enter a sort order.');
-			return;
-		}
+    if (!newSort) {
+      showError('Please enter a sort order.');
+      return;
+    }
 
-		var sortValue = parseInt(newSort);
-		if (isNaN(sortValue) || sortValue < 0) {
-			showError('Sort order must be a positive number.');
-			return;
-		}
+    var sortValue = parseInt(newSort);
+    if (isNaN(sortValue) || sortValue < 0) {
+      showError('Sort order must be a positive number.');
+      return;
+    }
 
-		// Check for duplicate sort values in existing patrols
-		var duplicateSort = patrols.find(function(p) {
-			return parseInt(p.sort) === sortValue;
-		});
+    // Check for duplicate sort values in existing patrols
+    var duplicateSort = patrols.find(function(p) {
+      return parseInt(p.sort) === sortValue;
+    });
 
-		if (duplicateSort) {
-			showError('Sort order ' + sortValue + ' is already used by patrol "' + duplicateSort.label + '". Please choose a different sort order.');
-			return;
-		}
+    if (duplicateSort) {
+      showError('Sort order ' + sortValue + ' is already used by patrol "' + duplicateSort.label + '". Please choose a different sort order.');
+      return;
+    }
 
-		// Check for duplicate patrol name
-		var duplicateName = patrols.find(function(p) {
-			return p.label.toLowerCase() === newName.toLowerCase();
-		});
+    // Check for duplicate patrol name
+    var duplicateName = patrols.find(function(p) {
+      return p.label.toLowerCase() === newName.toLowerCase();
+    });
 
-		if (duplicateName) {
-			showError('A patrol named "' + duplicateName.label + '" already exists. Please choose a different name.');
-			return;
-		}
+    if (duplicateName) {
+      showError('A patrol named "' + duplicateName.label + '" already exists. Please choose a different name.');
+      return;
+    }
 
-		// Disable button during submission
-		$('#addPatrolButton').prop('disabled', true).text('Adding...');
+    // Disable button during submission
+    $('#addPatrolButton').prop('disabled', true).text('Adding...');
 
-		// Submit to API
-		$.ajax({
-			url: 'api/createpatrol.php',
-			type: 'POST',
-			dataType: 'json',
-			headers: {
-				'X-Requested-With': 'XMLHttpRequest'
-			},
-			data: {
-				label: newName,
-				sort: sortValue
-			},
-			success: function(data) {
-				$('#addPatrolButton').prop('disabled', false).text('Add Patrol');
+    // Submit to API
+    $.ajax({
+      url: 'api/createpatrol.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      data: {
+        label: newName,
+        sort: sortValue
+      },
+      success: function(data) {
+        $('#addPatrolButton').prop('disabled', false).text('Add Patrol');
 
-				if (data.status === 'Success') {
-					showSuccess('Patrol "' + newName + '" created successfully!');
+        if (data.status === 'Success') {
+          showSuccess('Patrol "' + newName + '" created successfully!');
 
-					// Clear form
-					$('#newPatrolName').val('');
-					$('#newPatrolSort').val('');
+          // Clear form
+          $('#newPatrolName').val('');
+          $('#newPatrolSort').val('');
 
-					// Reload patrols
-					loadPatrols();
-				} else {
-					showError('Failed to create patrol: ' + (data.message || 'Unknown error'));
-				}
-			},
-			error: function() {
-				$('#addPatrolButton').prop('disabled', false).text('Add Patrol');
-				showError('Failed to create patrol. Please try again.');
-			}
-		});
-	});
+          // Reload patrols
+          loadPatrols();
+        } else {
+          showError('Failed to create patrol: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        $('#addPatrolButton').prop('disabled', false).text('Add Patrol');
+        showError('Failed to create patrol. Please try again.');
+      }
+    });
+  });
 
-	function renderTable() {
-		// Sort patrols by sort order
-		patrols.sort(function(a, b) {
-			return parseInt(a.sort) - parseInt(b.sort);
-		});
+  function renderTable() {
+    // Sort patrols by sort order
+    patrols.sort(function(a, b) {
+      return parseInt(a.sort) - parseInt(b.sort);
+    });
 
-		var tbody = $('#patrolsTableBody');
-		tbody.empty();
+    var tbody = $('#patrolsTableBody');
+    tbody.empty();
 
-		patrols.forEach(function(patrol) {
-			var row = $('<tr>').attr('data-id', patrol.id);
+    patrols.forEach(function(patrol) {
+      var row = $('<tr>').attr('data-id', patrol.id);
 
-			// ID column (read-only)
-			row.append($('<td>').text(patrol.id));
+      // ID column (read-only)
+      row.append($('<td>').text(patrol.id));
 
-			// Patrol Name column (editable)
-			var nameCell = $('<td>');
-			var nameInput = $('<input>')
-				.attr('type', 'text')
-				.attr('data-field', 'label')
-				.attr('data-id', patrol.id)
-				.val(patrol.label)
-				.addClass('patrol-input');
-			nameCell.append(nameInput);
-			row.append(nameCell);
+      // Patrol Name column (editable)
+      var nameCell = $('<td>');
+      var nameInput = $('<input>')
+        .attr('type', 'text')
+        .attr('data-field', 'label')
+        .attr('data-id', patrol.id)
+        .val(patrol.label)
+        .addClass('patrol-input');
+      nameCell.append(nameInput);
+      row.append(nameCell);
 
-			// Sort Order column (editable)
-			var sortCell = $('<td>');
-			var sortInput = $('<input>')
-				.attr('type', 'number')
-				.attr('data-field', 'sort')
-				.attr('data-id', patrol.id)
-				.val(patrol.sort)
-				.addClass('patrol-input');
-			sortCell.append(sortInput);
-			row.append(sortCell);
+      // Sort Order column (editable)
+      var sortCell = $('<td>');
+      var sortInput = $('<input>')
+        .attr('type', 'number')
+        .attr('data-field', 'sort')
+        .attr('data-id', patrol.id)
+        .val(patrol.sort)
+        .addClass('patrol-input');
+      sortCell.append(sortInput);
+      row.append(sortCell);
 
-			// Actions column
-			var actionsCell = $('<td>');
-			var deleteButton = $('<button>')
-				.addClass('button tiny alert')
-				.attr('data-id', patrol.id)
-				.text('Delete')
-				.on('click', function() {
-					confirmDelete(patrol);
-				});
-			actionsCell.append(deleteButton);
-			row.append(actionsCell);
+      // Actions column
+      var actionsCell = $('<td>');
+      var deleteButton = $('<button>')
+        .addClass('button tiny alert')
+        .attr('data-id', patrol.id)
+        .text('Delete')
+        .on('click', function() {
+          confirmDelete(patrol);
+        });
+      actionsCell.append(deleteButton);
+      row.append(actionsCell);
 
-			tbody.append(row);
-		});
+      tbody.append(row);
+    });
 
-		// Add change handlers to inputs
-		$('.patrol-input').on('change', function() {
-			var id = $(this).attr('data-id');
-			var field = $(this).attr('data-field');
-			var value = $(this).val();
+    // Add change handlers to inputs
+    $('.patrol-input').on('change', function() {
+      var id = $(this).attr('data-id');
+      var field = $(this).attr('data-field');
+      var value = $(this).val();
 
-			updatePatrolData(id, field, value);
-		});
+      updatePatrolData(id, field, value);
+    });
 
-		// Add blur handler for sort order to re-render on change
-		$('input[data-field="sort"]').on('blur', function() {
-			renderTable();
-		});
-	}
+    // Add blur handler for sort order to re-render on change
+    $('input[data-field="sort"]').on('blur', function() {
+      renderTable();
+    });
+  }
 
-	function updatePatrolData(id, field, value) {
-		var patrol = patrols.find(function(p) { return p.id == id; });
-		if (patrol) {
-			patrol[field] = value;
+  function updatePatrolData(id, field, value) {
+    var patrol = patrols.find(function(p) { return p.id == id; });
+    if (patrol) {
+      patrol[field] = value;
 
-			// Mark as modified
-			patrol.modified = true;
-		}
-	}
+      // Mark as modified
+      patrol.modified = true;
+    }
+  }
 
-	function confirmDelete(patrol) {
-		patrolToDelete = patrol;
-		$('#deleteConfirmMessage').text('Are you sure you want to delete the patrol "' + patrol.label + '"? This action cannot be undone.');
-		$('#deleteConfirmDialog').show();
-	}
+  function confirmDelete(patrol) {
+    patrolToDelete = patrol;
+    $('#deleteConfirmMessage').text('Are you sure you want to delete the patrol "' + patrol.label + '"? This action cannot be undone.');
+    $('#deleteConfirmDialog').show();
+  }
 
-	$('#confirmDeleteButton').on('click', function() {
-		if (patrolToDelete) {
-			deletePatrol(patrolToDelete.id);
-			$('#deleteConfirmDialog').hide();
-			patrolToDelete = null;
-		}
-	});
+  $('#confirmDeleteButton').on('click', function() {
+    if (patrolToDelete) {
+      deletePatrol(patrolToDelete.id);
+      $('#deleteConfirmDialog').hide();
+      patrolToDelete = null;
+    }
+  });
 
-	$('#cancelDeleteButton').on('click', function() {
-		$('#deleteConfirmDialog').hide();
-		patrolToDelete = null;
-	});
+  $('#cancelDeleteButton').on('click', function() {
+    $('#deleteConfirmDialog').hide();
+    patrolToDelete = null;
+  });
 
-	function deletePatrol(id) {
-		$.ajax({
-			url: 'api/deletepatrol.php',
-			type: 'POST',
-			dataType: 'json',
-			headers: {
-				'X-Requested-With': 'XMLHttpRequest'
-			},
-			data: {
-				id: id
-			},
-			success: function(data) {
-				if (data.status === 'Success') {
-					// Remove from local array
-					patrols = patrols.filter(function(p) { return p.id != id; });
-					renderTable();
-					showSuccess('Patrol deleted successfully.');
-				} else {
-					showError('Failed to delete patrol: ' + (data.message || 'Unknown error'));
-				}
-			},
-			error: function() {
-				showError('Failed to delete patrol. Please try again.');
-			}
-		});
-	}
+  function deletePatrol(id) {
+    $.ajax({
+      url: 'api/deletepatrol.php',
+      type: 'POST',
+      dataType: 'json',
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      data: {
+        id: id
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          // Remove from local array
+          patrols = patrols.filter(function(p) { return p.id != id; });
+          renderTable();
+          showSuccess('Patrol deleted successfully.');
+        } else {
+          showError('Failed to delete patrol: ' + (data.message || 'Unknown error'));
+        }
+      },
+      error: function() {
+        showError('Failed to delete patrol. Please try again.');
+      }
+    });
+  }
 
-	$('#submitButton').on('click', function() {
-		hideMessages();
+  $('#submitButton').on('click', function() {
+    hideMessages();
 
-		// Validate all patrols
-		var validationErrors = [];
-		var sortValues = [];
+    // Validate all patrols
+    var validationErrors = [];
+    var sortValues = [];
 
-		patrols.forEach(function(patrol, index) {
-			// Validate patrol name: only one word, upper and lower case letters only
-			if (!patrol.label || !/^[a-zA-Z]+$/.test(patrol.label)) {
-				validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Name must be a single word containing only letters.');
-			}
+    patrols.forEach(function(patrol, index) {
+      // Validate patrol name: only one word, upper and lower case letters only
+      if (!patrol.label || !/^[a-zA-Z]+$/.test(patrol.label)) {
+        validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Name must be a single word containing only letters.');
+      }
 
-			// Validate sort order: must be a number
-			var sortValue = parseInt(patrol.sort);
-			if (isNaN(sortValue)) {
-				validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Sort order must be a number.');
-			} else {
-				// Check for duplicate sort values
-				if (sortValues.includes(sortValue)) {
-					validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Sort order ' + sortValue + ' is already used by another patrol.');
-				}
-				sortValues.push(sortValue);
-			}
-		});
+      // Validate sort order: must be a number
+      var sortValue = parseInt(patrol.sort);
+      if (isNaN(sortValue)) {
+        validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Sort order must be a number.');
+      } else {
+        // Check for duplicate sort values
+        if (sortValues.includes(sortValue)) {
+          validationErrors.push('Patrol "' + patrol.label + '" (row ' + (index + 1) + '): Sort order ' + sortValue + ' is already used by another patrol.');
+        }
+        sortValues.push(sortValue);
+      }
+    });
 
-		if (validationErrors.length > 0) {
-			showError(validationErrors.join('<br>'));
-			return;
-		}
+    if (validationErrors.length > 0) {
+      showError(validationErrors.join('<br>'));
+      return;
+    }
 
-		// Find modified patrols
-		var modifiedPatrols = patrols.filter(function(patrol) {
-			return patrol.modified;
-		});
+    // Find modified patrols
+    var modifiedPatrols = patrols.filter(function(patrol) {
+      return patrol.modified;
+    });
 
-		if (modifiedPatrols.length === 0) {
-			showError('No changes to save.');
-			return;
-		}
+    if (modifiedPatrols.length === 0) {
+      showError('No changes to save.');
+      return;
+    }
 
-		// Submit changes
-		var completed = 0;
-		var errors = [];
+    // Submit changes
+    var completed = 0;
+    var errors = [];
 
-		modifiedPatrols.forEach(function(patrol) {
-			$.ajax({
-				url: 'api/updatepatrol.php',
-				type: 'POST',
-				dataType: 'json',
-				headers: {
-					'X-Requested-With': 'XMLHttpRequest'
-				},
-				data: {
-					id: patrol.id,
-					label: patrol.label,
-					sort: patrol.sort
-				},
-				success: function(data) {
-					completed++;
+    modifiedPatrols.forEach(function(patrol) {
+      $.ajax({
+        url: 'api/updatepatrol.php',
+        type: 'POST',
+        dataType: 'json',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        data: {
+          id: patrol.id,
+          label: patrol.label,
+          sort: patrol.sort
+        },
+        success: function(data) {
+          completed++;
 
-					if (data.status !== 'Success') {
-						errors.push('Patrol ' + patrol.label + ': ' + (data.message || 'Unknown error'));
-					}
+          if (data.status !== 'Success') {
+            errors.push('Patrol ' + patrol.label + ': ' + (data.message || 'Unknown error'));
+          }
 
-					if (completed === modifiedPatrols.length) {
-						if (errors.length > 0) {
-							showError('Some updates failed:<br>' + errors.join('<br>'));
-						} else {
-							showSuccess('All changes saved successfully.');
-							loadPatrols(); // Reload to get fresh data
-						}
-					}
-				},
-				error: function() {
-					completed++;
-					errors.push('Patrol ' + patrol.label + ': Network error');
+          if (completed === modifiedPatrols.length) {
+            if (errors.length > 0) {
+              showError('Some updates failed:<br>' + errors.join('<br>'));
+            } else {
+              showSuccess('All changes saved successfully.');
+              loadPatrols(); // Reload to get fresh data
+            }
+          }
+        },
+        error: function() {
+          completed++;
+          errors.push('Patrol ' + patrol.label + ': Network error');
 
-					if (completed === modifiedPatrols.length) {
-						showError('Some updates failed:<br>' + errors.join('<br>'));
-					}
-				}
-			});
-		});
-	});
+          if (completed === modifiedPatrols.length) {
+            showError('Some updates failed:<br>' + errors.join('<br>'));
+          }
+        }
+      });
+    });
+  });
 
-	$('#cancelButton').on('click', function() {
-		loadPatrols(); // Reload original data
-		hideMessages();
-	});
+  $('#cancelButton').on('click', function() {
+    loadPatrols(); // Reload original data
+    hideMessages();
+  });
 
-	function showError(message) {
-		$('#errorMessages').html(message).show();
-		$('#successMessage').hide();
-	}
+  function showError(message) {
+    $('#errorMessages').html(message).show();
+    $('#successMessage').hide();
+  }
 
-	function showSuccess(message) {
-		$('#successMessage').html(message).show();
-		$('#errorMessages').hide();
-	}
+  function showSuccess(message) {
+    $('#successMessage').html(message).show();
+    $('#errorMessages').hide();
+  }
 
-	function hideMessages() {
-		$('#errorMessages').hide();
-		$('#successMessage').hide();
-	}
+  function hideMessages() {
+    $('#errorMessages').hide();
+    $('#successMessage').hide();
+  }
 });
 </script>
 
 <style>
 #patrolsTable {
-	width: 100%;
-	border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 #patrolsTable th,
 #patrolsTable td {
-	padding: 8px;
-	border: 1px solid #ddd;
+  padding: 8px;
+  border: 1px solid #ddd;
 }
 
 #patrolsTable th {
-	background-color: #f4f4f4;
-	text-align: left;
+  background-color: #f4f4f4;
+  text-align: left;
 }
 
 .patrol-input {
-	width: 100%;
-	padding: 4px;
-	box-sizing: border-box;
+  width: 100%;
+  padding: 4px;
+  box-sizing: border-box;
 }
 
 #deleteConfirmDialog button {
-	margin-right: 10px;
+  margin-right: 10px;
 }
 </style>

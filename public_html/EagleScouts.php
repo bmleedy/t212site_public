@@ -3,98 +3,98 @@
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
-		<ol>
-			<li>Gary R. Bunch (December 7, 1961)</li>
-			<li>Frank L. Bannon (May 7, 1964)</li>
-			<li>James Dower (September 3, 1964)</li>
-			<li>Michael K. Bonne	y (December 7, 1964)</li>
-			<li>Patrick J. Kraft (December 2, 1965)</li>
-			<li>John M. McDonnell (September 2, 1966)</li>
-			<li>Lawrence A. Spadoni (September 2, 1966)</li>
-			<li>Darryl V. Kooley (April 6, 1967)</li>
-			<li>Fred Nikolac (March 1, 1970)</li>
-			<li> Mark C. Nesselrode (December 1, 1970)</li>
-			<li> Robert V. Knapp (June 7, 1971)</li>
-			<li> Allen D. Roby (May 4, 1972)</li>
-			<li> Michael R. Ford (January 1, 1977)</li>
-			<li> Edward B. Bushnell (April 22, 1977)</li>
-			<li> Joseph J. Frost (April 6, 1982)</li>
-			<li> Derek S. Barlow (June 22, 1982)</li>
-			<li> Joseph C. Tennison (August 23, 1989)</li>
-			<li> Jason R. Calhoun (October 4, 1989)</li>
-			<li> Anthony F. Bushnell (March 11, 1991)</li>
-			<li> Christopher G. Aleshire (January 29, 1992)</li>
-			<li> Tyrone A. Robuck, Jr. (December 2, 1993)</li>
-			<li> Mark S. Thomason (January 11, 1995)</li>
-			<li> Andrew R. Popochock (January 11, 1995)</li>
-			<li> Justin M. Arnold (August 17, 1995)</li>
-			<li> Kyle P. Rohrbaugh (August 17, 1995)</li>
-			<li> Kenneth R. Schlaudraff, Jr. (October 9, 1995)</li>
-			<li> Donald D. Rose (December 11, 1995)</li>
-			<li> Sherman W. Veh (December 11, 1995)</li>
-			<li> Brian J. Nickel (October 7, 1996)</li>
-			<li> Jeremy N. Stoneburner (December 11, 1996)</li>
-			<li> Benjamin B. Constance (February 3, 1997)</li>
-			<li> Michael A. Swanicke (July 16, 1997)</li>
-			<li> Justin B. Cheesman (July 16, 1997)</li>
-			<li> Jeffrey H. Anderson (November 10, 1997)</li>
-			<li> Joel W. Goodman (February 6, 1998)</li>
-			<li> Cooper C. Dean (February 11, 1998)</li>
-			<li> Jonathan D. Huiatt (March 16, 1998)</li>
-			<li> Joshua M. Deceuster (July 23, 1998)</li>
-			<li> Todd A. Schlaudraff (July 23, 1998)</li>
-			<li> Andrew T. Nemec (October 26, 1998)</li>
-			<li> Micah J. Parsons (October 26, 1998)</li>
-			<li> Dave Park (December 7, 1998)</li>
-			<li> Conrad J. Tallariti (January 11, 1999)</li>
-			<li> Matthew A. Cox (March 10, 1999)</li>
-			<li> Erik Sorensen (March 10, 1999)</li>
-			<li> Travis Leland (March 17, 1999)</li>
-			<li> Charles R. Campbell (September 7, 1999)</li>
-			<li> Jonathan Tallariti (November 19, 1999)</li>
-			<li> Jeffrey S. Jenkins (March 29, 2000)</li>
-			<li> Vern Andrus (May 3, 2000)</li>
-			<li> Ryan Helling (July 13, 2000)</li>
-			<li> Phillip Zeeck (January 13, 2001)</li>
-			<li> Taylor L. A. Gray (January 27, 2001)</li>
-			<li> Ryan Miller (June 1, 2001)</li>
-			<li> Jacob Moore (August 29, 2001)</li>
-			<li> Jackson Rohrbaugh (September 10, 2001)</li>
-			<li> Douglas A. Songer (January 11, 2002)</li>
-			<li> Jered Van Tuyl (January 23, 2002)</li>
-			<li> Jason Cox (January 23, 2002)</li>
-			<li> Mark A. McKinney (June 4, 2004)</li>
-			<li> Eric S. Eason (June 4, 2004)</li>
-			<li> Jesse M. Miller (August 25, 2004)</li>
-			<li> Jonathan Schlaudraff (October 18, 2005)</li>
-			<li> Jonathan D. Phillips (November 17, 2005)</li>
-			<li> John P. Uehlin (November 17, 2005)</li>
-			<li> Joel K. Shumaker (May 31, 2006)</li>
-			<li> Johnathan Reece Barnett (August 16, 2006)</li>
-			<li> Jordan L. Reich (October 9, 2006)</li>
-			<li> Clinton M. Perry (October 11, 2006)</li>
-			<li> Anthony L. Yerry (January 4, 2007)</li>
-			<li> Ryan M. Eason (February 18, 2007)</li>
-			<li> Page Ollice (May 24, 2007)</li>
-			<li> Karl P. Nielsen (May 31, 2007)</li>
-			<li> Garrett L. McKinney (August 3, 2007)</li>
-			<li> Colton J. Rogers (September 15, 2008)</li>
-			<li> Jacob A. Dewhirst (November 23, 2008)</li>
-			<li> Nathan W. Karle (January 21, 2009)</li>
-			<li> Luke M. Dewhirst (January 23, 2010)</li>
-			<li> Kevin M. Marr (May 27, 2010)</li>
-			<li> Ryan M. Toney (June 23, 2010)</li>
-			<li> Arthur Phillip Moore (March 7, 2011)</li>
-			<li> Daniel R. Brokaw (March 24, 2011)</li>
-			<li> Bryse A. Paffile (May 23, 2011)</li>
-			<li> Brett Biggs (August 22, 2011)</li>
-			<li> Andrew Buxton (February 15, 2012)</li>
-			<li> Connor Tibke (May 2, 2012)</li>
-			<li> Andrew Kent (June 13, 2012)</li>
-			<li> Erik Nielsen (October 15, 2012)</li>
+  <?php require "includes/sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
+    <ol>
+      <li>Gary R. Bunch (December 7, 1961)</li>
+      <li>Frank L. Bannon (May 7, 1964)</li>
+      <li>James Dower (September 3, 1964)</li>
+      <li>Michael K. Bonne  y (December 7, 1964)</li>
+      <li>Patrick J. Kraft (December 2, 1965)</li>
+      <li>John M. McDonnell (September 2, 1966)</li>
+      <li>Lawrence A. Spadoni (September 2, 1966)</li>
+      <li>Darryl V. Kooley (April 6, 1967)</li>
+      <li>Fred Nikolac (March 1, 1970)</li>
+      <li> Mark C. Nesselrode (December 1, 1970)</li>
+      <li> Robert V. Knapp (June 7, 1971)</li>
+      <li> Allen D. Roby (May 4, 1972)</li>
+      <li> Michael R. Ford (January 1, 1977)</li>
+      <li> Edward B. Bushnell (April 22, 1977)</li>
+      <li> Joseph J. Frost (April 6, 1982)</li>
+      <li> Derek S. Barlow (June 22, 1982)</li>
+      <li> Joseph C. Tennison (August 23, 1989)</li>
+      <li> Jason R. Calhoun (October 4, 1989)</li>
+      <li> Anthony F. Bushnell (March 11, 1991)</li>
+      <li> Christopher G. Aleshire (January 29, 1992)</li>
+      <li> Tyrone A. Robuck, Jr. (December 2, 1993)</li>
+      <li> Mark S. Thomason (January 11, 1995)</li>
+      <li> Andrew R. Popochock (January 11, 1995)</li>
+      <li> Justin M. Arnold (August 17, 1995)</li>
+      <li> Kyle P. Rohrbaugh (August 17, 1995)</li>
+      <li> Kenneth R. Schlaudraff, Jr. (October 9, 1995)</li>
+      <li> Donald D. Rose (December 11, 1995)</li>
+      <li> Sherman W. Veh (December 11, 1995)</li>
+      <li> Brian J. Nickel (October 7, 1996)</li>
+      <li> Jeremy N. Stoneburner (December 11, 1996)</li>
+      <li> Benjamin B. Constance (February 3, 1997)</li>
+      <li> Michael A. Swanicke (July 16, 1997)</li>
+      <li> Justin B. Cheesman (July 16, 1997)</li>
+      <li> Jeffrey H. Anderson (November 10, 1997)</li>
+      <li> Joel W. Goodman (February 6, 1998)</li>
+      <li> Cooper C. Dean (February 11, 1998)</li>
+      <li> Jonathan D. Huiatt (March 16, 1998)</li>
+      <li> Joshua M. Deceuster (July 23, 1998)</li>
+      <li> Todd A. Schlaudraff (July 23, 1998)</li>
+      <li> Andrew T. Nemec (October 26, 1998)</li>
+      <li> Micah J. Parsons (October 26, 1998)</li>
+      <li> Dave Park (December 7, 1998)</li>
+      <li> Conrad J. Tallariti (January 11, 1999)</li>
+      <li> Matthew A. Cox (March 10, 1999)</li>
+      <li> Erik Sorensen (March 10, 1999)</li>
+      <li> Travis Leland (March 17, 1999)</li>
+      <li> Charles R. Campbell (September 7, 1999)</li>
+      <li> Jonathan Tallariti (November 19, 1999)</li>
+      <li> Jeffrey S. Jenkins (March 29, 2000)</li>
+      <li> Vern Andrus (May 3, 2000)</li>
+      <li> Ryan Helling (July 13, 2000)</li>
+      <li> Phillip Zeeck (January 13, 2001)</li>
+      <li> Taylor L. A. Gray (January 27, 2001)</li>
+      <li> Ryan Miller (June 1, 2001)</li>
+      <li> Jacob Moore (August 29, 2001)</li>
+      <li> Jackson Rohrbaugh (September 10, 2001)</li>
+      <li> Douglas A. Songer (January 11, 2002)</li>
+      <li> Jered Van Tuyl (January 23, 2002)</li>
+      <li> Jason Cox (January 23, 2002)</li>
+      <li> Mark A. McKinney (June 4, 2004)</li>
+      <li> Eric S. Eason (June 4, 2004)</li>
+      <li> Jesse M. Miller (August 25, 2004)</li>
+      <li> Jonathan Schlaudraff (October 18, 2005)</li>
+      <li> Jonathan D. Phillips (November 17, 2005)</li>
+      <li> John P. Uehlin (November 17, 2005)</li>
+      <li> Joel K. Shumaker (May 31, 2006)</li>
+      <li> Johnathan Reece Barnett (August 16, 2006)</li>
+      <li> Jordan L. Reich (October 9, 2006)</li>
+      <li> Clinton M. Perry (October 11, 2006)</li>
+      <li> Anthony L. Yerry (January 4, 2007)</li>
+      <li> Ryan M. Eason (February 18, 2007)</li>
+      <li> Page Ollice (May 24, 2007)</li>
+      <li> Karl P. Nielsen (May 31, 2007)</li>
+      <li> Garrett L. McKinney (August 3, 2007)</li>
+      <li> Colton J. Rogers (September 15, 2008)</li>
+      <li> Jacob A. Dewhirst (November 23, 2008)</li>
+      <li> Nathan W. Karle (January 21, 2009)</li>
+      <li> Luke M. Dewhirst (January 23, 2010)</li>
+      <li> Kevin M. Marr (May 27, 2010)</li>
+      <li> Ryan M. Toney (June 23, 2010)</li>
+      <li> Arthur Phillip Moore (March 7, 2011)</li>
+      <li> Daniel R. Brokaw (March 24, 2011)</li>
+      <li> Bryse A. Paffile (May 23, 2011)</li>
+      <li> Brett Biggs (August 22, 2011)</li>
+      <li> Andrew Buxton (February 15, 2012)</li>
+      <li> Connor Tibke (May 2, 2012)</li>
+      <li> Andrew Kent (June 13, 2012)</li>
+      <li> Erik Nielsen (October 15, 2012)</li>
 <li> William J. Degennaro  (March 20, 2013)</li>
 <li> Brandon L. Paffile  (April 24, 2013)</li>
 <li> Benjamin J. Haffly  (April 24, 2013)</li>
@@ -176,9 +176,9 @@
 <li> Nathaniel J. Dietrich  (July 9, 2024)</li>
 <li> Boen Liu (September 23, 2025)
 <li> Landon McClurg (September 23, 2025)</li>
-		</ol>
-		</div>
-	</div>
+    </ol>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>

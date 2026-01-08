@@ -27,21 +27,21 @@ $stmt->execute();
 $results = $stmt->get_result();
 
 if ($results) {
-	while ($row = $results->fetch_assoc()) {
-		$key = $row['user_id'] . '-' . $row['date'];
-		$attendance[$key] = (bool)$row['was_present'];
-	}
-	$returnMsg = array(
-		'status' => 'Success',
-		'attendance' => $attendance
-	);
-	echo json_encode($returnMsg);
+  while ($row = $results->fetch_assoc()) {
+    $key = $row['user_id'] . '-' . $row['date'];
+    $attendance[$key] = (bool)$row['was_present'];
+  }
+  $returnMsg = array(
+    'status' => 'Success',
+    'attendance' => $attendance
+  );
+  echo json_encode($returnMsg);
 } else {
-	// error handling:
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Database query failed: ' . escape_html($mysqli->error)
-	]);
+  // error handling:
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Database query failed: ' . escape_html($mysqli->error)
+  ]);
 }
 $stmt->close();
 

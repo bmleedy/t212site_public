@@ -4,9 +4,9 @@
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
+  <?php require "includes/sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
 <?php
 
 // include the config
@@ -28,8 +28,8 @@ $registration = new Registration();
 include("login/views/register.php");
 ?>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>

@@ -10,24 +10,24 @@ $http_ref = strtolower($_SERVER['HTTP_REFERER']);
 <input type="hidden" id="user_id" value="<?php echo $userID; ?>">
 <br>
 <div class='row'>
-	<?php 
-		if ($login->isUserLoggedIn() == true) {
-			require "includes/m_sidebar.html"; 
-		} else {
-			require "includes/sidebar.html"; 
-		}	
-	?>
-	<div class="large-9 columns">
-		<div class="panel">
-			<?php
-			if ($login->isUserLoggedIn() == true) {
-					include("templates/Approve.html");
-			} else {
-					include("login/views/user_login.php");
-			}
-			?>
-		</div>
-	</div>
+  <?php 
+    if ($login->isUserLoggedIn() == true) {
+      require "includes/m_sidebar.html"; 
+    } else {
+      require "includes/sidebar.html"; 
+    } 
+  ?>
+  <div class="large-9 columns">
+    <div class="panel">
+      <?php
+      if ($login->isUserLoggedIn() == true) {
+          include("templates/Approve.html");
+      } else {
+          include("login/views/user_login.php");
+      }
+      ?>
+    </div>
+  </div>
 </div>
 
 

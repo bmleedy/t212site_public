@@ -28,14 +28,14 @@ $stmt->execute();
 $results = $stmt->get_result();
 
 if ($results) {
-	while ($row = $results->fetch_assoc()) {
-		$date = date('Y-m-d', strtotime($row['startdate']));
-		$eventDates[$date] = [
-			'date' => $date,
-			'event_id' => $row['id'],
-			'event_name' => escape_html($row['name'])
-		];
-	}
+  while ($row = $results->fetch_assoc()) {
+    $date = date('Y-m-d', strtotime($row['startdate']));
+    $eventDates[$date] = [
+      'date' => $date,
+      'event_id' => $row['id'],
+      'event_name' => escape_html($row['name'])
+    ];
+  }
 }
 $stmt->close();
 
@@ -44,22 +44,22 @@ $current = strtotime($start_date);
 $end = strtotime($end_date);
 
 while ($current <= $end) {
-	// Check if this day is a Tuesday (2 = Tuesday in PHP's date('N'))
-	if (date('N', $current) == 2) {
-		$dateStr = date('Y-m-d', $current);
+  // Check if this day is a Tuesday (2 = Tuesday in PHP's date('N'))
+  if (date('N', $current) == 2) {
+    $dateStr = date('Y-m-d', $current);
 
-		// Only add if there's not already an event on this date
-		if (!isset($eventDates[$dateStr])) {
-			$eventDates[$dateStr] = [
-				'date' => $dateStr,
-				'event_id' => null,
-				'event_name' => 'Troop Meeting'
-			];
-		}
-	}
+    // Only add if there's not already an event on this date
+    if (!isset($eventDates[$dateStr])) {
+      $eventDates[$dateStr] = [
+        'date' => $dateStr,
+        'event_id' => null,
+        'event_name' => 'Troop Meeting'
+      ];
+    }
+  }
 
-	// Move to next day
-	$current = strtotime('+1 day', $current);
+  // Move to next day
+  $current = strtotime('+1 day', $current);
 }
 
 // Sort by date
@@ -69,8 +69,8 @@ ksort($eventDates);
 $eventDatesArray = array_values($eventDates);
 
 $returnMsg = array(
-	'status' => 'Success',
-	'dates' => $eventDatesArray
+  'status' => 'Success',
+  'dates' => $eventDatesArray
 );
 
 echo json_encode($returnMsg);

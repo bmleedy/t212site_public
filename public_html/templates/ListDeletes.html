@@ -1,48 +1,48 @@
 <script type="text/javascript">
   var strTable;
   function writeCell(strData, strWidth, strLink) {
-  	if (strLink == null) {
-  	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-  	} else {
-  	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-  	}
+    if (strLink == null) {
+      return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+    } else {
+      return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+    }
   }
   
   function writeRow(element, index, array) {
-		var phones = element["phone"];
-		var strPhones="";
-		for (x in phones) {
-			strPhones = strPhones + phones[x] + "<br>";
-		}
-		strEmail = element["email"];
-		strTable = strTable + "<tr>";
+    var phones = element["phone"];
+    var strPhones="";
+    for (x in phones) {
+      strPhones = strPhones + phones[x] + "<br>";
+    }
+    strEmail = element["email"];
+    strTable = strTable + "<tr>";
     strTable = strTable + writeCell(element["last"] + ", " + element["first"], "175px" , "User.php?id=" + element["id"] );
     strTable = strTable + writeCell(strPhones, "200px" );
     strTable = strTable + writeCell(strEmail, "200px" , "mailto:" + strEmail);
     strTable = strTable + "</tr>";
   }
 
-	$(document).ready(function(){ 
-  	$.ajax({
-   	  url: "api/getdeletes.php" ,
-   	  type: "post",
-   	  contentType: 'application/json',
+  $(document).ready(function(){ 
+    $.ajax({
+      url: "api/getdeletes.php" ,
+      type: "post",
+      contentType: 'application/json',
       datatype: 'json',
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				console.log(errorThrown);
-				console.log(textStatus);
-			},
-			success: function(data){
-			console.log(data);
-				strTable = "";
- 	      $('#userdata').empty();
+      error: function(XMLHttpRequest, textStatus, errorThrown) {
+        console.log(errorThrown);
+        console.log(textStatus);
+      },
+      success: function(data){
+      console.log(data);
+        strTable = "";
+        $('#userdata').empty();
         strTable="<table>";
- 	      data.forEach(writeRow);
- 	      strTable = strTable + "</table>" ;
+        data.forEach(writeRow);
+        strTable = strTable + "</table>" ;
         $("#userdata").append(strTable);
-     	}
-		})
-	})
+      }
+    })
+  })
 </script>
 
 <div id='userdata'></div>

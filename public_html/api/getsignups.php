@@ -19,15 +19,15 @@ $stmt->execute();
 $results = $stmt->get_result();
 
 if ($results && $row = $results->fetch_assoc()) {
-	$name = $row['name'];
-	$location = $row['location'];
-	$description = $row['description'];
-	$startdate = $row['startdate'];
-	$enddate = $row['enddate'];
-	$cost = $row['cost'];
+  $name = $row['name'];
+  $location = $row['location'];
+  $description = $row['description'];
+  $startdate = $row['startdate'];
+  $enddate = $row['enddate'];
+  $cost = $row['cost'];
 } else {
-	echo json_encode(['error' => 'Event not found']);
-	die();
+  echo json_encode(['error' => 'Event not found']);
+  die();
 }
 $stmt->close();
 
@@ -55,34 +55,34 @@ $query = "SELECT u.user_id, user_first, user_last, user_type, patrol_id
 $results = $mysqli->query($query);
 
 while ($row = $results->fetch_object()) {
-	$id = $row->user_id;
+  $id = $row->user_id;
 
-	$query2 = "SELECT approved_by, attending, paid, seat_belts
-	           FROM registration
-	           WHERE user_id=? AND event_id=?";
-	$stmt2 = $mysqli->prepare($query2);
-	$stmt2->bind_param('ii', $id, $event_id);
-	$stmt2->execute();
-	$results2 = $stmt2->get_result();
-	$row2 = $results2->fetch_object();
-	$stmt2->close();
+  $query2 = "SELECT approved_by, attending, paid, seat_belts
+             FROM registration
+             WHERE user_id=? AND event_id=?";
+  $stmt2 = $mysqli->prepare($query2);
+  $stmt2->bind_param('ii', $id, $event_id);
+  $stmt2->execute();
+  $results2 = $stmt2->get_result();
+  $row2 = $results2->fetch_object();
+  $stmt2->close();
 
-	$paid = isset($row2->paid) ? $row2->paid : '0';
-	$approved = isset($row2->approved_by) ? $row2->approved_by : '0';
-	$attending = isset($row2->attending) ? $row2->attending : '0';
-	$seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : '';
+  $paid = isset($row2->paid) ? $row2->paid : '0';
+  $approved = isset($row2->approved_by) ? $row2->approved_by : '0';
+  $attending = isset($row2->attending) ? $row2->attending : '0';
+  $seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : '';
 
-	$scouts[] = [
-		'patrol' => escape_html(getLabel('patrols', $row->patrol_id, $mysqli)),
-		'first' => escape_html($row->user_first),
-		'last' => escape_html($row->user_last),
-		'user_type' => escape_html($row->user_type),
-		'attending' => $attending,
-		'paid' => $paid,
-		'approved' => $approved,
-		'seat_belts' => escape_html($seat_belts),
-		'id' => $id
-	];
+  $scouts[] = [
+    'patrol' => escape_html(getLabel('patrols', $row->patrol_id, $mysqli)),
+    'first' => escape_html($row->user_first),
+    'last' => escape_html($row->user_last),
+    'user_type' => escape_html($row->user_type),
+    'attending' => $attending,
+    'paid' => $paid,
+    'approved' => $approved,
+    'seat_belts' => escape_html($seat_belts),
+    'id' => $id
+  ];
 }
 
 // Get adults
@@ -93,63 +93,63 @@ $query = "SELECT user_id, user_first, user_last, user_type
 $results = $mysqli->query($query);
 
 while ($row = $results->fetch_object()) {
-	$id = $row->user_id;
+  $id = $row->user_id;
 
-	$query2 = "SELECT attending, seat_belts
-	           FROM registration
-	           WHERE user_id=? AND event_id=?";
-	$stmt2 = $mysqli->prepare($query2);
-	$stmt2->bind_param('ii', $id, $event_id);
-	$stmt2->execute();
-	$results2 = $stmt2->get_result();
-	$row2 = $results2->fetch_object();
-	$stmt2->close();
+  $query2 = "SELECT attending, seat_belts
+             FROM registration
+             WHERE user_id=? AND event_id=?";
+  $stmt2 = $mysqli->prepare($query2);
+  $stmt2->bind_param('ii', $id, $event_id);
+  $stmt2->execute();
+  $results2 = $stmt2->get_result();
+  $row2 = $results2->fetch_object();
+  $stmt2->close();
 
-	$attending = isset($row2->attending) ? $row2->attending : '0';
-	$seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : 'N/A';
+  $attending = isset($row2->attending) ? $row2->attending : '0';
+  $seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : 'N/A';
 
-	$adults[] = [
-		'patrol' => "Adults",
-		'first' => escape_html($row->user_first),
-		'last' => escape_html($row->user_last),
-		'user_type' => escape_html($row->user_type),
-		'attending' => $attending,
-		'paid' => '0',
-		'approved' => '0',
-		'seat_belts' => escape_html($seat_belts),
-		'id' => $id
-	];
+  $adults[] = [
+    'patrol' => "Adults",
+    'first' => escape_html($row->user_first),
+    'last' => escape_html($row->user_last),
+    'user_type' => escape_html($row->user_type),
+    'attending' => $attending,
+    'paid' => '0',
+    'approved' => '0',
+    'seat_belts' => escape_html($seat_belts),
+    'id' => $id
+  ];
 }
 
 $returnMsg = array(
-	'outing_name' => escape_html($name),
-	'cost' => escape_html($cost),
-	'data' => $returnData,
-	'scouts' => $scouts,
-	'adults' => $adults
+  'outing_name' => escape_html($name),
+  'cost' => escape_html($cost),
+  'data' => $returnData,
+  'scouts' => $scouts,
+  'adults' => $adults
 );
 
 echo json_encode($returnMsg);
 die();
 
 function getLabel($strTable, $id, $mysqli) {
-	if ($id) {
-		// Whitelist allowed tables to prevent SQL injection
-		$allowed_tables = ['patrols', 'ranks', 'leadership'];
-		if (!in_array($strTable, $allowed_tables)) {
-			return "";
-		}
+  if ($id) {
+    // Whitelist allowed tables to prevent SQL injection
+    $allowed_tables = ['patrols', 'ranks', 'leadership'];
+    if (!in_array($strTable, $allowed_tables)) {
+      return "";
+    }
 
-		$query = "SELECT label FROM " . $strTable . " WHERE id=?";
-		$stmt = $mysqli->prepare($query);
-		$stmt->bind_param('i', $id);
-		$stmt->execute();
-		$result = $stmt->get_result();
-		$row = $result->fetch_assoc();
-		$stmt->close();
-		return $row ? $row['label'] : "";
-	} else {
-		return "";
-	}
+    $query = "SELECT label FROM " . $strTable . " WHERE id=?";
+    $stmt = $mysqli->prepare($query);
+    $stmt->bind_param('i', $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row ? $row['label'] : "";
+  } else {
+    return "";
+  }
 }
 ?>

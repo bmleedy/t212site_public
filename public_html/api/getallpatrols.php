@@ -29,22 +29,22 @@ $query = "SELECT id, label, sort
 $results = $mysqli->query($query);
 
 if ($results) {
-	while ($row = $results->fetch_assoc()) {
-		$patrols[] = [
-			'id' => $row['id'],
-			'label' => $row['label'],
-			'sort' => $row['sort']
-		];
-	}
+  while ($row = $results->fetch_assoc()) {
+    $patrols[] = [
+      'id' => $row['id'],
+      'label' => $row['label'],
+      'sort' => $row['sort']
+    ];
+  }
 } else {
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Database query failed: ' . $mysqli->error
-	]);
-	die();
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Database query failed: ' . $mysqli->error
+  ]);
+  die();
 }
 
 echo json_encode([
-	'status' => 'Success',
-	'patrols' => $patrols
+  'status' => 'Success',
+  'patrols' => $patrols
 ]);

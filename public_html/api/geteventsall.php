@@ -1,8 +1,8 @@
 <?php
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
-} else {	
-	echo "Not sure what you are after, but it ain't here.";
+} else {  
+  echo "Not sure what you are after, but it ain't here.";
   die();
 }
 date_default_timezone_set('America/Los_Angeles');
@@ -14,14 +14,14 @@ $events = null;
 
 while ($row = $results->fetch_object()) {
   $events[] = [
-	'name' => $row->name,
-	'description' => $row->description,
-	'location'=> $row->location,
-	'startdate'=> $row->startdate,
-	'enddate'=> $row->enddate,
-	'cost'=> $row->cost,
-	'reg_open'=> $row->reg_open,
-	'id'=>$row->id
+  'name' => $row->name,
+  'description' => $row->description,
+  'location'=> $row->location,
+  'startdate'=> $row->startdate,
+  'enddate'=> $row->enddate,
+  'cost'=> $row->cost,
+  'reg_open'=> $row->reg_open,
+  'id'=>$row->id
   ];
 }
 

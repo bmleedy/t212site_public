@@ -32,19 +32,19 @@ $patrol = $getPatrolResult->fetch_assoc();
 $getPatrolStmt->close();
 
 if (!$patrol) {
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Patrol not found.'
-	]);
-	log_activity(
-		$mysqli,
-		'delete_patrol',
-		array('id' => $id),
-		false,
-		"Failed to delete patrol: patrol not found (ID: $id)",
-		$current_user_id
-	);
-	die();
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Patrol not found.'
+  ]);
+  log_activity(
+    $mysqli,
+    'delete_patrol',
+    array('id' => $id),
+    false,
+    "Failed to delete patrol: patrol not found (ID: $id)",
+    $current_user_id
+  );
+  die();
 }
 
 $patrolLabel = $patrol['label'];
@@ -58,19 +58,19 @@ $usageRow = $checkUsageResult->fetch_assoc();
 $checkUsageStmt->close();
 
 if ($usageRow['count'] > 0) {
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Cannot delete patrol "' . $patrolLabel . '" because it is assigned to ' . $usageRow['count'] . ' scout(s). Please reassign the scouts first.'
-	]);
-	log_activity(
-		$mysqli,
-		'delete_patrol',
-		array('id' => $id, 'label' => $patrolLabel, 'scouts_count' => $usageRow['count']),
-		false,
-		"Failed to delete patrol: patrol still in use by scouts (ID: $id, Label: $patrolLabel)",
-		$current_user_id
-	);
-	die();
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Cannot delete patrol "' . $patrolLabel . '" because it is assigned to ' . $usageRow['count'] . ' scout(s). Please reassign the scouts first.'
+  ]);
+  log_activity(
+    $mysqli,
+    'delete_patrol',
+    array('id' => $id, 'label' => $patrolLabel, 'scouts_count' => $usageRow['count']),
+    false,
+    "Failed to delete patrol: patrol still in use by scouts (ID: $id, Label: $patrolLabel)",
+    $current_user_id
+  );
+  die();
 }
 
 // Delete the patrol using prepared statement
@@ -78,46 +78,46 @@ $deleteStmt = $mysqli->prepare("DELETE FROM patrols WHERE id = ?");
 $deleteStmt->bind_param('i', $id);
 
 if ($deleteStmt->execute()) {
-	if ($deleteStmt->affected_rows > 0) {
-		echo json_encode([
-			'status' => 'Success',
-			'message' => 'Patrol deleted successfully.'
-		]);
-		log_activity(
-			$mysqli,
-			'delete_patrol',
-			array('id' => $id, 'label' => $patrolLabel),
-			true,
-			"Patrol deleted: $patrolLabel (ID: $id)",
-			$current_user_id
-		);
-	} else {
-		echo json_encode([
-			'status' => 'Error',
-			'message' => 'Patrol not found or already deleted.'
-		]);
-		log_activity(
-			$mysqli,
-			'delete_patrol',
-			array('id' => $id),
-			false,
-			"Failed to delete patrol: patrol not found (ID: $id)",
-			$current_user_id
-		);
-	}
+  if ($deleteStmt->affected_rows > 0) {
+    echo json_encode([
+      'status' => 'Success',
+      'message' => 'Patrol deleted successfully.'
+    ]);
+    log_activity(
+      $mysqli,
+      'delete_patrol',
+      array('id' => $id, 'label' => $patrolLabel),
+      true,
+      "Patrol deleted: $patrolLabel (ID: $id)",
+      $current_user_id
+    );
+  } else {
+    echo json_encode([
+      'status' => 'Error',
+      'message' => 'Patrol not found or already deleted.'
+    ]);
+    log_activity(
+      $mysqli,
+      'delete_patrol',
+      array('id' => $id),
+      false,
+      "Failed to delete patrol: patrol not found (ID: $id)",
+      $current_user_id
+    );
+  }
 } else {
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Database error: ' . $deleteStmt->error
-	]);
-	log_activity(
-		$mysqli,
-		'delete_patrol',
-		array('id' => $id, 'error' => $deleteStmt->error),
-		false,
-		"Failed to delete patrol (ID: $id): " . $deleteStmt->error,
-		$current_user_id
-	);
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Database error: ' . $deleteStmt->error
+  ]);
+  log_activity(
+    $mysqli,
+    'delete_patrol',
+    array('id' => $id, 'error' => $deleteStmt->error),
+    false,
+    "Failed to delete patrol (ID: $id): " . $deleteStmt->error,
+    $current_user_id
+  );
 }
 
 $deleteStmt->close();

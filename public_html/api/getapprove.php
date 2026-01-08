@@ -22,8 +22,8 @@ $row = $results->fetch_assoc();
 $stmt->close();
 
 if (!$row) {
-	echo json_encode(['error' => 'Registration not found']);
-	die();
+  echo json_encode(['error' => 'Registration not found']);
+  die();
 }
 
 $scout_id = $row['user_id'];
@@ -37,7 +37,7 @@ $stmt->bind_param('i', $scout_id);
 $stmt->execute();
 $results = $stmt->get_result();
 if ($row = $results->fetch_assoc()) {
-	$scout_family_id = $row["family_id"];
+  $scout_family_id = $row["family_id"];
 }
 $stmt->close();
 
@@ -50,23 +50,23 @@ $stmt->bind_param('i', $user_id);
 $stmt->execute();
 $results = $stmt->get_result();
 if ($row = $results->fetch_assoc()) {
-	$adult_family_id = $row["family_id"];
-	$adult_name[] = $row['user_first'] . ' ' . $row['user_last'];
+  $adult_family_id = $row["family_id"];
+  $adult_name[] = $row['user_first'] . ' ' . $row['user_last'];
 }
 $stmt->close();
 
 // Check if adult is in same family as scout
 $continue = false;
 if ($scout_family_id == $adult_family_id) {
-	$continue = true;
+  $continue = true;
 }
 
 if ($continue == false) {
-	$returnMsg = array(
-		'data' => "You are not listed as an Approver for this scout."
-	);
-	echo json_encode($returnMsg);
-	die();
+  $returnMsg = array(
+    'data' => "You are not listed as an Approver for this scout."
+  );
+  echo json_encode($returnMsg);
+  die();
 }
 
 // Get scout details
@@ -108,8 +108,8 @@ $returnData .= '<p>If you approve of ' . escape_html($first) . ' attending this 
 $returnData .= '<div class="clearfix"></div></div>';
 
 $returnMsg = array(
-	'event_id' => $event_id,
-	'data' => $returnData
+  'event_id' => $event_id,
+  'data' => $returnData
 );
 
 echo json_encode($returnMsg);

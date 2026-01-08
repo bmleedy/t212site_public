@@ -10,9 +10,9 @@ $user_first = $_SESSION['user_first'];
 <br />
 
 <div class='row'>
-	<?php require "includes/m_sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
+  <?php require "includes/m_sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
 <?php
 
 // include the config
@@ -34,8 +34,8 @@ $registration = new Registration();
 include("login/views/registernew.php");
 ?>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>

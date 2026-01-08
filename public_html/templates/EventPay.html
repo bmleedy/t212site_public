@@ -1,9 +1,9 @@
-<?php	
-	$serverName = $_SERVER['SERVER_NAME'];
-	$serverPort = $_SERVER['SERVER_PORT'];
-	$url = dirname('https://' . $serverName . $_SERVER['REQUEST_URI']);
-	$returnUrl = $url . "/PPReturnPage2.php";
-	$cancelUrl =  $url . "/EventPay.php";
+<?php 
+  $serverName = $_SERVER['SERVER_NAME'];
+  $serverPort = $_SERVER['SERVER_PORT'];
+  $url = dirname('https://' . $serverName . $_SERVER['REQUEST_URI']);
+  $returnUrl = $url . "/PPReturnPage2.php";
+  $cancelUrl =  $url . "/EventPay.php";
 ?>
 
 <script src="https://www.paypalobjects.com/api/checkout.js"></script>
@@ -14,159 +14,159 @@ var payItems=[];
 var reg_ids='';
 var strTable;
 var user_id;
-	 	
+    
 paypal.Button.render({
-	env: 'production', // Specify 'sandbox' for the test environment
+  env: 'production', // Specify 'sandbox' for the test environment
 
-	client: {
-		//OLD:
-		//sandbox:    'AWy3LrholYBtr_nGJRIVNcOLYrHTWRj7Oo2gAuYOReZ4c-HjG3B03THga5rmjHiYXdwzPWWs_e69QLCr',
-		//production: 'AQCKEa3RB9bPHFnnONdxGgouip5w6RhDelDn5IliWlc9Y3Njy-xXqLsE_VxBe0psdWjCWc0BiJc7SCt2'
-		//NEW
-		sandbox:    'AWW6UGuBzF55iIUojsyH6v9LWZwdrL3WWpWghxgPvRC4WoFhZ8IY2XENBQgg1o_r93XI-EluTuZtTXnG',
-		production: 'AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b9gAll40TKZ0SMk6E'
-	},
-		
-	payment: function() {
-		payItems = []; // Reset for each payment
-		reg_ids = '';  // Reset for each payment
-		var env    = this.props.env;
-		var client = this.props.client;
-		var total=0;
-		var pay_cb = $('[type=checkbox]');
-		for (i = 0; i < pay_cb.length; i++) {
-			if (pay_cb[i].checked) {
-				if (reg_ids == '') {
-					reg_ids = pay_cb[i].id;
-				} else {
-					reg_ids = reg_ids + ',' + pay_cb[i].id;
-				}
-				for (x=0; x < objEvents.length; x++ ) {
-					if (objEvents[x].sku == pay_cb[i].id) {
-						payItems.push(objEvents[x]);
-						break;
-					}
-				}
-				total = total + Number(pay_cb[i].value);
-			}
-		}
+  client: {
+    //OLD:
+    //sandbox:    'AWy3LrholYBtr_nGJRIVNcOLYrHTWRj7Oo2gAuYOReZ4c-HjG3B03THga5rmjHiYXdwzPWWs_e69QLCr',
+    //production: 'AQCKEa3RB9bPHFnnONdxGgouip5w6RhDelDn5IliWlc9Y3Njy-xXqLsE_VxBe0psdWjCWc0BiJc7SCt2'
+    //NEW
+    sandbox:    'AWW6UGuBzF55iIUojsyH6v9LWZwdrL3WWpWghxgPvRC4WoFhZ8IY2XENBQgg1o_r93XI-EluTuZtTXnG',
+    production: 'AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b9gAll40TKZ0SMk6E'
+  },
+    
+  payment: function() {
+    payItems = []; // Reset for each payment
+    reg_ids = '';  // Reset for each payment
+    var env    = this.props.env;
+    var client = this.props.client;
+    var total=0;
+    var pay_cb = $('[type=checkbox]');
+    for (i = 0; i < pay_cb.length; i++) {
+      if (pay_cb[i].checked) {
+        if (reg_ids == '') {
+          reg_ids = pay_cb[i].id;
+        } else {
+          reg_ids = reg_ids + ',' + pay_cb[i].id;
+        }
+        for (x=0; x < objEvents.length; x++ ) {
+          if (objEvents[x].sku == pay_cb[i].id) {
+            payItems.push(objEvents[x]);
+            break;
+          }
+        }
+        total = total + Number(pay_cb[i].value);
+      }
+    }
 
-		// Build a description string with event names
-		var eventNames = payItems.map(function(item) { return item.name + "|" + item.description; }).join(', ');
-		var userId = user_id || strID; // Use your user ID variable
-		var paymentDescription = "Scout|Event: " + eventNames + " - User ID: " + userId;
+    // Build a description string with event names
+    var eventNames = payItems.map(function(item) { return item.name + "|" + item.description; }).join(', ');
+    var userId = user_id || strID; // Use your user ID variable
+    var paymentDescription = "Scout|Event: " + eventNames + " - User ID: " + userId;
 
-		return paypal.rest.payment.create(env, client, {
-			intent: "sale",
-			transactions: [{
-				amount: { total: total, currency: 'USD' } ,
-				item_list: { 
-					items: payItems
-				},
-				description: paymentDescription // Attach event names and user ID
-			}]
-		});
-	},
+    return paypal.rest.payment.create(env, client, {
+      intent: "sale",
+      transactions: [{
+        amount: { total: total, currency: 'USD' } ,
+        item_list: { 
+          items: payItems
+        },
+        description: paymentDescription // Attach event names and user ID
+      }]
+    });
+  },
 
-	commit: true, // Optional: show a 'Pay Now' button in the checkout flow
+  commit: true, // Optional: show a 'Pay Now' button in the checkout flow
 
-	onAuthorize: function(data, actions) {
-		// Optional: display a confirmation page here
-		return actions.payment.execute().then(function() {
-			window.location="PPReturnPage2.php?reg_ids=" + reg_ids;
-		});
-	}
+  onAuthorize: function(data, actions) {
+    // Optional: display a confirmation page here
+    return actions.payment.execute().then(function() {
+      window.location="PPReturnPage2.php?reg_ids=" + reg_ids;
+    });
+  }
 }, '#paypal-button');
 
 function writeCell(strData, strWidth, strLink) {
-	if (strLink == null) {
-	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-	} else {
-	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-	}
+  if (strLink == null) {
+    return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+  } else {
+    return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+  }
 }
 
 function writeRowApprove(element, index, array) {
-	strStart = element['startdate'];
-	strStart = strStart.replace(/-/g, "/");
-	var startDate = new Date(strStart);
-	strTable = strTable + "<tr>";
-	strTable = strTable + writeCell(element["scoutname"], "150px");
-	strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
-	strTable = strTable + writeCell(startDate.toDateString(), "150px");
-	strTable = strTable + writeCell("$" + element["cost"], "75px");
-	strTable = strTable + writeCell("<a onclick=approve('" + element["regid"] + "') class='round tiny button'>Approve</a>", "100px");
-	strTable = strTable + "</tr>";
+  strStart = element['startdate'];
+  strStart = strStart.replace(/-/g, "/");
+  var startDate = new Date(strStart);
+  strTable = strTable + "<tr>";
+  strTable = strTable + writeCell(element["scoutname"], "150px");
+  strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
+  strTable = strTable + writeCell(startDate.toDateString(), "150px");
+  strTable = strTable + writeCell("$" + element["cost"], "75px");
+  strTable = strTable + writeCell("<a onclick=approve('" + element["regid"] + "') class='round tiny button'>Approve</a>", "100px");
+  strTable = strTable + "</tr>";
 }
 
 function approve(regID) {
-	strURL = "Approve.php?id=" + regID;
-	location.href = strURL;
+  strURL = "Approve.php?id=" + regID;
+  location.href = strURL;
 }
 
 function writeRow(element, index, array) {
-	strStart = element['startdate'];
-	strStart = strStart.replace(/-/g,"/");
-	var startDate = new Date(strStart);
-	objEvents.push( {sku: element['regid'], name: (element["eventname"] + element["scoutname"]), description: element["eventname"], quantity: "1", price: element["cost"], currency: "USD"} );
-	strTable = strTable + "<tr>";
-	strTable = strTable + writeCell("<input type='checkbox' name='pay_cb' id='" + element['regid'] + "' value='" + element['cost'] + "'>", "50px");
-	strTable = strTable + writeCell(element["scoutname"], "150px");
-	strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
-	strTable = strTable + writeCell(startDate.toDateString(), "150px" );
-	strTable = strTable + writeCell( "$" + element["cost"], "75px" );
-	strTable = strTable + "</tr>";
+  strStart = element['startdate'];
+  strStart = strStart.replace(/-/g,"/");
+  var startDate = new Date(strStart);
+  objEvents.push( {sku: element['regid'], name: (element["eventname"] + element["scoutname"]), description: element["eventname"], quantity: "1", price: element["cost"], currency: "USD"} );
+  strTable = strTable + "<tr>";
+  strTable = strTable + writeCell("<input type='checkbox' name='pay_cb' id='" + element['regid'] + "' value='" + element['cost'] + "'>", "50px");
+  strTable = strTable + writeCell(element["scoutname"], "150px");
+  strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
+  strTable = strTable + writeCell(startDate.toDateString(), "150px" );
+  strTable = strTable + writeCell( "$" + element["cost"], "75px" );
+  strTable = strTable + "</tr>";
 }
 
 $(document).ready(function () {
-	strID = document.getElementById('user_id').value;
-	var fieldData = {
-		"id": strID
-	};
-	$.ajax({
-		url: "api/geteventpay.php",
-		type: "post",
-		data: fieldData,
-		datatype: 'json',
-		error: function(errorThrown) {
-			console.log(errorThrown);
-		},
-		success: function (data) {
-			console.log(data);
-			strTable = "";
-			$('#userdata').empty();
-			if (data.eventDataApprove == null) {
-				$("#userdataApprove").append("<p>You do not have any Events to Approve.</p>");
-			} else {
-				strTable = "<table><tr><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th><th>Approve</th></tr>";
-				data['eventDataApprove'].forEach(writeRowApprove);
-				strTable = strTable + "</table>";
-				$("#userdataApprove").append(strTable);
-			}
+  strID = document.getElementById('user_id').value;
+  var fieldData = {
+    "id": strID
+  };
+  $.ajax({
+    url: "api/geteventpay.php",
+    type: "post",
+    data: fieldData,
+    datatype: 'json',
+    error: function(errorThrown) {
+      console.log(errorThrown);
+    },
+    success: function (data) {
+      console.log(data);
+      strTable = "";
+      $('#userdata').empty();
+      if (data.eventDataApprove == null) {
+        $("#userdataApprove").append("<p>You do not have any Events to Approve.</p>");
+      } else {
+        strTable = "<table><tr><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th><th>Approve</th></tr>";
+        data['eventDataApprove'].forEach(writeRowApprove);
+        strTable = strTable + "</table>";
+        $("#userdataApprove").append(strTable);
+      }
 
-			if (data.eventDataPay == null) {
-				$("#userdataPay").append("<p>You do not have any Events to Pay for.</p>");
-			} else {
-				$("#userdataPay").append("<p>Please select all events you would like to pay for and click the Pay button.</p>");
-				strTable = "<table><tr><th></th><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
-				data['eventDataPay'].forEach(writeRow);
-				strTable = strTable + "</table>";
-				$("#userdataPay").append(strTable);
-			}
-		}
-	});
+      if (data.eventDataPay == null) {
+        $("#userdataPay").append("<p>You do not have any Events to Pay for.</p>");
+      } else {
+        $("#userdataPay").append("<p>Please select all events you would like to pay for and click the Pay button.</p>");
+        strTable = "<table><tr><th></th><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
+        data['eventDataPay'].forEach(writeRow);
+        strTable = strTable + "</table>";
+        $("#userdataPay").append(strTable);
+      }
+    }
+  });
 })
 </script>
 
 <input type="hidden" name="reg_ids" id="reg_ids" value="" />
 <div class="row">
-	<div class="large-12 columns">
-	  <h4>Events which require your approval</h4>
-		<div id='userdataApprove'></div>
+  <div class="large-12 columns">
+    <h4>Events which require your approval</h4>
+    <div id='userdataApprove'></div>
     <br /><h4>Events which require payment</h4>
-		<div id='userdataPay'></div>
-	</div>
+    <div id='userdataPay'></div>
+  </div>
 </div>
-	
+  
 <div id="paypal-button"></div>
 

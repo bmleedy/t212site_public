@@ -1,26 +1,26 @@
 <script type="text/javascript">
-	function createNew() {
-		location.href = "Event.php?id=New";
-	}
+  function createNew() {
+    location.href = "Event.php?id=New";
+  }
 
   var strTable;
   function writeCell(strData, strWidth, strLink) {
-  	if (strLink == null) {
-  	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-  	} else {
-  	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-  	}
+    if (strLink == null) {
+      return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+    } else {
+      return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+    }
   }
   
   function writeRow(element, index, array) {
-		strStart = element['startdate'];
-		strStart = strStart.replace(/-/g,"/");
-		var startDate = new Date(strStart);
-		strEnd = element['enddate'];
-		strEnd = strEnd.replace(/-/g,"/");
-		var endDate = new Date(strEnd);
-		
-		strTable = strTable + "<tr>";
+    strStart = element['startdate'];
+    strStart = strStart.replace(/-/g,"/");
+    var startDate = new Date(strStart);
+    strEnd = element['enddate'];
+    strEnd = strEnd.replace(/-/g,"/");
+    var endDate = new Date(strEnd);
+    
+    strTable = strTable + "<tr>";
     strTable = strTable + writeCell(element["name"] , "150px" , "Event.php?id=" + element["id"] );
     strTable = strTable + writeCell(element["location"], "150px" );
     strTable = strTable + writeCell(startDate.toDateString(), "150px" );
@@ -29,40 +29,40 @@
     strTable = strTable + "</tr>";
   }
 
-	function setButtons(showEdit) {
-		buttonData = '';
-		if (showEdit=="1") {
-			buttonData = '<span style="width:25%"><button type="button" onclick="createNew();" class="tiny round button">New Entry</button></span>';
-		}
-		buttonData = buttonData + "<span style='float:right;width:75%;text-align:right'><a href='/ListEvents.php'>View Current Events</a></span>"
-		$('#userButtons').append(buttonData);
-	}
+  function setButtons(showEdit) {
+    buttonData = '';
+    if (showEdit=="1") {
+      buttonData = '<span style="width:25%"><button type="button" onclick="createNew();" class="tiny round button">New Entry</button></span>';
+    }
+    buttonData = buttonData + "<span style='float:right;width:75%;text-align:right'><a href='/ListEvents.php'>View Current Events</a></span>"
+    $('#userButtons').append(buttonData);
+  }
 
-	$(document).ready(function(){ 
-		showEdit = document.getElementById('showEdit').value;
-  	$.ajax({
-   	  url: "api/geteventsall.php" ,
-   	  type: "post",
-   	  contentType: 'application/json',
+  $(document).ready(function(){ 
+    showEdit = document.getElementById('showEdit').value;
+    $.ajax({
+      url: "api/geteventsall.php" ,
+      type: "post",
+      contentType: 'application/json',
       datatype: 'json',
-			error: function(errorThrown) {
-				console.log(errorThrown);
-			},
-			success: function(data){
-				strTable = "";
- 	      $('#userdata').empty();
+      error: function(errorThrown) {
+        console.log(errorThrown);
+      },
+      success: function(data){
+        strTable = "";
+        $('#userdata').empty();
         strTable="<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th></tr>";
- 	      data.forEach(writeRow);
- 	      strTable = strTable + "</table>" ;
+        data.forEach(writeRow);
+        strTable = strTable + "</table>" ;
         $("#userdata").append(strTable);
-     	}
-		});
-		setButtons(showEdit);
-	})
+      }
+    });
+    setButtons(showEdit);
+  })
 </script>
 <div class="row" \>
-	<div class="large-12 columns">
-		<div id="userButtons"></div>
-		<div id='userdata'></div>
-	</div>
+  <div class="large-12 columns">
+    <div id="userButtons"></div>
+    <div id='userdata'></div>
+  </div>
 </div>

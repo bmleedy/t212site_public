@@ -3,9 +3,9 @@
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
+  <?php require "includes/sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
 
 <h4>Charter Organization</h4>
 <p>BSA Troop 212 is chartered through the parents of Troop 212, a 501(c)3 nonprofit organization operated through the troop committee.</p>
@@ -59,8 +59,8 @@
   </tbody>
 </table>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>

@@ -37,15 +37,15 @@ while ($row = $result->fetch_object()) {
   }
 
   $events[] = [
-	'name' => escape_html($row->name),
-	'description' => escape_html($row->description),
-	'location'=> escape_html($row->location),
-	'startdate'=> escape_html($row->startdate),
-	'enddate'=> escape_html($row->enddate),
-	'cost'=> escape_html($row->cost),
-	'reg_open'=> $row->reg_open,
-	'id'=>$row->id,
-	'registered'=>$registered
+  'name' => escape_html($row->name),
+  'description' => escape_html($row->description),
+  'location'=> escape_html($row->location),
+  'startdate'=> escape_html($row->startdate),
+  'enddate'=> escape_html($row->enddate),
+  'cost'=> escape_html($row->cost),
+  'reg_open'=> $row->reg_open,
+  'id'=>$row->id,
+  'registered'=>$registered
   ];
 }
 $stmt->close();

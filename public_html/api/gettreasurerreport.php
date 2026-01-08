@@ -45,51 +45,51 @@ $types = '';
 
 // Filter by date range
 if ($startDate !== '') {
-	$query .= " AND DATE(r.ts_paid) >= ?";
-	$params[] = $startDate;
-	$types .= 's';
+  $query .= " AND DATE(r.ts_paid) >= ?";
+  $params[] = $startDate;
+  $types .= 's';
 }
 
 if ($endDate !== '') {
-	$query .= " AND DATE(r.ts_paid) <= ?";
-	$params[] = $endDate;
-	$types .= 's';
+  $query .= " AND DATE(r.ts_paid) <= ?";
+  $params[] = $endDate;
+  $types .= 's';
 }
 
 // Filter by scout name (search in first or last name)
 if ($scoutName !== '') {
-	$query .= " AND (u.user_first LIKE ? OR u.user_last LIKE ?)";
-	$searchTerm = '%' . $scoutName . '%';
-	$params[] = $searchTerm;
-	$params[] = $searchTerm;
-	$types .= 'ss';
+  $query .= " AND (u.user_first LIKE ? OR u.user_last LIKE ?)";
+  $searchTerm = '%' . $scoutName . '%';
+  $params[] = $searchTerm;
+  $params[] = $searchTerm;
+  $types .= 'ss';
 }
 
 // Filter by event type
 if ($eventType !== '') {
-	$query .= " AND e.type_id = ?";
-	$params[] = intval($eventType);
-	$types .= 'i';
+  $query .= " AND e.type_id = ?";
+  $params[] = intval($eventType);
+  $types .= 'i';
 }
 
 // Filter by event name
 if ($eventName !== '') {
-	$query .= " AND e.name LIKE ?";
-	$params[] = '%' . $eventName . '%';
-	$types .= 's';
+  $query .= " AND e.name LIKE ?";
+  $params[] = '%' . $eventName . '%';
+  $types .= 's';
 }
 
 // Filter by amount range
 if ($minAmount !== null) {
-	$query .= " AND (CASE WHEN u.user_type = 'Scout' THEN e.cost ELSE e.adult_cost END) >= ?";
-	$params[] = $minAmount;
-	$types .= 'd';
+  $query .= " AND (CASE WHEN u.user_type = 'Scout' THEN e.cost ELSE e.adult_cost END) >= ?";
+  $params[] = $minAmount;
+  $types .= 'd';
 }
 
 if ($maxAmount !== null) {
-	$query .= " AND (CASE WHEN u.user_type = 'Scout' THEN e.cost ELSE e.adult_cost END) <= ?";
-	$params[] = $maxAmount;
-	$types .= 'd';
+  $query .= " AND (CASE WHEN u.user_type = 'Scout' THEN e.cost ELSE e.adult_cost END) <= ?";
+  $params[] = $maxAmount;
+  $types .= 'd';
 }
 
 // Order by payment date (most recent first), then by user name
@@ -99,7 +99,7 @@ $query .= " ORDER BY r.ts_paid DESC, u.user_last, u.user_first";
 $statement = $mysqli->prepare($query);
 
 if (!empty($params)) {
-	$statement->bind_param($types, ...$params);
+  $statement->bind_param($types, ...$params);
 }
 
 $statement->execute();
@@ -107,13 +107,13 @@ $result = $statement->get_result();
 
 $payments = [];
 while ($row = $result->fetch_assoc()) {
-	$payments[] = [
-		'user_name' => escape_html($row['user_name']),
-		'payment_date' => $row['payment_date'],
-		'outing_date' => $row['outing_date'],
-		'event_name' => escape_html($row['event_name']),
-		'amount' => $row['amount']
-	];
+  $payments[] = [
+    'user_name' => escape_html($row['user_name']),
+    'payment_date' => $row['payment_date'],
+    'outing_date' => $row['outing_date'],
+    'event_name' => escape_html($row['event_name']),
+    'amount' => $row['amount']
+  ];
 }
 
 $statement->close();

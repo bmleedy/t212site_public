@@ -22,12 +22,12 @@ $stmt->bind_param("i", $event_id);
 $stmt->execute();
 $result = $stmt->get_result();
 if ($result && $row = $result->fetch_assoc()) {
-	$event_id = $row['id'];
-	$name = $row['name'];
-	$location = $row['location'];
-	$startdate = $row['startdate'];
-	$enddate = $row['enddate'];
-	$cost = $row['cost'];
+  $event_id = $row['id'];
+  $name = $row['name'];
+  $location = $row['location'];
+  $startdate = $row['startdate'];
+  $enddate = $row['enddate'];
+  $cost = $row['cost'];
 }
 $stmt->close();
 
@@ -39,42 +39,42 @@ $stmt->bind_param("i", $event_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-	$adultContactInfo = "";
-	$first = "";
-	$isFirstRow = 1;
-	$scout_user_id = $row['user_id'];
+  $adultContactInfo = "";
+  $first = "";
+  $isFirstRow = 1;
+  $scout_user_id = $row['user_id'];
 
-	$stmt2 = $mysqli->prepare("SELECT user_first, user_last, p.type, phone FROM relationships as r, users as u, phone as p WHERE r.adult_id = u.user_id AND r.adult_id = p.user_id AND r.scout_id=? ORDER BY u.user_first");
-	$stmt2->bind_param("i", $scout_user_id);
-	$stmt2->execute();
-	$results2 = $stmt2->get_result();
-	while ($row2 = $results2->fetch_assoc()) {
-		if ($row2['user_first'] != $first) {
-			$first=$row2['user_first'];
-			if ($isFirstRow) {
-				$name_display = '<strong>' . escape_html($first) . '</strong>';
-				$isFirstRow = 0;
-			} else {
-				$name_display = '. <strong>' . escape_html($first) . '</strong>';
-			}
-		} else {
-			$name_display = '';
-		}
-		$adultContactInfo = $adultContactInfo . $name_display . " " . escape_html(substr($row2['type'],0,1)) . "-" . escape_html($row2['phone']);
-	}
-	$stmt2->close();
+  $stmt2 = $mysqli->prepare("SELECT user_first, user_last, p.type, phone FROM relationships as r, users as u, phone as p WHERE r.adult_id = u.user_id AND r.adult_id = p.user_id AND r.scout_id=? ORDER BY u.user_first");
+  $stmt2->bind_param("i", $scout_user_id);
+  $stmt2->execute();
+  $results2 = $stmt2->get_result();
+  while ($row2 = $results2->fetch_assoc()) {
+    if ($row2['user_first'] != $first) {
+      $first=$row2['user_first'];
+      if ($isFirstRow) {
+        $name_display = '<strong>' . escape_html($first) . '</strong>';
+        $isFirstRow = 0;
+      } else {
+        $name_display = '. <strong>' . escape_html($first) . '</strong>';
+      }
+    } else {
+      $name_display = '';
+    }
+    $adultContactInfo = $adultContactInfo . $name_display . " " . escape_html(substr($row2['type'],0,1)) . "-" . escape_html($row2['phone']);
+  }
+  $stmt2->close();
 
-	$attendingScouts[] = [
-		'patrol' => escape_html(getLabel('patrols',$row['patrol_id'],$mysqli)),
-		'id' => $row['user_id'],
-		'register_id' => $row['register_id'],
-		'approved' => $row['approved_by'],
-		'paid' => $row['paid'],
-		'first' => escape_html($row['user_first']),
-		'last' => escape_html($row['user_last']),
-		'instructions' => escape_html($row['spec_instructions']),
-		'contactInfo' => $adultContactInfo
-	];
+  $attendingScouts[] = [
+    'patrol' => escape_html(getLabel('patrols',$row['patrol_id'],$mysqli)),
+    'id' => $row['user_id'],
+    'register_id' => $row['register_id'],
+    'approved' => $row['approved_by'],
+    'paid' => $row['paid'],
+    'first' => escape_html($row['user_first']),
+    'last' => escape_html($row['user_last']),
+    'instructions' => escape_html($row['spec_instructions']),
+    'contactInfo' => $adultContactInfo
+  ];
 }
 $stmt->close();
 
@@ -85,62 +85,62 @@ $stmt->bind_param("i", $event_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
-	$adultContactInfo = "";
-	$adult_user_id = $row['user_id'];
+  $adultContactInfo = "";
+  $adult_user_id = $row['user_id'];
 
-	$stmt2 = $mysqli->prepare("SELECT p.type, phone FROM users as u, phone as p WHERE p.user_id = u.user_id AND u.user_id=? ORDER BY u.user_first");
-	$stmt2->bind_param("i", $adult_user_id);
-	$stmt2->execute();
-	$results2 = $stmt2->get_result();
-	while ($row2 = $results2->fetch_assoc()) {
-		$adultContactInfo = $adultContactInfo . escape_html(substr($row2['type'],0,1)) . "-" . escape_html($row2['phone']) . '<br>';
-	}
-	$stmt2->close();
+  $stmt2 = $mysqli->prepare("SELECT p.type, phone FROM users as u, phone as p WHERE p.user_id = u.user_id AND u.user_id=? ORDER BY u.user_first");
+  $stmt2->bind_param("i", $adult_user_id);
+  $stmt2->execute();
+  $results2 = $stmt2->get_result();
+  while ($row2 = $results2->fetch_assoc()) {
+    $adultContactInfo = $adultContactInfo . escape_html(substr($row2['type'],0,1)) . "-" . escape_html($row2['phone']) . '<br>';
+  }
+  $stmt2->close();
 
-	$attendingAdults[] = [
-		'patrol' => 'Adults',
-		'id' => $row['user_id'],
-		'register_id' => $row['register_id'],
-		'paid' => $row['paid'],
-		'seat_belts' => $row['seat_belts'],
-		'first' => escape_html($row['user_first']),
-		'last' => escape_html($row['user_last']),
-		'contactInfo' => $adultContactInfo
-	];
+  $attendingAdults[] = [
+    'patrol' => 'Adults',
+    'id' => $row['user_id'],
+    'register_id' => $row['register_id'],
+    'paid' => $row['paid'],
+    'seat_belts' => $row['seat_belts'],
+    'first' => escape_html($row['user_first']),
+    'last' => escape_html($row['user_last']),
+    'contactInfo' => $adultContactInfo
+  ];
 }
 $stmt->close();
 
 
 $returnMsg = array(
-	'startdate' => $startdate,
-	'enddate' => $enddate,
-	'outing_name' => $name,
-	'cost' => $cost,
-	'attendingScouts' => $attendingScouts,
-	'attendingAdults' => $attendingAdults,
-	'data' => $returnData
+  'startdate' => $startdate,
+  'enddate' => $enddate,
+  'outing_name' => $name,
+  'cost' => $cost,
+  'attendingScouts' => $attendingScouts,
+  'attendingAdults' => $attendingAdults,
+  'data' => $returnData
 );
 
 echo json_encode($returnMsg);
 die;
 
 function getLabel($strTable,$id,$mysqli){
-	if ($id) {
-		// Whitelist allowed tables
-		$allowed_tables = ['patrols'];
-		if (!in_array($strTable, $allowed_tables)) {
-			return '';
-		}
+  if ($id) {
+    // Whitelist allowed tables
+    $allowed_tables = ['patrols'];
+    if (!in_array($strTable, $allowed_tables)) {
+      return '';
+    }
 
-		$stmt = $mysqli->prepare("SELECT label FROM $strTable WHERE id=?");
-		$stmt->bind_param("i", $id);
-		$stmt->execute();
-		$result = $stmt->get_result();
-		$row = $result->fetch_assoc();
-		$stmt->close();
-		return $row['label'];
-	} else {
-		return "";
-	}
+    $stmt = $mysqli->prepare("SELECT label FROM $strTable WHERE id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['label'];
+  } else {
+    return "";
+  }
 }
 ?>

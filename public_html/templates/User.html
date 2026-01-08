@@ -1,303 +1,303 @@
 <script type="text/javascript">
-	var user_type;
-	var webMaster;
-	var strID;
+  var user_type;
+  var webMaster;
+  var strID;
 
 
-	// Toggles a div on or off
-	// TODO: replace this with the remove() method
-	//   as this seems to only be used to remove tokens
-	function toggleDiv(divName) {
-		$('#' + divName).toggle();
-	}
+  // Toggles a div on or off
+  // TODO: replace this with the remove() method
+  //   as this seems to only be used to remove tokens
+  function toggleDiv(divName) {
+    $('#' + divName).toggle();
+  }
 
-	// Adds the edit flag to the URL for the doc,
-	//  which triggers editing mode.
-	function editDoc() {
-		strURL = location.href + "&edit=1";
-		location.href = strURL;
-	}
+  // Adds the edit flag to the URL for the doc,
+  //  which triggers editing mode.
+  function editDoc() {
+    strURL = location.href + "&edit=1";
+    location.href = strURL;
+  }
 
-	// Submits the currently-filled-out document forms
-	//  which are pulled from the named fields below.
-	function submitDoc() {
-		var mb_list = [];
-		var family_id = $('#family_id').val();
-		var inputElements = document.getElementsByClassName('mbCheckbox');
+  // Submits the currently-filled-out document forms
+  //  which are pulled from the named fields below.
+  function submitDoc() {
+    var mb_list = [];
+    var family_id = $('#family_id').val();
+    var inputElements = document.getElementsByClassName('mbCheckbox');
 
-		for (var i = 0; inputElements[i]; ++i) {
-			if (inputElements[i].checked) {
-				mb_list.push(inputElements[i].value);
-			}
-		}
+    for (var i = 0; inputElements[i]; ++i) {
+      if (inputElements[i].checked) {
+        mb_list.push(inputElements[i].value);
+      }
+    }
 
-		// Collect notification preferences
-		var notif_prefs = {};
-		var notifElements = document.getElementsByClassName('notifPrefCheckbox');
-		for (var j = 0; notifElements[j]; ++j) {
-			var key = notifElements[j].value;
-			notif_prefs[key] = notifElements[j].checked;
-		}
+    // Collect notification preferences
+    var notif_prefs = {};
+    var notifElements = document.getElementsByClassName('notifPrefCheckbox');
+    for (var j = 0; notifElements[j]; ++j) {
+      var key = notifElements[j].value;
+      notif_prefs[key] = notifElements[j].checked;
+    }
 
-		// Debug: Log what we're sending
-		console.log("Notification preferences being sent:", notif_prefs);
+    // Debug: Log what we're sending
+    console.log("Notification preferences being sent:", notif_prefs);
 
-		var fieldData = {
-			"user_type": $('#user_type').val(),
-			"first": $('#user_first').val(),
-			"last": $('#user_last').val(),
-			"email": $('#user_email').val(),
-			"rank": $('#rank').val(),
-			"patrol": $('#patrol').val(),
-			"position": $('#position').val(),
-			"phone_1": $('#user_phone_1').val(),
-			"phone_2": $('#user_phone_2').val(),
-			"phone_3": $('#user_phone_3').val(),
-			"phone_type_1": $('#phone_type_1').val(),
-			"phone_type_2": $('#phone_type_2').val(),
-			"phone_type_3": $('#phone_type_3').val(),
-			"phone_id_1": $('#phone_id_1').val(),
-			"phone_id_2": $('#phone_id_2').val(),
-			"phone_id_3": $('#phone_id_3').val(),
-			"scout_1": $('#scout_1').val(),
-			"scout_2": $('#scout_2').val(),
-			"scout_3": $('#scout_3').val(),
-			"scout_4": $('#scout_4').val(),
-			"address1": $('#address1').val(),
-			"address2": $('#address2').val(),
-			"city": $('#city').val(),
-			"state": $('#state').val(),
-			"zip": $('#zip').val(),
-			"mb_list": mb_list,
-			"notif_prefs": JSON.stringify(notif_prefs),
-			"wm": webMaster,
-			"family_id": family_id,
-			"id": strID
-		};
-		$.ajax({
-			url: "api/updateuser.php",
-			type: "post",
-			datatype: 'json',
-			data: fieldData,
-			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				console.log(errorThrown);
-			},
-			success: function (data) {
-				if (data["status"] == "validation") {
-					alert(data["message"]);
-					$("#" + data["field"]).focus();
-				} else if (data["status"] == "Success") {
-					alert("Details have been updated!");
-					strURL = "User.php?id=" + strID;
-					location.href = strURL;
-				}
-			}
-		})
-	}
+    var fieldData = {
+      "user_type": $('#user_type').val(),
+      "first": $('#user_first').val(),
+      "last": $('#user_last').val(),
+      "email": $('#user_email').val(),
+      "rank": $('#rank').val(),
+      "patrol": $('#patrol').val(),
+      "position": $('#position').val(),
+      "phone_1": $('#user_phone_1').val(),
+      "phone_2": $('#user_phone_2').val(),
+      "phone_3": $('#user_phone_3').val(),
+      "phone_type_1": $('#phone_type_1').val(),
+      "phone_type_2": $('#phone_type_2').val(),
+      "phone_type_3": $('#phone_type_3').val(),
+      "phone_id_1": $('#phone_id_1').val(),
+      "phone_id_2": $('#phone_id_2').val(),
+      "phone_id_3": $('#phone_id_3').val(),
+      "scout_1": $('#scout_1').val(),
+      "scout_2": $('#scout_2').val(),
+      "scout_3": $('#scout_3').val(),
+      "scout_4": $('#scout_4').val(),
+      "address1": $('#address1').val(),
+      "address2": $('#address2').val(),
+      "city": $('#city').val(),
+      "state": $('#state').val(),
+      "zip": $('#zip').val(),
+      "mb_list": mb_list,
+      "notif_prefs": JSON.stringify(notif_prefs),
+      "wm": webMaster,
+      "family_id": family_id,
+      "id": strID
+    };
+    $.ajax({
+      url: "api/updateuser.php",
+      type: "post",
+      datatype: 'json',
+      data: fieldData,
+      error: function (XMLHttpRequest, textStatus, errorThrown) {
+        console.log(errorThrown);
+      },
+      success: function (data) {
+        if (data["status"] == "validation") {
+          alert(data["message"]);
+          $("#" + data["field"]).focus();
+        } else if (data["status"] == "Success") {
+          alert("Details have been updated!");
+          strURL = "User.php?id=" + strID;
+          location.href = strURL;
+        }
+      }
+    })
+  }
 
-	function writeCell(strData, strWidth, strLink) {
-		if (strLink == null) {
-			return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
-		} else {
-			return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
-		}
-	}
+  function writeCell(strData, strWidth, strLink) {
+    if (strLink == null) {
+      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
+    } else {
+      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
+    }
+  }
 
-	function writeRow(element, index, array) {
-		var strStart="";
-		strStart = element['startdate'];
-		strStart = strStart.replace(/-/g, "/");
-		var startDate = new Date(strStart);
+  function writeRow(element, index, array) {
+    var strStart="";
+    strStart = element['startdate'];
+    strStart = strStart.replace(/-/g, "/");
+    var startDate = new Date(strStart);
 
-		// var strTable = "";
-		// strTable = strTable + "<tr>";
-		// strTable = strTable + writeCell(startDate.toDateString(), "150px");
-		// strTable = strTable + writeCell(element["name"], "200px", "Event.php?id=" + element["event_id"]);
-		// strTable = strTable + writeCell(element["location"], "200px");
-		// strTable = strTable + "</tr>";
-	}
+    // var strTable = "";
+    // strTable = strTable + "<tr>";
+    // strTable = strTable + writeCell(startDate.toDateString(), "150px");
+    // strTable = strTable + writeCell(element["name"], "200px", "Event.php?id=" + element["event_id"]);
+    // strTable = strTable + writeCell(element["location"], "200px");
+    // strTable = strTable + "</tr>";
+  }
 
-	function loadEVTable(strSort, strTypeID, strOrder) {
-		var fieldData = {
-			"sort": strSort,
-			"userid": strID,
-			"order": strOrder,
-			"typeid": strTypeID
-		};
-		if (strSort == 'startdate') {
-			var strDateOrder = "";
-			if (strOrder == 'desc') {
-				strDateOrder = 'asc';
-			} else {
-				strDateOrder = 'desc';
-			}
-		}
-		$.ajax({
-			url: "api/getattendance.php",
-			type: "post",
-			datatype: 'json',
-			data: fieldData,
-			error: function (data) {
-				console.log(data);
-			},
-			success: function (data) {
-				//console.log(data);
-				if (data == null) { return }
-				var divName = "#ev_event_" + strTypeID;
-				var strTable = "";
-				$(divName).empty();
-				strTable = "<table><thead><tr>";
-				strTable = strTable + "<th><a href=javascript:loadEVTable('startdate','" + strTypeID + "','" + strDateOrder + "')>Start Date</a></th>";
-				strTable = strTable + "<th><a href=javascript:loadEVTable('name','" + strTypeID + "','asc')>Event Name</a></th>";
-				strTable = strTable + "<th><a href=javascript:loadEVTable('location','" + strTypeID + "','asc')>Location</a></th>";
-				strTable = strTable + "</tr></thead>";
-				data.forEach(writeRow);
-				strTable = strTable + "</table>";
-				//console.log(strTable);
-				$(divName).append(strTable);
-				$("#divEvents" + strTypeID).show();
-			}
-		})
-	}
+  function loadEVTable(strSort, strTypeID, strOrder) {
+    var fieldData = {
+      "sort": strSort,
+      "userid": strID,
+      "order": strOrder,
+      "typeid": strTypeID
+    };
+    if (strSort == 'startdate') {
+      var strDateOrder = "";
+      if (strOrder == 'desc') {
+        strDateOrder = 'asc';
+      } else {
+        strDateOrder = 'desc';
+      }
+    }
+    $.ajax({
+      url: "api/getattendance.php",
+      type: "post",
+      datatype: 'json',
+      data: fieldData,
+      error: function (data) {
+        console.log(data);
+      },
+      success: function (data) {
+        //console.log(data);
+        if (data == null) { return }
+        var divName = "#ev_event_" + strTypeID;
+        var strTable = "";
+        $(divName).empty();
+        strTable = "<table><thead><tr>";
+        strTable = strTable + "<th><a href=javascript:loadEVTable('startdate','" + strTypeID + "','" + strDateOrder + "')>Start Date</a></th>";
+        strTable = strTable + "<th><a href=javascript:loadEVTable('name','" + strTypeID + "','asc')>Event Name</a></th>";
+        strTable = strTable + "<th><a href=javascript:loadEVTable('location','" + strTypeID + "','asc')>Location</a></th>";
+        strTable = strTable + "</tr></thead>";
+        data.forEach(writeRow);
+        strTable = strTable + "</table>";
+        //console.log(strTable);
+        $(divName).append(strTable);
+        $("#divEvents" + strTypeID).show();
+      }
+    })
+  }
 
-	function selectScout(element, index, array) {
-		var fldIndex = index + 1;
-		$('#scout_' + fldIndex).val(element);
-	}
+  function selectScout(element, index, array) {
+    var fldIndex = index + 1;
+    $('#scout_' + fldIndex).val(element);
+  }
 
-	function setButtons(varEdit, showEdit, user_type, webMaster) {
-		if ((varEdit == "1") || (strID == "New")) {
-			buttonData = '<a onclick="submitDoc()" class="round small button">Submit</a><div class="clearfix"></div>';
-		} else {
-			if (showEdit == "1") {
-				var family_id = $('#family_id').val();
-				buttonData = '<a href="addfamilymember.php?familyID=' + family_id + '" class="round small button">Add Family Member</a>&nbsp;';
-				buttonData = buttonData + '<a onclick="editDoc();" class="round small button">Edit</a><div class="clearfix"></div>';
-			}
-		}
-		$('#userButtons').append(buttonData);
-	}
+  function setButtons(varEdit, showEdit, user_type, webMaster) {
+    if ((varEdit == "1") || (strID == "New")) {
+      buttonData = '<a onclick="submitDoc()" class="round small button">Submit</a><div class="clearfix"></div>';
+    } else {
+      if (showEdit == "1") {
+        var family_id = $('#family_id').val();
+        buttonData = '<a href="addfamilymember.php?familyID=' + family_id + '" class="round small button">Add Family Member</a>&nbsp;';
+        buttonData = buttonData + '<a onclick="editDoc();" class="round small button">Edit</a><div class="clearfix"></div>';
+      }
+    }
+    $('#userButtons').append(buttonData);
+  }
 
-	$(document).ready(function () {
-		strID = document.getElementById('user_id').value;
-		var varEdit = document.getElementById('edit').value;
-		var showEdit = document.getElementById('showEdit').value;
-		var webMaster = document.getElementById('webMaster').value;
-		var userAdmin = document.getElementById('userAdmin').value;
+  $(document).ready(function () {
+    strID = document.getElementById('user_id').value;
+    var varEdit = document.getElementById('edit').value;
+    var showEdit = document.getElementById('showEdit').value;
+    var webMaster = document.getElementById('webMaster').value;
+    var userAdmin = document.getElementById('userAdmin').value;
 
-		var fieldData = {
-			"id": strID,
-			"edit": varEdit,
-			"showEdit": showEdit,
-			"wm": webMaster,
-			"userAdmin": userAdmin
-		};
-		$.ajax({
-			url: "api/getuser.php",
-			type: "post",
-			data: fieldData,
-			datatype: 'json',
-			error: function (data) {
-				console.log(data);
-			},
-			success: function (data) {
-				//console.log(data);
-				$('#userData').append(data);
-				$('#profilepic').append('<br><img src="profile_pics/' + strID + '.jpeg" alt="Profile Picture" class="profilepic" onerror="this.src=\'profile_pics/goat.jpeg\'" width=200 height=200>');
-				//$('#profilepic').append('<img src="profile_pics/goat.webp" alt="Profile Picture" width=200 height=200 class="profilepic">');
-			}
-		});
-		$.ajax({
-			url: "api/getOtherUserInfo.php",
-			type: "post",
-			data: fieldData,
-			datatype: 'text',
-			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				console.log("error .ready");
-				console.log(textStatus);
-			},
-			success: function (data) {
-				if (data["profile"] == "no") {
-					alert('You must complete your profile before using this site.');
-				} else {
-					loadEVTable("startdate", "1", "desc");		//1=Outings
-					loadEVTable("startdate", "2", "desc");		//2=Service Projects
-					loadEVTable("startdate", "3", "desc");		//3=Work Parties
-				}
-				//console.log(data);
-				user_type = data['user_type'];
-				setButtons(varEdit, showEdit, user_type, webMaster);
-				$('#scoutData').append(data['scoutData']);
-				$('#scoutData').append(data['addressData']);
-				if (user_type != "Scout") {
-					$('#mb_panel').append(data['mbData']);
-					toggleDiv("divMB");
-					//i=1;
-					if (varEdit) {
-						if (data['scouts']) {
-							data['scouts'].forEach(selectScout);
-						}
-					}
-				}
-			}
-		});
-		$(document).foundation();
-	})
+    var fieldData = {
+      "id": strID,
+      "edit": varEdit,
+      "showEdit": showEdit,
+      "wm": webMaster,
+      "userAdmin": userAdmin
+    };
+    $.ajax({
+      url: "api/getuser.php",
+      type: "post",
+      data: fieldData,
+      datatype: 'json',
+      error: function (data) {
+        console.log(data);
+      },
+      success: function (data) {
+        //console.log(data);
+        $('#userData').append(data);
+        $('#profilepic').append('<br><img src="profile_pics/' + strID + '.jpeg" alt="Profile Picture" class="profilepic" onerror="this.src=\'profile_pics/goat.jpeg\'" width=200 height=200>');
+        //$('#profilepic').append('<img src="profile_pics/goat.webp" alt="Profile Picture" width=200 height=200 class="profilepic">');
+      }
+    });
+    $.ajax({
+      url: "api/getOtherUserInfo.php",
+      type: "post",
+      data: fieldData,
+      datatype: 'text',
+      error: function (XMLHttpRequest, textStatus, errorThrown) {
+        console.log("error .ready");
+        console.log(textStatus);
+      },
+      success: function (data) {
+        if (data["profile"] == "no") {
+          alert('You must complete your profile before using this site.');
+        } else {
+          loadEVTable("startdate", "1", "desc");    //1=Outings
+          loadEVTable("startdate", "2", "desc");    //2=Service Projects
+          loadEVTable("startdate", "3", "desc");    //3=Work Parties
+        }
+        //console.log(data);
+        user_type = data['user_type'];
+        setButtons(varEdit, showEdit, user_type, webMaster);
+        $('#scoutData').append(data['scoutData']);
+        $('#scoutData').append(data['addressData']);
+        if (user_type != "Scout") {
+          $('#mb_panel').append(data['mbData']);
+          toggleDiv("divMB");
+          //i=1;
+          if (varEdit) {
+            if (data['scouts']) {
+              data['scouts'].forEach(selectScout);
+            }
+          }
+        }
+      }
+    });
+    $(document).foundation();
+  })
 </script>
 <form id="myForm">
 
-	<div id="userData"></div>
-	<div id="scoutData"></div>
-	<div id="userButtons"></div>
-	<div id="profilepic"></div>
+  <div id="userData"></div>
+  <div id="scoutData"></div>
+  <div id="userButtons"></div>
+  <div id="profilepic"></div>
 
-	<div class="row" style="display:none" id="divMB">
-		<div class="large-12 columns">
-			<dl class="accordion" data-accordion>
-				<dd class="accordion-navigation">
-					<a href="#mb_panel">Merit Badges</a>
-					<div id="mb_panel" class="content active">
-					</div>
-				</dd>
-			</dl>
-		</div>
-	</div>
+  <div class="row" style="display:none" id="divMB">
+    <div class="large-12 columns">
+      <dl class="accordion" data-accordion>
+        <dd class="accordion-navigation">
+          <a href="#mb_panel">Merit Badges</a>
+          <div id="mb_panel" class="content active">
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </div>
 
-	<div class="row" style="display:none" id="divEvents1">
-		<div class="large-12 columns">
-			<dl class="accordion" data-accordion>
-				<dd class="accordion-navigation">
-					<a href="#ev_event_1">Outings</a>
-					<div id="ev_event_1" class="content" style="background-color: #e8e8e8;">
-					</div>
-				</dd>
-			</dl>
-		</div>
-	</div>
+  <div class="row" style="display:none" id="divEvents1">
+    <div class="large-12 columns">
+      <dl class="accordion" data-accordion>
+        <dd class="accordion-navigation">
+          <a href="#ev_event_1">Outings</a>
+          <div id="ev_event_1" class="content" style="background-color: #e8e8e8;">
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </div>
 
-	<div class="row" style="display:none" id="divEvents2">
-		<div class="large-12 columns">
-			<dl class="accordion" data-accordion>
-				<dd class="accordion-navigation">
-					<a href="#ev_event_2">Service Projects</a>
-					<div id="ev_event_2" class="content" style="background-color: #e8e8e8;">
-					</div>
-				</dd>
-			</dl>
-		</div>
-	</div>
+  <div class="row" style="display:none" id="divEvents2">
+    <div class="large-12 columns">
+      <dl class="accordion" data-accordion>
+        <dd class="accordion-navigation">
+          <a href="#ev_event_2">Service Projects</a>
+          <div id="ev_event_2" class="content" style="background-color: #e8e8e8;">
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </div>
 
-	<div class="row" style="display:none" id="divEvents3">
-		<div class="large-12 columns">
-			<dl class="accordion" data-accordion>
-				<dd class="accordion-navigation">
-					<a href="#ev_event_3">Work Parties</a>
-					<div id="ev_event_3" class="content" style="background-color: #e8e8e8;">
-					</div>
-				</dd>
-			</dl>
-		</div>
-	</div>
+  <div class="row" style="display:none" id="divEvents3">
+    <div class="large-12 columns">
+      <dl class="accordion" data-accordion>
+        <dd class="accordion-navigation">
+          <a href="#ev_event_3">Work Parties</a>
+          <div id="ev_event_3" class="content" style="background-color: #e8e8e8;">
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </div>
 
 
 </form>

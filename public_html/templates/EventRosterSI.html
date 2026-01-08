@@ -13,23 +13,23 @@ var outing_name;
 var cost;
 
 function writeRow(element, index, array) {
-	first = element["first"];
-	last = element["last"];
-	userID = element["id"];
-	registerID = element["register_id"];
-	patrolName = element["patrol"];
-	if (element["seat_belts"]) {
-	  user_type = "Adult";
-	} else {
-	  user_type = "Scout";
-	}
+  first = element["first"];
+  last = element["last"];
+  userID = element["id"];
+  registerID = element["register_id"];
+  patrolName = element["patrol"];
+  if (element["seat_belts"]) {
+    user_type = "Adult";
+  } else {
+    user_type = "Scout";
+  }
   if (cost==0) {
-		buttonLabel ="Approve";
-	}
-	
+    buttonLabel ="Approve";
+  }
+  
   if (cost==0) {
-		paid = "N/A";
-	} else if (element["paid"]=="0") {
+    paid = "N/A";
+  } else if (element["paid"]=="0") {
     paid = "No" ;
   } else {
     paid = "Yes" ;
@@ -37,24 +37,24 @@ function writeRow(element, index, array) {
   
   
   if (element["approved"]!="0") {
-		approved = "Yes";
-	} else {	
+    approved = "Yes";
+  } else {  
     if (element["show_approved"]=="1") {
       approved = "<a onclick=approve('"+registerID+"') class='round tiny button'>Approve</a>" ;
     } else {
-  		approved = "No";
+      approved = "No";
     }
-	}
+  }
 
-	if (patrolName=="Adults") {
-	  seat_belts = element["seat_belts"];
-	  contact_info = element["contactInfo"];
-	} else {
-		seat_belts = "N/A";
-	}
+  if (patrolName=="Adults") {
+    seat_belts = element["seat_belts"];
+    contact_info = element["contactInfo"];
+  } else {
+    seat_belts = "N/A";
+  }
 strTable = strTable + "<tr style='border-top:1pt solid black;'>";
   if (patrolName != "Adults") {
-		strTable = strTable + writeCell(patrolName, "125px" );}
+    strTable = strTable + writeCell(patrolName, "125px" );}
   strTable = strTable + writeCell(first + " " + last, "250px" ); 
 
   if (patrolName=="Adults") {
@@ -67,7 +67,7 @@ strTable = strTable + "<tr style='border-top:1pt solid black;'>";
     }
   }
 
-	
+  
   strTable = strTable + "</tr>";
   if (cost == 0) {
     cs = "3";
@@ -84,60 +84,60 @@ strTable = strTable + "<tr style='border-top:1pt solid black;'>";
     strTable = strTable + "</td></tr>";
   }
 }
-	
+  
 function writeCell(strData, strWidth, strLink) {
- 	if (strLink == null) {
- 	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
- 	} else {
- 	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
- 	}
+  if (strLink == null) {
+    return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+  } else {
+    return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+  }
 }
 
 $(document).ready(function(){
-  	event_id = document.getElementById('id').value;
-		user_id = document.getElementById('user_id').value;
-		var fieldData = {
-			"event_id": event_id
-		};
-		$.ajax({
-   	  url: "api/geteventrostersi.php",
-   	  type: "post",
-			data: fieldData,
-   	  datatype: 'json',
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				console.log("error .ready");
-			},
-			success: function(data){
-				$('#outingData').append(data['data']);
-				outing_name = data['outing_name'];
-				user_type = data['user_type'];
-				user_first = data['first'];
-				cost = data['cost'];
-				console.log(data);
-				if (data['attendingScouts']) {
-					if (cost==0.00) {
-					  strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th></tr>";
-					} else {
-					  strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th></tr>";
-					}
-					data['attendingScouts'].forEach(writeRow);
-					strTable = strTable + "</table>" ;
-					$("#outingData").append(strTable);
-				}
-				if (data['attendingAdults']) {
-					strTable = "<h5>Adults</h5><table style='border-collapse:collapse'><tr><th>Name</th><th>Seat Belts</th><th>Phone</th></tr>";
-					data['attendingAdults'].forEach(writeRow);
-					strTable = strTable + "</table>" ;
-					$("#outingData").append(strTable);
-				}
-     	}
-		});
-		//$(document).foundation();
+    event_id = document.getElementById('id').value;
+    user_id = document.getElementById('user_id').value;
+    var fieldData = {
+      "event_id": event_id
+    };
+    $.ajax({
+      url: "api/geteventrostersi.php",
+      type: "post",
+      data: fieldData,
+      datatype: 'json',
+      error: function(XMLHttpRequest, textStatus, errorThrown) {
+        console.log("error .ready");
+      },
+      success: function(data){
+        $('#outingData').append(data['data']);
+        outing_name = data['outing_name'];
+        user_type = data['user_type'];
+        user_first = data['first'];
+        cost = data['cost'];
+        console.log(data);
+        if (data['attendingScouts']) {
+          if (cost==0.00) {
+            strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th></tr>";
+          } else {
+            strTable = "<h5>Scouts</h5><table style='border-collapse:collapse'><tr><th>Patrol</th><th>Name</th><th>Approved?</th><th>Paid?</th></tr>";
+          }
+          data['attendingScouts'].forEach(writeRow);
+          strTable = strTable + "</table>" ;
+          $("#outingData").append(strTable);
+        }
+        if (data['attendingAdults']) {
+          strTable = "<h5>Adults</h5><table style='border-collapse:collapse'><tr><th>Name</th><th>Seat Belts</th><th>Phone</th></tr>";
+          data['attendingAdults'].forEach(writeRow);
+          strTable = strTable + "</table>" ;
+          $("#outingData").append(strTable);
+        }
+      }
+    });
+    //$(document).foundation();
 })
 </script>
 <form id="myForm">
 
-	<div id="outingData"></div>
+  <div id="outingData"></div>
   
 </form>
 

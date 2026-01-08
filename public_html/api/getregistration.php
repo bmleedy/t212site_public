@@ -23,8 +23,8 @@ $row = $results->fetch_assoc();
 $stmt->close();
 
 if (!$row) {
-	echo json_encode(['error' => 'Registration not found']);
-	die();
+  echo json_encode(['error' => 'Registration not found']);
+  die();
 }
 
 $event_id = $row['event_id'];
@@ -44,8 +44,8 @@ $row = $results->fetch_assoc();
 $stmt->close();
 
 if (!$row) {
-	echo json_encode(['error' => 'User not found']);
-	die();
+  echo json_encode(['error' => 'User not found']);
+  die();
 }
 
 $user_type = $row['user_type'];
@@ -63,13 +63,13 @@ $row = $results->fetch_assoc();
 $stmt->close();
 
 if (!$row) {
-	$signed_up = "No";
+  $signed_up = "No";
 } else {
-	if ($row['attending'] == 1) {
-		$signed_up = "Yes";
-	} else {
-		$signed_up = "Cancelled";
-	}
+  if ($row['attending'] == 1) {
+    $signed_up = "Yes";
+  } else {
+    $signed_up = "Cancelled";
+  }
 }
 
 // Get event details
@@ -87,12 +87,12 @@ $stmt->execute();
 $results = $stmt->get_result();
 
 if ($results && $row = $results->fetch_assoc()) {
-	$name = $row['name'];
-	$location = $row['location'];
-	$description = $row['description'];
-	$startdate = $row['startdate'];
-	$enddate = $row['enddate'];
-	$cost = $row['cost'];
+  $name = $row['name'];
+  $location = $row['location'];
+  $description = $row['description'];
+  $startdate = $row['startdate'];
+  $enddate = $row['enddate'];
+  $cost = $row['cost'];
 }
 $stmt->close();
 
@@ -111,9 +111,9 @@ $returnData = $returnData . '<div class="large-5 columns"><label>End Date' . $va
 $returnData = $returnData . '<div class="row"><div class="large-12 columns"><label>Event Description' . $vardescription . '</label></div></div>';
 
 $returnMsg = array(
-	'user_type' => escape_html($user_type),
-	'signed_up' => $signed_up,
-	'data' => $returnData
+  'user_type' => escape_html($user_type),
+  'signed_up' => $signed_up,
+  'data' => $returnData
 );
 
 echo json_encode($returnMsg);

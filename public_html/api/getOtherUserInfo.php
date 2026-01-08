@@ -5,8 +5,8 @@ ini_set('display_errors', '0');
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	header('Content-Type: application/json');
-	echo json_encode(['error' => 'Not an AJAX request']);
+  header('Content-Type: application/json');
+  echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 session_start();

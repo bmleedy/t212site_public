@@ -1,303 +1,303 @@
 <style>
-	.activity-log-filters {
-		background: #f5f5f5;
-		padding: 20px;
-		margin-bottom: 20px;
-		border-radius: 5px;
-	}
-	.filter-row {
-		margin-bottom: 15px;
-	}
-	.filter-row label {
-		display: inline-block;
-		width: 120px;
-		font-weight: bold;
-	}
-	.filter-row input, .filter-row select {
-		padding: 5px;
-		margin-right: 10px;
-	}
-	#activityLogTable {
-		width: 100%;
-		border-collapse: collapse;
-		margin-top: 20px;
-	}
-	#activityLogTable th {
-		background: #333;
-		color: white;
-		padding: 10px;
-		text-align: left;
-		position: sticky;
-		top: 0;
-	}
-	#activityLogTable td {
-		padding: 8px;
-		border-bottom: 1px solid #ddd;
-		vertical-align: top;
-	}
-	#activityLogTable tr:hover {
-		background: #f9f9f9;
-	}
-	.success-true {
-		background-color: #d4edda;
-	}
-	.success-false {
-		background-color: #f8d7da;
-	}
-	.log-timestamp {
-		white-space: nowrap;
-	}
-	.log-values {
-		font-family: monospace;
-		font-size: 0.9em;
-		max-width: 300px;
-		word-wrap: break-word;
-	}
-	.filter-input {
-		width: 150px;
-		padding: 3px;
-		font-size: 0.9em;
-	}
-	.btn-filter {
-		background: #0078A8;
-		color: white;
-		padding: 8px 15px;
-		border: none;
-		border-radius: 3px;
-		cursor: pointer;
-	}
-	.btn-filter:hover {
-		background: #005580;
-	}
-	.btn-clear {
-		background: #6c757d;
-		color: white;
-		padding: 8px 15px;
-		border: none;
-		border-radius: 3px;
-		cursor: pointer;
-		margin-left: 10px;
-	}
-	.btn-clear:hover {
-		background: #545b62;
-	}
-	.log-count {
-		margin: 10px 0;
-		font-weight: bold;
-	}
+  .activity-log-filters {
+    background: #f5f5f5;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+  }
+  .filter-row {
+    margin-bottom: 15px;
+  }
+  .filter-row label {
+    display: inline-block;
+    width: 120px;
+    font-weight: bold;
+  }
+  .filter-row input, .filter-row select {
+    padding: 5px;
+    margin-right: 10px;
+  }
+  #activityLogTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  #activityLogTable th {
+    background: #333;
+    color: white;
+    padding: 10px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+  }
+  #activityLogTable td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+  #activityLogTable tr:hover {
+    background: #f9f9f9;
+  }
+  .success-true {
+    background-color: #d4edda;
+  }
+  .success-false {
+    background-color: #f8d7da;
+  }
+  .log-timestamp {
+    white-space: nowrap;
+  }
+  .log-values {
+    font-family: monospace;
+    font-size: 0.9em;
+    max-width: 300px;
+    word-wrap: break-word;
+  }
+  .filter-input {
+    width: 150px;
+    padding: 3px;
+    font-size: 0.9em;
+  }
+  .btn-filter {
+    background: #0078A8;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  .btn-filter:hover {
+    background: #005580;
+  }
+  .btn-clear {
+    background: #6c757d;
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  .btn-clear:hover {
+    background: #545b62;
+  }
+  .log-count {
+    margin: 10px 0;
+    font-weight: bold;
+  }
 </style>
 
 <h2>Activity Log Viewer</h2>
 <p>View and filter system activity logs. Logs are retained for 90 days.</p>
 
 <div class="activity-log-filters">
-	<h3>Filters</h3>
+  <h3>Filters</h3>
 
-	<div class="filter-row">
-		<label for="startDate">Start Date/Time:</label>
-		<input type="datetime-local" id="startDate" />
-	</div>
+  <div class="filter-row">
+    <label for="startDate">Start Date/Time:</label>
+    <input type="datetime-local" id="startDate" />
+  </div>
 
-	<div class="filter-row">
-		<label for="endDate">End Date/Time:</label>
-		<input type="datetime-local" id="endDate" />
-	</div>
+  <div class="filter-row">
+    <label for="endDate">End Date/Time:</label>
+    <input type="datetime-local" id="endDate" />
+  </div>
 
-	<div class="filter-row">
-		<label for="filterAction">Action:</label>
-		<input type="text" id="filterAction" class="filter-input" placeholder="e.g. send_email" />
-	</div>
+  <div class="filter-row">
+    <label for="filterAction">Action:</label>
+    <input type="text" id="filterAction" class="filter-input" placeholder="e.g. send_email" />
+  </div>
 
-	<div class="filter-row">
-		<label for="filterSourceFile">Source File:</label>
-		<input type="text" id="filterSourceFile" class="filter-input" placeholder="e.g. sendmail.php" />
-	</div>
+  <div class="filter-row">
+    <label for="filterSourceFile">Source File:</label>
+    <input type="text" id="filterSourceFile" class="filter-input" placeholder="e.g. sendmail.php" />
+  </div>
 
-	<div class="filter-row">
-		<label for="filterUser">User ID:</label>
-		<input type="text" id="filterUser" class="filter-input" placeholder="e.g. 123" />
-	</div>
+  <div class="filter-row">
+    <label for="filterUser">User ID:</label>
+    <input type="text" id="filterUser" class="filter-input" placeholder="e.g. 123" />
+  </div>
 
-	<div class="filter-row">
-		<label for="filterSuccess">Success:</label>
-		<select id="filterSuccess">
-			<option value="">All</option>
-			<option value="1">Success Only</option>
-			<option value="0">Failures Only</option>
-		</select>
-	</div>
+  <div class="filter-row">
+    <label for="filterSuccess">Success:</label>
+    <select id="filterSuccess">
+      <option value="">All</option>
+      <option value="1">Success Only</option>
+      <option value="0">Failures Only</option>
+    </select>
+  </div>
 
-	<div class="filter-row">
-		<label for="filterFreetext">Free Text:</label>
-		<input type="text" id="filterFreetext" class="filter-input" placeholder="Search description" />
-	</div>
+  <div class="filter-row">
+    <label for="filterFreetext">Free Text:</label>
+    <input type="text" id="filterFreetext" class="filter-input" placeholder="Search description" />
+  </div>
 
-	<div class="filter-row">
-		<label></label>
-		<button class="btn-filter" onclick="loadActivityLog()">Apply Filters</button>
-		<button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
-	</div>
+  <div class="filter-row">
+    <label></label>
+    <button class="btn-filter" onclick="loadActivityLog()">Apply Filters</button>
+    <button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
+  </div>
 </div>
 
 <div class="log-count" id="logCount"></div>
 
 <div id="activityLogData">
-	<p>Loading...</p>
+  <p>Loading...</p>
 </div>
 
 <script type="text/javascript">
 // Set default date range to today
 function setDefaultDates() {
-	var now = new Date();
-	var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-	var endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  var now = new Date();
+  var today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  var endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-	// Format for datetime-local input
-	document.getElementById('startDate').value = formatDateTimeLocal(today);
-	document.getElementById('endDate').value = formatDateTimeLocal(endOfDay);
+  // Format for datetime-local input
+  document.getElementById('startDate').value = formatDateTimeLocal(today);
+  document.getElementById('endDate').value = formatDateTimeLocal(endOfDay);
 }
 
 function formatDateTimeLocal(date) {
-	var year = date.getFullYear();
-	var month = String(date.getMonth() + 1).padStart(2, '0');
-	var day = String(date.getDate()).padStart(2, '0');
-	var hours = String(date.getHours()).padStart(2, '0');
-	var minutes = String(date.getMinutes()).padStart(2, '0');
+  var year = date.getFullYear();
+  var month = String(date.getMonth() + 1).padStart(2, '0');
+  var day = String(date.getDate()).padStart(2, '0');
+  var hours = String(date.getHours()).padStart(2, '0');
+  var minutes = String(date.getMinutes()).padStart(2, '0');
 
-	return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+  return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
 }
 
 function formatDateTime(dateString) {
-	if (!dateString) return '';
-	// Parse the UTC timestamp from the database and convert to local time
-	var date = new Date(dateString + ' UTC');
-	return date.toLocaleString();
+  if (!dateString) return '';
+  // Parse the UTC timestamp from the database and convert to local time
+  var date = new Date(dateString + ' UTC');
+  return date.toLocaleString();
 }
 
 function formatValues(valuesJson) {
-	if (!valuesJson) return '';
-	try {
-		var obj = JSON.parse(valuesJson);
-		return JSON.stringify(obj, null, 2);
-	} catch (e) {
-		return valuesJson;
-	}
+  if (!valuesJson) return '';
+  try {
+    var obj = JSON.parse(valuesJson);
+    return JSON.stringify(obj, null, 2);
+  } catch (e) {
+    return valuesJson;
+  }
 }
 
 function writeRow(element) {
-	var successClass = element.success == 1 ? 'success-true' : 'success-false';
-	var successText = element.success == 1 ? '✅ Yes' : '❌ No';
+  var successClass = element.success == 1 ? 'success-true' : 'success-false';
+  var successText = element.success == 1 ? '✅ Yes' : '❌ No';
 
-	// Format user column with name and link if available
-	var userColumn = 'N/A';
-	if (element.user) {
-		if (element.user_first && element.user_last) {
-			var userName = element.user_first + ' ' + element.user_last;
-			userColumn = '<a href="User.php?id=' + element.user + '">' + userName + '</a>';
-		} else {
-			userColumn = 'User ID: ' + element.user;
-		}
-	}
+  // Format user column with name and link if available
+  var userColumn = 'N/A';
+  if (element.user) {
+    if (element.user_first && element.user_last) {
+      var userName = element.user_first + ' ' + element.user_last;
+      userColumn = '<a href="User.php?id=' + element.user + '">' + userName + '</a>';
+    } else {
+      userColumn = 'User ID: ' + element.user;
+    }
+  }
 
-	var row = '<tr class="' + successClass + '">';
-	row += '<td class="log-timestamp">' + formatDateTime(element.timestamp) + '</td>';
-	row += '<td>' + element.source_file + '</td>';
-	row += '<td><strong>' + element.action + '</strong></td>';
-	row += '<td class="log-values"><pre>' + formatValues(element.values_json) + '</pre></td>';
-	row += '<td>' + successText + '</td>';
-	row += '<td>' + (element.freetext || '') + '</td>';
-	row += '<td>' + userColumn + '</td>';
-	row += '</tr>';
+  var row = '<tr class="' + successClass + '">';
+  row += '<td class="log-timestamp">' + formatDateTime(element.timestamp) + '</td>';
+  row += '<td>' + element.source_file + '</td>';
+  row += '<td><strong>' + element.action + '</strong></td>';
+  row += '<td class="log-values"><pre>' + formatValues(element.values_json) + '</pre></td>';
+  row += '<td>' + successText + '</td>';
+  row += '<td>' + (element.freetext || '') + '</td>';
+  row += '<td>' + userColumn + '</td>';
+  row += '</tr>';
 
-	return row;
+  return row;
 }
 
 function loadActivityLog() {
-	// Get local datetime values
-	var startDateLocal = document.getElementById('startDate').value;
-	var endDateLocal = document.getElementById('endDate').value;
+  // Get local datetime values
+  var startDateLocal = document.getElementById('startDate').value;
+  var endDateLocal = document.getElementById('endDate').value;
 
-	// Convert to UTC for database comparison
-	var startDateUTC = '';
-	var endDateUTC = '';
+  // Convert to UTC for database comparison
+  var startDateUTC = '';
+  var endDateUTC = '';
 
-	if (startDateLocal) {
-		var startDate = new Date(startDateLocal);
-		startDateUTC = startDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-	}
+  if (startDateLocal) {
+    var startDate = new Date(startDateLocal);
+    startDateUTC = startDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+  }
 
-	if (endDateLocal) {
-		var endDate = new Date(endDateLocal);
-		endDateUTC = endDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
-	}
+  if (endDateLocal) {
+    var endDate = new Date(endDateLocal);
+    endDateUTC = endDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+  }
 
-	var filters = {
-		startDate: startDateUTC,
-		endDate: endDateUTC,
-		action: document.getElementById('filterAction').value,
-		sourceFile: document.getElementById('filterSourceFile').value,
-		user: document.getElementById('filterUser').value,
-		success: document.getElementById('filterSuccess').value,
-		freetext: document.getElementById('filterFreetext').value
-	};
+  var filters = {
+    startDate: startDateUTC,
+    endDate: endDateUTC,
+    action: document.getElementById('filterAction').value,
+    sourceFile: document.getElementById('filterSourceFile').value,
+    user: document.getElementById('filterUser').value,
+    success: document.getElementById('filterSuccess').value,
+    freetext: document.getElementById('filterFreetext').value
+  };
 
-	$.ajax({
-		url: "api/getactivitylog.php",
-		type: "post",
-		data: JSON.stringify(filters),
-		contentType: 'application/json',
-		datatype: 'json',
-		error: function(XMLHttpRequest, textStatus, errorThrown) {
-			console.log('Error:', errorThrown);
-			console.log('Status:', textStatus);
-			$('#activityLogData').html('<p style="color: red;">Error loading activity log. Please try again.</p>');
-		},
-		success: function(data) {
-			console.log('Loaded', data.length, 'log entries');
+  $.ajax({
+    url: "api/getactivitylog.php",
+    type: "post",
+    data: JSON.stringify(filters),
+    contentType: 'application/json',
+    datatype: 'json',
+    error: function(XMLHttpRequest, textStatus, errorThrown) {
+      console.log('Error:', errorThrown);
+      console.log('Status:', textStatus);
+      $('#activityLogData').html('<p style="color: red;">Error loading activity log. Please try again.</p>');
+    },
+    success: function(data) {
+      console.log('Loaded', data.length, 'log entries');
 
-			if (data.length === 0) {
-				$('#activityLogData').html('<p>No log entries found for the selected filters.</p>');
-				$('#logCount').html('0 log entries found');
-				return;
-			}
+      if (data.length === 0) {
+        $('#activityLogData').html('<p>No log entries found for the selected filters.</p>');
+        $('#logCount').html('0 log entries found');
+        return;
+      }
 
-			var table = '<table id="activityLogTable">';
-			table += '<thead><tr>';
-			table += '<th>Timestamp</th>';
-			table += '<th>Source File</th>';
-			table += '<th>Action</th>';
-			table += '<th>Values (JSON)</th>';
-			table += '<th>Success</th>';
-			table += '<th>Description</th>';
-			table += '<th>User</th>';
-			table += '</tr></thead>';
-			table += '<tbody>';
+      var table = '<table id="activityLogTable">';
+      table += '<thead><tr>';
+      table += '<th>Timestamp</th>';
+      table += '<th>Source File</th>';
+      table += '<th>Action</th>';
+      table += '<th>Values (JSON)</th>';
+      table += '<th>Success</th>';
+      table += '<th>Description</th>';
+      table += '<th>User</th>';
+      table += '</tr></thead>';
+      table += '<tbody>';
 
-			data.forEach(function(element) {
-				table += writeRow(element);
-			});
+      data.forEach(function(element) {
+        table += writeRow(element);
+      });
 
-			table += '</tbody></table>';
+      table += '</tbody></table>';
 
-			$('#activityLogData').html(table);
-			$('#logCount').html(data.length + ' log entries found');
-		}
-	});
+      $('#activityLogData').html(table);
+      $('#logCount').html(data.length + ' log entries found');
+    }
+  });
 }
 
 function clearFilters() {
-	setDefaultDates();
-	document.getElementById('filterAction').value = '';
-	document.getElementById('filterSourceFile').value = '';
-	document.getElementById('filterUser').value = '';
-	document.getElementById('filterSuccess').value = '';
-	document.getElementById('filterFreetext').value = '';
-	loadActivityLog();
+  setDefaultDates();
+  document.getElementById('filterAction').value = '';
+  document.getElementById('filterSourceFile').value = '';
+  document.getElementById('filterUser').value = '';
+  document.getElementById('filterSuccess').value = '';
+  document.getElementById('filterFreetext').value = '';
+  loadActivityLog();
 }
 
 // Load data when page loads
 $(document).ready(function() {
-	setDefaultDates();
-	loadActivityLog();
+  setDefaultDates();
+  loadActivityLog();
 });
 </script>

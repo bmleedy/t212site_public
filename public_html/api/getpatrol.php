@@ -22,11 +22,11 @@ $troop_guide = "";
 
 // if staff...
 if ($patrol_id==1) {
-	$pl = 3;
-	$apl = 4;
+  $pl = 3;
+  $apl = 4;
 } else {
-	$pl = 1;
-	$apl = 2;
+  $pl = 1;
+  $apl = 2;
 }
 
 // get PL
@@ -35,11 +35,11 @@ $stmt->bind_param("ii", $pl, $patrol_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_object()) {
-	if ($patrol_leader == "") {
-		$patrol_leader = escape_html($row->user_first) . " " . escape_html($row->user_last);
-	} else {
-		$patrol_leader = $patrol_leader . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
-	}
+  if ($patrol_leader == "") {
+    $patrol_leader = escape_html($row->user_first) . " " . escape_html($row->user_last);
+  } else {
+    $patrol_leader = $patrol_leader . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
+  }
 }
 $stmt->close();
 
@@ -48,11 +48,11 @@ $stmt->bind_param("ii", $apl, $patrol_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_object()) {
-	if ($asst_pl == "") {
-		$asst_pl = escape_html($row->user_first) . " " . escape_html($row->user_last);
-	} else {
-		$asst_pl = $asst_pl . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
-	}
+  if ($asst_pl == "") {
+    $asst_pl = escape_html($row->user_first) . " " . escape_html($row->user_last);
+  } else {
+    $asst_pl = $asst_pl . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
+  }
 }
 $stmt->close();
 
@@ -62,11 +62,11 @@ $stmt->bind_param("ii", $tg_position, $patrol_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_object()) {
-	if ($troop_guide == "") {
-		$troop_guide = escape_html($row->user_first) . " " . escape_html($row->user_last);
-	} else {
-		$troop_guide = $troop_guide . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
-	}
+  if ($troop_guide == "") {
+    $troop_guide = escape_html($row->user_first) . " " . escape_html($row->user_last);
+  } else {
+    $troop_guide = $troop_guide . ", " . escape_html($row->user_first) . " " . escape_html($row->user_last);
+  }
 }
 $stmt->close();
 
@@ -83,38 +83,38 @@ $result = $stmt->get_result();
 
 while ($row = $result->fetch_object()) {
   $id =  $row->user_id;
-	$phones = null;
-	$stmt2 = $mysqli->prepare("SELECT * FROM phone WHERE user_id=?");
-	$stmt2->bind_param("i", $id);
-	$stmt2->execute();
-	$results2 = $stmt2->get_result();
-	if ($results2) {
-		while ($row2 = $results2->fetch_object()){
-			$phones[] = escape_html($row2->phone) . " " . escape_html($row2->type);
-		}
-	}
-	$stmt2->close();
-	$rank = getLabel('ranks',$row->rank_id,$mysqli);
-	$position = getLabel('leadership',$row->position_id,$mysqli);
+  $phones = null;
+  $stmt2 = $mysqli->prepare("SELECT * FROM phone WHERE user_id=?");
+  $stmt2->bind_param("i", $id);
+  $stmt2->execute();
+  $results2 = $stmt2->get_result();
+  if ($results2) {
+    while ($row2 = $results2->fetch_object()){
+      $phones[] = escape_html($row2->phone) . " " . escape_html($row2->type);
+    }
+  }
+  $stmt2->close();
+  $rank = getLabel('ranks',$row->rank_id,$mysqli);
+  $position = getLabel('leadership',$row->position_id,$mysqli);
 
-	$scouts[] = [
+  $scouts[] = [
     'first' => escape_html($row->user_first),
     'last' => escape_html($row->user_last),
     'email'=> escape_html($row->user_email),
-		'username'=> escape_html($row->user_name),
-		'rank'=> escape_html($rank),
-		'position'=> escape_html($position),
-		'id'=>$id,
-		'phone'=>$phones
+    'username'=> escape_html($row->user_name),
+    'rank'=> escape_html($rank),
+    'position'=> escape_html($position),
+    'id'=>$id,
+    'phone'=>$phones
   ];
 }
 $stmt->close();
 
 
 $returnMsg = array(
-	'patrol_name' => escape_html($patrol),
-	'leaderData' => $leaderData,
-	'scouts' => $scouts
+  'patrol_name' => escape_html($patrol),
+  'leaderData' => $leaderData,
+  'scouts' => $scouts
 );
 
 echo json_encode($returnMsg);
@@ -122,22 +122,22 @@ die();
 
 
 function getLabel($strTable,$id,$mysqli){
-	if ($id) {
-		// Whitelist allowed tables
-		$allowed_tables = ['patrols', 'ranks', 'leadership'];
-		if (!in_array($strTable, $allowed_tables)) {
-			return '';
-		}
+  if ($id) {
+    // Whitelist allowed tables
+    $allowed_tables = ['patrols', 'ranks', 'leadership'];
+    if (!in_array($strTable, $allowed_tables)) {
+      return '';
+    }
 
-		$stmt = $mysqli->prepare("SELECT label FROM $strTable WHERE id=?");
-		$stmt->bind_param("i", $id);
-		$stmt->execute();
-		$result = $stmt->get_result();
-		$row = $result->fetch_assoc();
-		$stmt->close();
-		return $row['label'];
-	} else {
-		return "";
-	}
+    $stmt = $mysqli->prepare("SELECT label FROM $strTable WHERE id=?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['label'];
+  } else {
+    return "";
+  }
 }
 ?>

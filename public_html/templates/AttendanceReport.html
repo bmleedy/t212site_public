@@ -9,347 +9,347 @@ var eventDates = []; // Array of dates with events
 var attendanceData = {}; // Attendance data keyed by "user_id-date"
 
 $(document).ready(function() {
-	user_id = document.getElementById('user_id').value;
-	canEditAttendance = (document.getElementById('canEditAttendance').value === '1');
+  user_id = document.getElementById('user_id').value;
+  canEditAttendance = (document.getElementById('canEditAttendance').value === '1');
 
-	// Display page title and basic structure
-	$('#reportContent').append('<h3>Attendance Report</h3>');
-	$('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
+  // Display page title and basic structure
+  $('#reportContent').append('<h3>Attendance Report</h3>');
+  $('#reportContent').append('<p>View attendance records for all scouts across meetings and events.</p>');
 
-	// Add CSV download button
-	$('#reportContent').append('<div class="row"><div class="large-12 columns"><button id="downloadCSV" class="button small">Download CSV</button></div></div>');
+  // Add CSV download button
+  $('#reportContent').append('<div class="row"><div class="large-12 columns"><button id="downloadCSV" class="button small">Download CSV</button></div></div>');
 
-	// Add date range selectors
-	$('#reportContent').append('<div class="row"><div class="large-6 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div><div class="large-6 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div></div>');
+  // Add date range selectors
+  $('#reportContent').append('<div class="row"><div class="large-6 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div><div class="large-6 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div></div>');
 
-	// Set default date range
-	setDefaultDateRange();
+  // Set default date range
+  setDefaultDateRange();
 
-	// Add change event handlers to date selectors
-	$('#startDateSelector').on('change', function() {
-		startDate = $(this).val();
-		console.log("Start date changed to: " + startDate);
-		loadScouts(); // Reload table with new date range
-	});
+  // Add change event handlers to date selectors
+  $('#startDateSelector').on('change', function() {
+    startDate = $(this).val();
+    console.log("Start date changed to: " + startDate);
+    loadScouts(); // Reload table with new date range
+  });
 
-	$('#endDateSelector').on('change', function() {
-		endDate = $(this).val();
-		console.log("End date changed to: " + endDate);
-		loadScouts(); // Reload table with new date range
-	});
+  $('#endDateSelector').on('change', function() {
+    endDate = $(this).val();
+    console.log("End date changed to: " + endDate);
+    loadScouts(); // Reload table with new date range
+  });
 
-	// Add table container
-	$('#reportContent').append('<div class="row"><div class="large-12 columns"><div id="attendanceTable"></div></div></div>');
+  // Add table container
+  $('#reportContent').append('<div class="row"><div class="large-12 columns"><div id="attendanceTable"></div></div></div>');
 
-	// Load scouts
-	loadScouts();
+  // Load scouts
+  loadScouts();
 
-	console.log("Attendance Report page loaded for user ID: " + user_id);
-	console.log("Can edit attendance: " + canEditAttendance);
+  console.log("Attendance Report page loaded for user ID: " + user_id);
+  console.log("Can edit attendance: " + canEditAttendance);
 });
 
 function setDefaultDateRange() {
-	// Get current date in Pacific Time Zone
-	var now = new Date();
-	var pacificTimeString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
-	var pacificDate = new Date(pacificTimeString);
+  // Get current date in Pacific Time Zone
+  var now = new Date();
+  var pacificTimeString = now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" });
+  var pacificDate = new Date(pacificTimeString);
 
-	// Format end date as YYYY-MM-DD (today)
-	var endYear = pacificDate.getFullYear();
-	var endMonth = String(pacificDate.getMonth() + 1).padStart(2, '0');
-	var endDay = String(pacificDate.getDate()).padStart(2, '0');
-	endDate = endYear + '-' + endMonth + '-' + endDay;
+  // Format end date as YYYY-MM-DD (today)
+  var endYear = pacificDate.getFullYear();
+  var endMonth = String(pacificDate.getMonth() + 1).padStart(2, '0');
+  var endDay = String(pacificDate.getDate()).padStart(2, '0');
+  endDate = endYear + '-' + endMonth + '-' + endDay;
 
-	// Calculate start date (2 months ago)
-	var twoMonthsAgo = new Date(pacificDate);
-	twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-	var startYear = twoMonthsAgo.getFullYear();
-	var startMonth = String(twoMonthsAgo.getMonth() + 1).padStart(2, '0');
-	var startDay = String(twoMonthsAgo.getDate()).padStart(2, '0');
-	startDate = startYear + '-' + startMonth + '-' + startDay;
+  // Calculate start date (2 months ago)
+  var twoMonthsAgo = new Date(pacificDate);
+  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+  var startYear = twoMonthsAgo.getFullYear();
+  var startMonth = String(twoMonthsAgo.getMonth() + 1).padStart(2, '0');
+  var startDay = String(twoMonthsAgo.getDate()).padStart(2, '0');
+  startDate = startYear + '-' + startMonth + '-' + startDay;
 
-	// Set the date selector values
-	$('#startDateSelector').val(startDate);
-	$('#endDateSelector').val(endDate);
+  // Set the date selector values
+  $('#startDateSelector').val(startDate);
+  $('#endDateSelector').val(endDate);
 
-	console.log("Date range set: " + startDate + " to " + endDate);
+  console.log("Date range set: " + startDate + " to " + endDate);
 }
 
 function loadScouts() {
-	console.log("Loading scouts and events...");
+  console.log("Loading scouts and events...");
 
-	// Show loading message
-	$('#attendanceTable').html('<p>Loading attendance data...</p>');
+  // Show loading message
+  $('#attendanceTable').html('<p>Loading attendance data...</p>');
 
-	// Load events first, then scouts
-	$.ajax({
-		url: "api/getattendanceevents.php",
-		type: "post",
-		data: {
-			start_date: startDate,
-			end_date: endDate
-		},
-		datatype: 'json',
-		error: function(errorThrown) {
-			console.error("Error loading events:", errorThrown);
-			$('#attendanceTable').html('<p class="alert-box alert">Error loading events. Please try again.</p>');
-		},
-		success: function(eventsData) {
-			console.log("Events loaded:", eventsData);
+  // Load events first, then scouts
+  $.ajax({
+    url: "api/getattendanceevents.php",
+    type: "post",
+    data: {
+      start_date: startDate,
+      end_date: endDate
+    },
+    datatype: 'json',
+    error: function(errorThrown) {
+      console.error("Error loading events:", errorThrown);
+      $('#attendanceTable').html('<p class="alert-box alert">Error loading events. Please try again.</p>');
+    },
+    success: function(eventsData) {
+      console.log("Events loaded:", eventsData);
 
-			if (eventsData.status === "Success") {
-				eventDates = eventsData.dates || [];
-				console.log("Found " + eventDates.length + " event dates");
+      if (eventsData.status === "Success") {
+        eventDates = eventsData.dates || [];
+        console.log("Found " + eventDates.length + " event dates");
 
-				// Now load scouts
-				loadScoutsWithEvents();
-			} else {
-				$('#attendanceTable').html('<p class="alert-box alert">Error loading events: ' + (eventsData.message || 'Unknown error') + '</p>');
-			}
-		}
-	});
+        // Now load scouts
+        loadScoutsWithEvents();
+      } else {
+        $('#attendanceTable').html('<p class="alert-box alert">Error loading events: ' + (eventsData.message || 'Unknown error') + '</p>');
+      }
+    }
+  });
 }
 
 function loadScoutsWithEvents() {
-	// Load scouts and attendance data in parallel
-	var scoutsPromise = $.ajax({
-		url: "api/getscoutsforattendance.php",
-		type: "post",
-		datatype: 'json'
-	});
+  // Load scouts and attendance data in parallel
+  var scoutsPromise = $.ajax({
+    url: "api/getscoutsforattendance.php",
+    type: "post",
+    datatype: 'json'
+  });
 
-	var attendancePromise = $.ajax({
-		url: "api/getattendancedata.php",
-		type: "post",
-		data: {
-			start_date: startDate,
-			end_date: endDate
-		},
-		datatype: 'json'
-	});
+  var attendancePromise = $.ajax({
+    url: "api/getattendancedata.php",
+    type: "post",
+    data: {
+      start_date: startDate,
+      end_date: endDate
+    },
+    datatype: 'json'
+  });
 
-	// Wait for both to complete
-	$.when(scoutsPromise, attendancePromise).done(function(scoutsResponse, attendanceResponse) {
-		var scoutsData = scoutsResponse[0];
-		var attendanceDataResponse = attendanceResponse[0];
+  // Wait for both to complete
+  $.when(scoutsPromise, attendancePromise).done(function(scoutsResponse, attendanceResponse) {
+    var scoutsData = scoutsResponse[0];
+    var attendanceDataResponse = attendanceResponse[0];
 
-		console.log("Scouts loaded:", scoutsData);
-		console.log("Attendance loaded:", attendanceDataResponse);
+    console.log("Scouts loaded:", scoutsData);
+    console.log("Attendance loaded:", attendanceDataResponse);
 
-		if (scoutsData.status === "Success" && attendanceDataResponse.status === "Success") {
-			attendanceData = attendanceDataResponse.attendance || {};
+    if (scoutsData.status === "Success" && attendanceDataResponse.status === "Success") {
+      attendanceData = attendanceDataResponse.attendance || {};
 
-			if (scoutsData.scouts && scoutsData.scouts.length > 0) {
-				buildAttendanceTable(scoutsData.scouts);
-			} else {
-				$('#attendanceTable').html('<p>No scouts found.</p>');
-			}
-		} else {
-			var errorMsg = scoutsData.message || attendanceDataResponse.message || 'Unknown error';
-			$('#attendanceTable').html('<p class="alert-box alert">Error: ' + errorMsg + '</p>');
-		}
-	}).fail(function(error) {
-		console.error("Error loading data:", error);
-		$('#attendanceTable').html('<p class="alert-box alert">Error loading data. Please try again.</p>');
-	});
+      if (scoutsData.scouts && scoutsData.scouts.length > 0) {
+        buildAttendanceTable(scoutsData.scouts);
+      } else {
+        $('#attendanceTable').html('<p>No scouts found.</p>');
+      }
+    } else {
+      var errorMsg = scoutsData.message || attendanceDataResponse.message || 'Unknown error';
+      $('#attendanceTable').html('<p class="alert-box alert">Error: ' + errorMsg + '</p>');
+    }
+  }).fail(function(error) {
+    console.error("Error loading data:", error);
+    $('#attendanceTable').html('<p class="alert-box alert">Error loading data. Please try again.</p>');
+  });
 }
 
 function buildAttendanceTable(scouts) {
-	// Build the table with dynamic date columns
-	var tableHTML = '<table>';
+  // Build the table with dynamic date columns
+  var tableHTML = '<table>';
 
-	// Build header row 1 (dates)
-	tableHTML += '<thead><tr><th rowspan="2">Patrol</th><th rowspan="2">Name</th>';
-	eventDates.forEach(function(eventDate) {
-		// Format date for display (MM/DD)
-		var dateParts = eventDate.date.split('-');
-		var displayDate = dateParts[1] + '/' + dateParts[2];
-		tableHTML += '<th>' + displayDate + '</th>';
-	});
-	tableHTML += '</tr>';
+  // Build header row 1 (dates)
+  tableHTML += '<thead><tr><th rowspan="2">Patrol</th><th rowspan="2">Name</th>';
+  eventDates.forEach(function(eventDate) {
+    // Format date for display (MM/DD)
+    var dateParts = eventDate.date.split('-');
+    var displayDate = dateParts[1] + '/' + dateParts[2];
+    tableHTML += '<th>' + displayDate + '</th>';
+  });
+  tableHTML += '</tr>';
 
-	// Build header row 2 (event names)
-	tableHTML += '<tr>';
-	eventDates.forEach(function(eventDate) {
-		// Truncate event name to first 15 characters
-		var eventName = eventDate.event_name;
-		if (eventName.length > 15) {
-			eventName = eventName.substring(0, 15);
-		}
+  // Build header row 2 (event names)
+  tableHTML += '<tr>';
+  eventDates.forEach(function(eventDate) {
+    // Truncate event name to first 15 characters
+    var eventName = eventDate.event_name;
+    if (eventName.length > 15) {
+      eventName = eventName.substring(0, 15);
+    }
 
-		// If event has an event_id, link to Event.php
-		if (eventDate.event_id) {
-			tableHTML += '<th><a href="Event.php?id=' + eventDate.event_id + '">' + eventName + '</a></th>';
-		} else {
-			// No link for Troop Meetings (no event_id)
-			tableHTML += '<th>' + eventName + '</th>';
-		}
-	});
-	tableHTML += '</tr></thead>';
+    // If event has an event_id, link to Event.php
+    if (eventDate.event_id) {
+      tableHTML += '<th><a href="Event.php?id=' + eventDate.event_id + '">' + eventName + '</a></th>';
+    } else {
+      // No link for Troop Meetings (no event_id)
+      tableHTML += '<th>' + eventName + '</th>';
+    }
+  });
+  tableHTML += '</tr></thead>';
 
-	// Build body rows (one per scout)
-	tableHTML += '<tbody>';
-	scouts.forEach(function(scout) {
-		tableHTML += '<tr>';
-		tableHTML += '<td>' + scout.patrol + '</td>';
-		tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
+  // Build body rows (one per scout)
+  tableHTML += '<tbody>';
+  scouts.forEach(function(scout) {
+    tableHTML += '<tr>';
+    tableHTML += '<td>' + scout.patrol + '</td>';
+    tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
 
-		// Add cells for each date with attendance status
-		eventDates.forEach(function(eventDate) {
-			var key = scout.user_id + '-' + eventDate.date;
-			var wasPresent = attendanceData[key] || false;
+    // Add cells for each date with attendance status
+    eventDates.forEach(function(eventDate) {
+      var key = scout.user_id + '-' + eventDate.date;
+      var wasPresent = attendanceData[key] || false;
 
-			if (canEditAttendance) {
-				// Webmaster/Scoutmaster: show editable checkboxes
-				var checked = wasPresent ? ' checked' : '';
-				tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + scout.user_id + '" data-date="' + eventDate.date + '"' + checked + ' /></td>';
-			} else {
-				// Patrol Leader: show disabled checkboxes (non-editable)
-				var checked = wasPresent ? ' checked' : '';
-				tableHTML += '<td style="text-align:center;"><input type="checkbox" disabled' + checked + ' /></td>';
-			}
-		});
+      if (canEditAttendance) {
+        // Webmaster/Scoutmaster: show editable checkboxes
+        var checked = wasPresent ? ' checked' : '';
+        tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + scout.user_id + '" data-date="' + eventDate.date + '"' + checked + ' /></td>';
+      } else {
+        // Patrol Leader: show disabled checkboxes (non-editable)
+        var checked = wasPresent ? ' checked' : '';
+        tableHTML += '<td style="text-align:center;"><input type="checkbox" disabled' + checked + ' /></td>';
+      }
+    });
 
-		tableHTML += '</tr>';
-	});
-	tableHTML += '</tbody></table>';
+    tableHTML += '</tr>';
+  });
+  tableHTML += '</tbody></table>';
 
-	$('#attendanceTable').html(tableHTML);
+  $('#attendanceTable').html(tableHTML);
 
-	// Set up CSV download button click handler
-	$('#downloadCSV').off('click').on('click', function() {
-		downloadCSV(scouts);
-	});
+  // Set up CSV download button click handler
+  $('#downloadCSV').off('click').on('click', function() {
+    downloadCSV(scouts);
+  });
 
-	// Set up click event handlers for checkboxes (only for editable ones)
-	if (canEditAttendance) {
-		$('.attendance-checkbox').on('change', function() {
-			var checkbox = $(this);
-			var userId = checkbox.data('user-id');
-			var date = checkbox.data('date');
-			var wasPresent = checkbox.is(':checked');
+  // Set up click event handlers for checkboxes (only for editable ones)
+  if (canEditAttendance) {
+    $('.attendance-checkbox').on('change', function() {
+      var checkbox = $(this);
+      var userId = checkbox.data('user-id');
+      var date = checkbox.data('date');
+      var wasPresent = checkbox.is(':checked');
 
-			console.log("Attendance checkbox changed - User: " + userId + ", Date: " + date + ", Present: " + wasPresent);
+      console.log("Attendance checkbox changed - User: " + userId + ", Date: " + date + ", Present: " + wasPresent);
 
-			// Update attendance via AJAX
-			updateAttendance(userId, date, wasPresent, checkbox);
-		});
-	}
+      // Update attendance via AJAX
+      updateAttendance(userId, date, wasPresent, checkbox);
+    });
+  }
 
-	console.log("Displayed " + scouts.length + " scouts with " + eventDates.length + " event dates");
+  console.log("Displayed " + scouts.length + " scouts with " + eventDates.length + " event dates");
 }
 
 function updateAttendance(userId, date, wasPresent, checkbox) {
-	// Disable checkbox while updating
-	checkbox.prop('disabled', true);
+  // Disable checkbox while updating
+  checkbox.prop('disabled', true);
 
-	$.ajax({
-		url: "api/updateattendance_debug.php",
-		type: "post",
-		data: {
-			user_id: userId,
-			was_present: wasPresent ? 1 : 0,  // Convert boolean to 1 or 0
-			date: date
-		},
-		datatype: 'json',
-		error: function(errorThrown) {
-			console.error("Error updating attendance:", errorThrown);
-			alert("Error updating attendance. Please try again.");
+  $.ajax({
+    url: "api/updateattendance_debug.php",
+    type: "post",
+    data: {
+      user_id: userId,
+      was_present: wasPresent ? 1 : 0,  // Convert boolean to 1 or 0
+      date: date
+    },
+    datatype: 'json',
+    error: function(errorThrown) {
+      console.error("Error updating attendance:", errorThrown);
+      alert("Error updating attendance. Please try again.");
 
-			// Re-enable checkbox and revert state on error
-			checkbox.prop('disabled', false);
-			checkbox.prop('checked', !wasPresent);
-		},
-		success: function(data) {
-			console.log("Attendance update response:", data);
+      // Re-enable checkbox and revert state on error
+      checkbox.prop('disabled', false);
+      checkbox.prop('checked', !wasPresent);
+    },
+    success: function(data) {
+      console.log("Attendance update response:", data);
 
-			// Re-enable checkbox
-			checkbox.prop('disabled', false);
+      // Re-enable checkbox
+      checkbox.prop('disabled', false);
 
-			if (data.status === "Success") {
-				console.log("Attendance " + data.action + " successfully for user " + userId + " on " + date);
-				// Update local attendance data
-				var key = userId + '-' + date;
-				attendanceData[key] = wasPresent;
-			} else {
-				alert("Error: " + (data.message || 'Failed to update attendance'));
-				// Revert checkbox state on error
-				checkbox.prop('checked', !wasPresent);
-			}
-		}
-	});
+      if (data.status === "Success") {
+        console.log("Attendance " + data.action + " successfully for user " + userId + " on " + date);
+        // Update local attendance data
+        var key = userId + '-' + date;
+        attendanceData[key] = wasPresent;
+      } else {
+        alert("Error: " + (data.message || 'Failed to update attendance'));
+        // Revert checkbox state on error
+        checkbox.prop('checked', !wasPresent);
+      }
+    }
+  });
 }
 
 function downloadCSV(scouts) {
-	console.log("Generating CSV download...");
-	console.log("Scouts count:", scouts.length);
-	console.log("Event dates count:", eventDates.length);
-	console.log("Attendance data keys count:", Object.keys(attendanceData).length);
-	console.log("Sample attendance data:", attendanceData);
+  console.log("Generating CSV download...");
+  console.log("Scouts count:", scouts.length);
+  console.log("Event dates count:", eventDates.length);
+  console.log("Attendance data keys count:", Object.keys(attendanceData).length);
+  console.log("Sample attendance data:", attendanceData);
 
-	// Build CSV content
-	var csvContent = '';
+  // Build CSV content
+  var csvContent = '';
 
-	// Header row 1: Patrol, Name, then dates (MM/DD format)
-	csvContent += 'Patrol,Name';
-	eventDates.forEach(function(eventDate) {
-		var dateParts = eventDate.date.split('-');
-		var displayDate = dateParts[1] + '/' + dateParts[2];
-		csvContent += ',' + displayDate;
-	});
-	csvContent += '\n';
+  // Header row 1: Patrol, Name, then dates (MM/DD format)
+  csvContent += 'Patrol,Name';
+  eventDates.forEach(function(eventDate) {
+    var dateParts = eventDate.date.split('-');
+    var displayDate = dateParts[1] + '/' + dateParts[2];
+    csvContent += ',' + displayDate;
+  });
+  csvContent += '\n';
 
-	// Header row 2: empty, empty, then event names (quoted and escaped)
-	csvContent += ',';
-	eventDates.forEach(function(eventDate) {
-		var eventName = eventDate.event_name;
-		// Escape quotes in event name and wrap in quotes
-		eventName = '"' + eventName.replace(/"/g, '""') + '"';
-		csvContent += ',' + eventName;
-	});
-	csvContent += '\n';
+  // Header row 2: empty, empty, then event names (quoted and escaped)
+  csvContent += ',';
+  eventDates.forEach(function(eventDate) {
+    var eventName = eventDate.event_name;
+    // Escape quotes in event name and wrap in quotes
+    eventName = '"' + eventName.replace(/"/g, '""') + '"';
+    csvContent += ',' + eventName;
+  });
+  csvContent += '\n';
 
-	// Data rows: one per scout
-	scouts.forEach(function(scout) {
-		// Patrol name (quoted)
-		var patrol = scout.patrol || 'No Patrol';
-		csvContent += '"' + patrol.replace(/"/g, '""') + '"';
+  // Data rows: one per scout
+  scouts.forEach(function(scout) {
+    // Patrol name (quoted)
+    var patrol = scout.patrol || 'No Patrol';
+    csvContent += '"' + patrol.replace(/"/g, '""') + '"';
 
-		// Scout name (quoted)
-		var name = scout.first + ' ' + scout.last;
-		csvContent += ',"' + name.replace(/"/g, '""') + '"';
+    // Scout name (quoted)
+    var name = scout.first + ' ' + scout.last;
+    csvContent += ',"' + name.replace(/"/g, '""') + '"';
 
-		// Attendance for each date
-		eventDates.forEach(function(eventDate) {
-			var key = scout.user_id + '-' + eventDate.date;
-			var wasPresent = attendanceData[key] || false;
-			csvContent += ',' + (wasPresent ? 'true' : '');
-		});
+    // Attendance for each date
+    eventDates.forEach(function(eventDate) {
+      var key = scout.user_id + '-' + eventDate.date;
+      var wasPresent = attendanceData[key] || false;
+      csvContent += ',' + (wasPresent ? 'true' : '');
+    });
 
-		csvContent += '\n';
-	});
+    csvContent += '\n';
+  });
 
-	// Create blob and download
-	var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-	var link = document.createElement('a');
-	var url = URL.createObjectURL(blob);
+  // Create blob and download
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement('a');
+  var url = URL.createObjectURL(blob);
 
-	// Format filename with date range
-	var filename = 'attendance_report_' + startDate + '_to_' + endDate + '.csv';
+  // Format filename with date range
+  var filename = 'attendance_report_' + startDate + '_to_' + endDate + '.csv';
 
-	link.setAttribute('href', url);
-	link.setAttribute('download', filename);
-	link.style.visibility = 'hidden';
-	document.body.appendChild(link);
-	link.click();
-	document.body.removeChild(link);
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 
-	console.log("CSV download initiated: " + filename);
+  console.log("CSV download initiated: " + filename);
 }
 </script>
 
 <div class="row">
-	<div class="large-12 columns">
-		<div id="reportContent"></div>
-	</div>
+  <div class="large-12 columns">
+    <div id="reportContent"></div>
+  </div>
 </div>

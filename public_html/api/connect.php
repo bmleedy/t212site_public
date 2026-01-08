@@ -21,6 +21,6 @@ try {
 $mysqli = new mysqli($host, $user, $password, $database);
 
 if ($mysqli->connect_error) {
-	print "fail ";
+  print "fail ";
    die('Error : ('. $mysqli->connect_errno .') '. $mysqli->connect_error);
 }

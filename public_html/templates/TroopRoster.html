@@ -1,25 +1,25 @@
 <script src="js/sortable-table.js"></script>
 <script type="text/javascript">
   var strTable;
-  var curPatrol;		// used to track current patrol for accordian
+  var curPatrol;    // used to track current patrol for accordian
   function writeCell(strData, strWidth, strLink) {
-  	if (strLink == null) {
-  	  return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-  	} else {
-  	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-  	}
+    if (strLink == null) {
+      return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+    } else {
+      return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+    }
   }
 
   function writeRow(element, index, array) {
-		var strEmail = element["email"];
-		var phones = element["phone"];
-		var strPhones="";
-		for (x in phones) {
-			strPhones = strPhones + phones[x] + "<br>";
-		}
-		var thisPatrol = element["patrol"] ;
+    var strEmail = element["email"];
+    var phones = element["phone"];
+    var strPhones="";
+    for (x in phones) {
+      strPhones = strPhones + phones[x] + "<br>";
+    }
+    var thisPatrol = element["patrol"] ;
 
-		strTable = strTable + "<tr>";
+    strTable = strTable + "<tr>";
     strTable = strTable + writeCell(element["first"] + " " + element["last"], "150px" , "User.php?id=" + element["id"] );
     // strTable = strTable + writeCell(element["rank"], "100px" );
     // strTable = strTable + writeCell(thisPatrol, "75x" );
@@ -27,82 +27,82 @@
     strTable = strTable + writeCell(strEmail, "200px", "mailto:" + strEmail);
     // strTable = strTable + writeCell("<img src='profile_pics/" + element["id"] + "_thumbnail.jpg' class='profilepic' alt='Profile Picture' style='cursor:pointer' onclick=\"showFullImage('profile_pics/" + element["id"] + ".jpeg')\" onerror=\"this.src='profile_pics/goat_thumbnail.jpg'\"/>", "75px");
     strTable = strTable + writeCell(Type, "200px" );
-	strTable = strTable + "</tr>";
+  strTable = strTable + "</tr>";
   }
-	function loadScoutRows(strSort) {
-		var fieldData = {
-			"sort": strSort
-		};
-		$.ajax({
-   	  url: "api/getscouts.php" ,
-   	  type: "post",
-   	  datatype: 'json',
-			data: fieldData,
-			error: function(data) {
-				console.log(data);
-			},
-			success: function(data){
-				//console.log(data);
-				strTable = "";
- 	      		$('#userdata').empty();
-        		strTable="<table id='scouttable'><thead><tr>";
-				strTable=strTable + "<th><a href=javascript:loadTable('lastname')>Name</a></th>";
-				// strTable=strTable + "<th><a href=javascript:loadTable('rank')>Rank</a></th>";
-				// strTable=strTable + "<th><a href=javascript:loadTable('patrol')>Patrol</a></th>";
-				strTable=strTable + "<th>Phone</th><th>E-mail</th>";
-				// strTable=strTable + "<th>Photo</th>";
-				strTable=strTable + "</tr></thead>";
-				data.forEach(writeRow);
- 	      		strTable = strTable + "</table>" ;
-        		$("#userdata").append(strTable);
-				if (window.initSortableTables) {
-					window.initSortableTables();
-				}
-     		}
-		})
-	}
-	$(document).ready(function(){
-  		loadScoutRows("lastname");
-	})
+  function loadScoutRows(strSort) {
+    var fieldData = {
+      "sort": strSort
+    };
+    $.ajax({
+      url: "api/getscouts.php" ,
+      type: "post",
+      datatype: 'json',
+      data: fieldData,
+      error: function(data) {
+        console.log(data);
+      },
+      success: function(data){
+        //console.log(data);
+        strTable = "";
+            $('#userdata').empty();
+            strTable="<table id='scouttable'><thead><tr>";
+        strTable=strTable + "<th><a href=javascript:loadTable('lastname')>Name</a></th>";
+        // strTable=strTable + "<th><a href=javascript:loadTable('rank')>Rank</a></th>";
+        // strTable=strTable + "<th><a href=javascript:loadTable('patrol')>Patrol</a></th>";
+        strTable=strTable + "<th>Phone</th><th>E-mail</th>";
+        // strTable=strTable + "<th>Photo</th>";
+        strTable=strTable + "</tr></thead>";
+        data.forEach(writeRow);
+            strTable = strTable + "</table>" ;
+            $("#userdata").append(strTable);
+        if (window.initSortableTables) {
+          window.initSortableTables();
+        }
+        }
+    })
+  }
+  $(document).ready(function(){
+      loadScoutRows("lastname");
+  })
 
 //////////////////////////////////////////////////////////////////
 // CSV download functions
 //////////////////////////////////////////////////////////////////
-	function tableToCSV() {
-		// Variable to store the final csv data
-		let csv_data = [];
+  function tableToCSV() {
+    // Variable to store the final csv data
+    let csv_data = [];
 
-		// Get each row data
-		let rows = document.getElementById('scouttable').getElementsByTagName('tr');
-		for (let i = 0; i < rows.length; i++) {
+    // Get each row data
+    let rows = document.getElementById('scouttable').getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
 
-			// Get each column data
-			let cols = rows[i].querySelectorAll('td,th');
+      // Get each column data
+      let cols = rows[i].querySelectorAll('td,th');
 
-			// Stores each csv row data
-			let csvrow = [];
-			for (let j = 0; j < cols.length; j++) {
+      // Stores each csv row data
+      let csvrow = [];
+      for (let j = 0; j < cols.length; j++) {
 
-				let element_text = cols[j].innerText;
-				element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
-				csvrow.push(element_text.replace(/\n/g, " | "));
+        let element_text = cols[j].innerText;
+        element_text = element_text.replace(/,/g, ' '); //remove commas to avoid column breaking
+        csvrow.push(element_text.replace(/\n/g, " | "));
 
-				// Get the text data of each cell of
-				// a row and push it to csvrow
-				//csvrow.push(cols[j].innerHTML);
-			}
+        // Get the text data of each cell of
+        // a row and push it to csvrow
+        //csvrow.push(cols[j].innerHTML);
+      }
 
-			// Combine each column value with comma
-			csv_data.push(csvrow.join(","));
-		}
-		// Combine each row data with new line character
-		csv_data = csv_data.join('\n');
+      // Combine each column value with comma
+      csv_data.push(csvrow.join(","));
+    }
+    // Combine each row data with new line character
+    csv_data = csv_data.join('\n');
 
-		// Call this function to download csv file
+    // Call this function to download csv file
         downloadCSVFile(csv_data);
-	}
+  }
 
-	function downloadCSVFile(csv_data) {
+  function downloadCSVFile(csv_data) {
 
     // Create CSV file object and feed our
     // csv_data into it

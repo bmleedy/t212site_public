@@ -1,9 +1,9 @@
 <?php
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-	// respond to Ajax request
+  // respond to Ajax request
 } else {
-	echo "Not sure what you are after, but it ain't here.";
-	die();
+  echo "Not sure what you are after, but it ain't here.";
+  die();
 }
 
 header('Content-Type: application/json');
@@ -22,20 +22,20 @@ $query = "SELECT u.user_id, u.user_first, u.user_last, p.label AS patrol_label, 
 $results = $mysqli->query($query);
 
 if ($results) {
-	while ($row = $results->fetch_assoc()) {
-		$scouts[] = [
-			'user_id' => $row['user_id'],
-			'first' => $row['user_first'],
-			'last' => $row['user_last'],
-			'patrol_id' => $row['patrol_id'],
-			'patrol' => $row['patrol_label'] ? $row['patrol_label'] : 'No Patrol'
-		];
-	}
+  while ($row = $results->fetch_assoc()) {
+    $scouts[] = [
+      'user_id' => $row['user_id'],
+      'first' => $row['user_first'],
+      'last' => $row['user_last'],
+      'patrol_id' => $row['patrol_id'],
+      'patrol' => $row['patrol_label'] ? $row['patrol_label'] : 'No Patrol'
+    ];
+  }
 }
 
 $returnMsg = array(
-	'status' => 'Success',
-	'scouts' => $scouts
+  'status' => 'Success',
+  'scouts' => $scouts
 );
 
 echo json_encode($returnMsg);

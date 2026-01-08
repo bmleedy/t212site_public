@@ -5,13 +5,13 @@ require "includes/authHeader.php";
 ?>
 <br>
 <div class='row'>
-	<?php
-		if ($login->isUserLoggedIn() == true) {
-			require "includes/mobile_menu.html"; 
-		} else {
-			include("login/views/user_login.php");
-		}	
-	?>
+  <?php
+    if ($login->isUserLoggedIn() == true) {
+      require "includes/mobile_menu.html"; 
+    } else {
+      include("login/views/user_login.php");
+    } 
+  ?>
 </div>
 
 

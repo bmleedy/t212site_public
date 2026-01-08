@@ -1,104 +1,104 @@
 <script src="js/sortable-table.js"></script>
 <script type="text/javascript">
-	var strTable;
-	function writeCell(strData, strWidth, strLink) {
-		if (strLink == null) {
-			return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
-		} else {
-			return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
-		}
-	}
+  var strTable;
+  function writeCell(strData, strWidth, strLink) {
+    if (strLink == null) {
+      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
+    } else {
+      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
+    }
+  }
 
-	function fixPhoneString(phone_string) {
-		let conditioned_string = phone_string.trim();
-		conditioned_string = conditioned_string.replace(/[^0-9]/g, '');
-		if (conditioned_string.startsWith('1')) {
-			conditioned_string = conditioned_string.slice(1);
-		}
+  function fixPhoneString(phone_string) {
+    let conditioned_string = phone_string.trim();
+    conditioned_string = conditioned_string.replace(/[^0-9]/g, '');
+    if (conditioned_string.startsWith('1')) {
+      conditioned_string = conditioned_string.slice(1);
+    }
 
-		// Present the first 10 digits they gave us like a phone number
-		conditioned_string = ''.concat('(', conditioned_string.substring(0, 3), ')-', conditioned_string.substring(3, 6), '-', conditioned_string.substring(6, 10));
-		return conditioned_string;
-	}
-	function writeRow(element, index, array) {
-		var phones = element["phone"];
-		var strPhones = "";
-		for (x in phones) {
-			strPhones = strPhones + fixPhoneString(phones[x]) + "<br>";
-		}
-		strEmail = element["email"];
-		strTable = strTable + "<tr>";
-		strTable = strTable + writeCell("<img src='profile_pics/" + element["id"] + "_thumbnail.jpg' class='profilepic' alt='Profile Picture' style='cursor:pointer' onclick=\"showFullImage('profile_pics/" + element["id"] + ".jpeg')\" onerror=\"this.src='profile_pics/goat_thumbnail.jpg'\"/>", "75px");
-		strTable = strTable + writeCell(element["last"] + ", " + element["first"], "175px", "User.php?id=" + element["id"]);
-		strTable = strTable + writeCell(strPhones, "200px");
-		strTable = strTable + writeCell(strEmail, "200px", "mailto:" + strEmail);
-		//strTable = strTable + writeCell(element["user_type"], "100px");
-		strTable = strTable + "</tr>";
-	}
+    // Present the first 10 digits they gave us like a phone number
+    conditioned_string = ''.concat('(', conditioned_string.substring(0, 3), ')-', conditioned_string.substring(3, 6), '-', conditioned_string.substring(6, 10));
+    return conditioned_string;
+  }
+  function writeRow(element, index, array) {
+    var phones = element["phone"];
+    var strPhones = "";
+    for (x in phones) {
+      strPhones = strPhones + fixPhoneString(phones[x]) + "<br>";
+    }
+    strEmail = element["email"];
+    strTable = strTable + "<tr>";
+    strTable = strTable + writeCell("<img src='profile_pics/" + element["id"] + "_thumbnail.jpg' class='profilepic' alt='Profile Picture' style='cursor:pointer' onclick=\"showFullImage('profile_pics/" + element["id"] + ".jpeg')\" onerror=\"this.src='profile_pics/goat_thumbnail.jpg'\"/>", "75px");
+    strTable = strTable + writeCell(element["last"] + ", " + element["first"], "175px", "User.php?id=" + element["id"]);
+    strTable = strTable + writeCell(strPhones, "200px");
+    strTable = strTable + writeCell(strEmail, "200px", "mailto:" + strEmail);
+    //strTable = strTable + writeCell(element["user_type"], "100px");
+    strTable = strTable + "</tr>";
+  }
 
-	$(document).ready(function () {
-		$.ajax({
-			url: "api/getadults.php",
-			type: "post",
-			contentType: 'application/json',
-			datatype: 'json',
-			error: function (XMLHttpRequest, textStatus, errorThrown) {
-				console.log(errorThrown);
-				console.log(textStatus);
-			},
-			success: function (data) {
-				console.log(data);
+  $(document).ready(function () {
+    $.ajax({
+      url: "api/getadults.php",
+      type: "post",
+      contentType: 'application/json',
+      datatype: 'json',
+      error: function (XMLHttpRequest, textStatus, errorThrown) {
+        console.log(errorThrown);
+        console.log(textStatus);
+      },
+      success: function (data) {
+        console.log(data);
 
-				// Collect all adult email addresses
-				var adultEmailList = [];
-				data.forEach(function (element) {
-					if (element["email"]) {
-						adultEmailList.push(element["email"]);
-					}
-				});
+        // Collect all adult email addresses
+        var adultEmailList = [];
+        data.forEach(function (element) {
+          if (element["email"]) {
+            adultEmailList.push(element["email"]);
+          }
+        });
 
-				// Create email adults link
-				var emailAdultsLink = '<a href="mailto:?bcc=' + adultEmailList.join(',') + '" class="button small round">Email All Adults</a> ';
-				$('#emailAdultsLink').html(emailAdultsLink);
+        // Create email adults link
+        var emailAdultsLink = '<a href="mailto:?bcc=' + adultEmailList.join(',') + '" class="button small round">Email All Adults</a> ';
+        $('#emailAdultsLink').html(emailAdultsLink);
 
-				// Fetch scouts' emails and add the email all adults & scouts button
-				$.ajax({
-					url: "api/getscouts.php",
-					type: "post",
-					data: { "sort": "lastname" },
-					datatype: 'json',
-					success: function (scoutsData) {
-						var scoutEmailList = [];
-						scoutsData.forEach(function (element) {
-							if (element["email"]) {
-								scoutEmailList.push(element["email"]);
-							}
-						});
-						var allEmailList = adultEmailList.concat(scoutEmailList);
-						var emailAllButton = '<a href="mailto:?bcc=' + allEmailList.join(',') + '" class="button small round">Email All Adults & Scouts</a>';
-						$('#emailAdultsLink').append(emailAllButton);
-					}
-				});
+        // Fetch scouts' emails and add the email all adults & scouts button
+        $.ajax({
+          url: "api/getscouts.php",
+          type: "post",
+          data: { "sort": "lastname" },
+          datatype: 'json',
+          success: function (scoutsData) {
+            var scoutEmailList = [];
+            scoutsData.forEach(function (element) {
+              if (element["email"]) {
+                scoutEmailList.push(element["email"]);
+              }
+            });
+            var allEmailList = adultEmailList.concat(scoutEmailList);
+            var emailAllButton = '<a href="mailto:?bcc=' + allEmailList.join(',') + '" class="button small round">Email All Adults & Scouts</a>';
+            $('#emailAdultsLink').append(emailAllButton);
+          }
+        });
 
-				strTable = "";
-				$('#userdata').empty();
-				// Write the table header
-				strTable = "<table><thead><tr>";
-				strTable = strTable + "<th>Photo</th>";
-				strTable = strTable + "<th>Name</th>";
-				strTable = strTable + "<th>Phone Number</th>";
-				strTable = strTable + "<th>Email</th>";
-				//strTable=strTable + "<th>Type</th>;"
-				strTable = strTable + "</thead>";
-				data.forEach(writeRow);
-				strTable = strTable + "</table>";
-				$("#userdata").append(strTable);
-				if (window.initSortableTables) {
-					window.initSortableTables();
-				}
-			}
-		})
-	})
+        strTable = "";
+        $('#userdata').empty();
+        // Write the table header
+        strTable = "<table><thead><tr>";
+        strTable = strTable + "<th>Photo</th>";
+        strTable = strTable + "<th>Name</th>";
+        strTable = strTable + "<th>Phone Number</th>";
+        strTable = strTable + "<th>Email</th>";
+        //strTable=strTable + "<th>Type</th>;"
+        strTable = strTable + "</thead>";
+        data.forEach(writeRow);
+        strTable = strTable + "</table>";
+        $("#userdata").append(strTable);
+        if (window.initSortableTables) {
+          window.initSortableTables();
+        }
+      }
+    })
+  })
 </script>
 
 <div id='emailAdultsLink'></div>
@@ -106,29 +106,29 @@
 
 <!-- Full size image modal -->
 <div id="imageModal"
-	style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;">
-	<span style="position:absolute;top:20px;right:40px;font-size:40px;color:white;cursor:pointer;"
-		onclick="closeImageModal()">&times;</span>
-	<img id="modalImg" src="" style="max-width:90vw;max-height:90vh;border:4px solid white;box-shadow:0 0 20px #000;" />
+  style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;">
+  <span style="position:absolute;top:20px;right:40px;font-size:40px;color:white;cursor:pointer;"
+    onclick="closeImageModal()">&times;</span>
+  <img id="modalImg" src="" style="max-width:90vw;max-height:90vh;border:4px solid white;box-shadow:0 0 20px #000;" />
 </div>
 
 <script type="text/javascript">
-	function showFullImage(imgSrc) {
-		var modal = document.getElementById('imageModal');
-		var modalImg = document.getElementById('modalImg');
-		modalImg.src = imgSrc;
-		modal.style.display = 'flex';
-	}
-	function closeImageModal() {
-		var modal = document.getElementById('imageModal');
-		modal.style.display = 'none';
-		document.getElementById('modalImg').src = '';
-	}
-	// Optional: close modal when clicking outside image
-	document.addEventListener('click', function (e) {
-		var modal = document.getElementById('imageModal');
-		if (modal.style.display === 'flex' && e.target === modal) {
-			closeImageModal();
-		}
-	});
+  function showFullImage(imgSrc) {
+    var modal = document.getElementById('imageModal');
+    var modalImg = document.getElementById('modalImg');
+    modalImg.src = imgSrc;
+    modal.style.display = 'flex';
+  }
+  function closeImageModal() {
+    var modal = document.getElementById('imageModal');
+    modal.style.display = 'none';
+    document.getElementById('modalImg').src = '';
+  }
+  // Optional: close modal when clicking outside image
+  document.addEventListener('click', function (e) {
+    var modal = document.getElementById('imageModal');
+    if (modal.style.display === 'flex' && e.target === modal) {
+      closeImageModal();
+    }
+  });
 </script>

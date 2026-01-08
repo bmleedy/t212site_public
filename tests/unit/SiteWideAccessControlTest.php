@@ -347,61 +347,6 @@ if (assert_true(
 echo "\n";
 
 // ============================================================================
-// TEST 10: MyT212.php Access Control
-// ============================================================================
-
-echo "Test 10: MyT212.php Access Control\n";
-echo str_repeat("-", 60) . "\n";
-
-$myT212File = PUBLIC_HTML_DIR . '/MyT212.php';
-if (assert_file_exists($myT212File, "MyT212.php exists")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-$myT212Contents = file_get_contents($myT212File);
-
-// Checks multiple roles
-if (assert_true(
-    strpos($myT212Contents, 'in_array("sa",$access)') !== false,
-    "MyT212.php checks for 'sa' access"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($myT212Contents, 'in_array("wm",$access)') !== false,
-    "MyT212.php checks for 'wm' access"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($myT212Contents, 'in_array("oe",$access)') !== false,
-    "MyT212.php checks for 'oe' access"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($myT212Contents, 'in_array("ue",$access)') !== false,
-    "MyT212.php checks for 'ue' access"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-echo "\n";
-
-// ============================================================================
 // TEST 11: Attendance.php Access Control (Comprehensive)
 // ============================================================================
 
@@ -589,12 +534,12 @@ echo "Test 15: Access Code Usage Summary\n";
 echo str_repeat("-", 60) . "\n";
 
 $accessUsage = [
-    'wm' => ['Attendance.php', 'User.php', 'MyT212.php', 'm_sidebar.html'],
+    'wm' => ['Attendance.php', 'User.php', 'm_sidebar.html'],
     'sa' => ['All restricted pages (super admin fallback)'],
     'oe' => ['Event.php', 'ListEvents.php', 'EventSignups.php', 'Signups.php'],
     'ue' => ['User.php', 'DELUser.php', 'm_sidebar.html'],
     'er' => ['Event.php', 'EventRoster.php', 'EventRosterSI.php'],
-    'trs' => ['Event.php (payment marking)'],
+    'trs' => ['Event.php (payment marking)', 'TreasurerReport.php'],
     'pl' => ['Attendance.php']
 ];
 

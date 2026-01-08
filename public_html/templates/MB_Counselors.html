@@ -1,57 +1,57 @@
 <script type="text/javascript">
   var strTable = "";
-	var curMB="";
+  var curMB="";
   function writeCell(strData, strClass, strLink) {
-  	if (strLink == null) {
-  	  tempStr = "<div class='" +strClass+ "'>" + strData + "</div>" ;
-  	} else {
-  	  tempStr = "<div class='" +strClass+ "'><a href='"+strLink+"'>" + strData + "</a></div>" ;
-  	}
-		return tempStr;
+    if (strLink == null) {
+      tempStr = "<div class='" +strClass+ "'>" + strData + "</div>" ;
+    } else {
+      tempStr = "<div class='" +strClass+ "'><a href='"+strLink+"'>" + strData + "</a></div>" ;
+    }
+    return tempStr;
   }
-	
-	function toggleDiv(divName) {
-		$('#'+divName).toggle();
-	}
-	
+  
+  function toggleDiv(divName) {
+    $('#'+divName).toggle();
+  }
+  
   function beginMB(mbName, mbID) {
-		if (curMB != "") {
-			strTable = strTable + "</div>";
-		}
-		strTable = strTable + '<div class="row"><div class="large-12 columns"><a href=javascript:toggleDiv("div'+mbID+'")><h5>'+mbName+
-		'</h5></a></div></div><div id="div'+mbID+'" style="display:none;">';
-	}
-	
+    if (curMB != "") {
+      strTable = strTable + "</div>";
+    }
+    strTable = strTable + '<div class="row"><div class="large-12 columns"><a href=javascript:toggleDiv("div'+mbID+'")><h5>'+mbName+
+    '</h5></a></div></div><div id="div'+mbID+'" style="display:none;">';
+  }
+  
   function writeRow(element, index, array) {
-		mbName = element["mb_name"];
-		if (curMB != mbName) {
-			beginMB(mbName,element["mb_id"]);
-			curMB = mbName;
-		}
-		strTable = strTable + writeCell(element["last"] + ", " + element["first"], "large-6 columns" , "User.php?id=" + element["id"] );
+    mbName = element["mb_name"];
+    if (curMB != mbName) {
+      beginMB(mbName,element["mb_id"]);
+      curMB = mbName;
+    }
+    strTable = strTable + writeCell(element["last"] + ", " + element["first"], "large-6 columns" , "User.php?id=" + element["id"] );
     strTable = strTable + writeCell(element["email"], "large-6 columns" , "mailto:" + element["email"] + "?subject=" + mbName + "%20Merit%20Badge" );
   }
 
-	$(document).ready(function(){ 
-		$.ajax({
-   	  url: "api/getMBcounselors.php" ,
-   	  type: "post",
-   	  contentType: 'application/json',
+  $(document).ready(function(){ 
+    $.ajax({
+      url: "api/getMBcounselors.php" ,
+      type: "post",
+      contentType: 'application/json',
       datatype: 'json',
-			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				console.log(errorThrown);
-				console.log(textStatus);
-			},
-			success: function(data){
-				strTable = "";
- 	      $('#userdata').empty();
+      error: function(XMLHttpRequest, textStatus, errorThrown) {
+        console.log(errorThrown);
+        console.log(textStatus);
+      },
+      success: function(data){
+        strTable = "";
+        $('#userdata').empty();
        
-			  data.forEach(writeRow);
+        data.forEach(writeRow);
 
         $("#userdata").append(strTable + "</div>");
-     	}
-		});
-	})
+      }
+    });
+  })
 </script>
 
 <p>To view Merit Badge counselors, click on the Badge you are interested in. If a Merit Badge is not in this list, please check with the Scoutmaster or Assistant Scoutmasters and they will help locate a counselor for you.</p>

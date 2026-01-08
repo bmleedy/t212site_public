@@ -8,11 +8,11 @@ define("__ROOT__",dirname(__DIR__));
 $logFile = __ROOT__ . '/access_log' . date('Y-m-d') . '.txt';
 $logEntry = date('Y-m-d H:i:s') . " - IP: " . $_SERVER['REMOTE_ADDR'] .
     " - User Agent: " . $_SERVER['HTTP_USER_AGENT'] .
-		" - user_id: " . (array_key_exists("user_id", $_SESSION) ? $_SESSION['user_id'] : "NULL") .
-		" - user_type: " . (array_key_exists("user_type", $_SESSION) ? $_SESSION['user_type'] : "NULL") .
-		" - user_access: " . (array_key_exists("user_access", $_SESSION) ? $_SESSION['user_access'] : "NULL") .
-		" - URL: " . $_SERVER['REQUEST_URI'] .
-		PHP_EOL;
+    " - user_id: " . (array_key_exists("user_id", $_SESSION) ? $_SESSION['user_id'] : "NULL") .
+    " - user_type: " . (array_key_exists("user_type", $_SESSION) ? $_SESSION['user_type'] : "NULL") .
+    " - user_access: " . (array_key_exists("user_access", $_SESSION) ? $_SESSION['user_access'] : "NULL") .
+    " - URL: " . $_SERVER['REQUEST_URI'] .
+    PHP_EOL;
 file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
 
 
@@ -22,49 +22,49 @@ if ( !array_key_exists("user_id", $_SESSION) ||
      !array_key_exists("user_access", $_SESSION) ||
      !array_key_exists("user_first", $_SESSION) ||
      !array_key_exists("user_type", $_SESSION)) {
-	// be explicit and define variables if they're not provided from the session
-	$userID = NULL;
-	$user_first = NULL;
-	$user_type = NULL;
-	$access = [];
+  // be explicit and define variables if they're not provided from the session
+  $userID = NULL;
+  $user_first = NULL;
+  $user_type = NULL;
+  $access = [];
 } else {
-	$userID = $_SESSION['user_id'];
-	$user_first = $_SESSION['user_first'];
-	$user_type = $_SESSION['user_type'];
-	$access = explode(".",$_SESSION['user_access']);
+  $userID = $_SESSION['user_id'];
+  $user_first = $_SESSION['user_first'];
+  $user_type = $_SESSION['user_type'];
+  $access = explode(".",$_SESSION['user_access']);
 }
 
 $checkinfo = __ROOT__ .'/api/checkinfo.php' ;
 if ($user_type=='Scout') {
-	require( $checkinfo );
+  require( $checkinfo );
 }
 ?>
 
 <html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths" lang="en" data-useragent="Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36">
 <head>
-	<title>Boy Scout Troop 212</title>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boy Scout Troop 212</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" ></script>
-	<script src="/js/vendor/modernizr.js"></script>
-	<script src="js/foundation.min.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js" ></script>
+  <script src="/js/vendor/modernizr.js"></script>
+  <script src="js/foundation.min.js"></script>
 
-	<link rel="stylesheet" href="css/foundation.min.css">
-	<link rel="stylesheet" href="/css/foundation-icons/foundation-icons.css">
-	<style type="text/css"></style>
-	<meta class="foundation-data-attribute-namespace">
-	<meta class="foundation-mq-xxlarge">
-	<meta class="foundation-mq-xlarge-only">
-	<meta class="foundation-mq-xlarge">
-	<meta class="foundation-mq-large-only">
-	<meta class="foundation-mq-large">
-	<meta class="foundation-mq-medium-only">
-	<meta class="foundation-mq-medium">
-	<meta class="foundation-mq-small-only">
-	<meta class="foundation-mq-small">
-	<meta class="foundation-mq-topbar">
+  <link rel="stylesheet" href="css/foundation.min.css">
+  <link rel="stylesheet" href="/css/foundation-icons/foundation-icons.css">
+  <style type="text/css"></style>
+  <meta class="foundation-data-attribute-namespace">
+  <meta class="foundation-mq-xxlarge">
+  <meta class="foundation-mq-xlarge-only">
+  <meta class="foundation-mq-xlarge">
+  <meta class="foundation-mq-large-only">
+  <meta class="foundation-mq-large">
+  <meta class="foundation-mq-medium-only">
+  <meta class="foundation-mq-medium">
+  <meta class="foundation-mq-small-only">
+  <meta class="foundation-mq-small">
+  <meta class="foundation-mq-topbar">
 </head>
 
 <body>

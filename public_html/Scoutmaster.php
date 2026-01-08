@@ -3,7 +3,7 @@
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
+  <?php require "includes/sidebar.html"; ?>
 <div class ="large-9 columns">
 <div class="panel">
 Hello,<br>

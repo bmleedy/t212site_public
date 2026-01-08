@@ -6,8 +6,8 @@ ini_set('display_errors', '0');
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	header('Content-Type: application/json');
-	echo json_encode(['error' => 'Not an AJAX request']);
+  header('Content-Type: application/json');
+  echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 session_start();
@@ -31,21 +31,21 @@ if (!$result) {
 }
 
 while ($row = $result->fetch_object()) {
-	$id = $row->user_id;
-	$stmt2 = $mysqli->prepare("SELECT * FROM users WHERE user_id=?");
-	$stmt2->bind_param("i", $id);
-	$stmt2->execute();
-	$result2 = $stmt2->get_result();
-	$row2 = $result2->fetch_object();
-	$counselors[] = [
+  $id = $row->user_id;
+  $stmt2 = $mysqli->prepare("SELECT * FROM users WHERE user_id=?");
+  $stmt2->bind_param("i", $id);
+  $stmt2->execute();
+  $result2 = $stmt2->get_result();
+  $row2 = $result2->fetch_object();
+  $counselors[] = [
     'mb_name' => escape_html($row->mb_name),
-		'mb_id' => $row->mb_id,
+    'mb_id' => $row->mb_id,
     'id'=> $id,
-		'first'=>escape_html($row2->user_first),
-		'last'=>escape_html($row2->user_last),
-		'email'=>escape_html($row2->user_email)
+    'first'=>escape_html($row2->user_first),
+    'last'=>escape_html($row2->user_last),
+    'email'=>escape_html($row2->user_email)
   ];
-	$stmt2->close();
+  $stmt2->close();
 }
 $stmt->close();
 

@@ -17,7 +17,7 @@ $returnURL = RETURN_URL;
 $cancelURL = CANCEL_URL; 
 $_SESSION['post_value']['RETURN_URL'] = $returnURL;
 $_SESSION['post_value']['CANCEL_URL'] = $cancelURL;
-	
+  
 //$_SESSION['post_value']['RETURN_URL'] = $returnURL;
 //$_SESSION['post_value']['CANCEL_URL'] = $cancelURL;
 //$returnURL = $_POST['RETURNURL'].'?return='.$token;
@@ -28,19 +28,19 @@ $_POST["PAYMENTREQUEST_0_ITEMAMT"]=$_POST["PAYMENTREQUEST_0_AMT"];
 $resArray = CallShortcutExpressCheckout ($_POST, $returnURL, $cancelURL);
 $ack = strtoupper($resArray["ACK"]);
 if($ack=="SUCCESS" || $ack=="SUCCESSWITHWARNING")  {
-	RedirectToPayPal ( $resArray["TOKEN"] );
+  RedirectToPayPal ( $resArray["TOKEN"] );
 } else {
-	//Display a user friendly Error on the page using any of the following error information returned by PayPal
-	$ErrorCode = urldecode($resArray["L_ERRORCODE0"]);
-	$ErrorShortMsg = urldecode($resArray["L_SHORTMESSAGE0"]);
-	$ErrorLongMsg = urldecode($resArray["L_LONGMESSAGE0"]);
-	$ErrorSeverityCode = urldecode($resArray["L_SEVERITYCODE0"]);
+  //Display a user friendly Error on the page using any of the following error information returned by PayPal
+  $ErrorCode = urldecode($resArray["L_ERRORCODE0"]);
+  $ErrorShortMsg = urldecode($resArray["L_SHORTMESSAGE0"]);
+  $ErrorLongMsg = urldecode($resArray["L_LONGMESSAGE0"]);
+  $ErrorSeverityCode = urldecode($resArray["L_SEVERITYCODE0"]);
 
-	echo "SetExpressCheckout API call failed. ";
-	echo "Detailed Error Message: " . $ErrorLongMsg;
-	echo "Short Error Message: " . $ErrorShortMsg;
-	echo "Error Code: " . $ErrorCode;
-	echo "Error Severity Code: " . $ErrorSeverityCode;
+  echo "SetExpressCheckout API call failed. ";
+  echo "Detailed Error Message: " . $ErrorLongMsg;
+  echo "Short Error Message: " . $ErrorShortMsg;
+  echo "Error Code: " . $ErrorCode;
+  echo "Error Severity Code: " . $ErrorSeverityCode;
 }
 
 ?>

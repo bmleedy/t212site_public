@@ -6,9 +6,9 @@ require "includes/header.html"; ?>
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
+  <?php require "includes/sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
 <?php
 
 // check for minimum PHP version
@@ -47,8 +47,8 @@ if ($login->passwordResetWasSuccessful() == true && $login->passwordResetLinkIsV
 
 ?>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>

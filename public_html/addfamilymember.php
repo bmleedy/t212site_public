@@ -10,9 +10,9 @@ $ref = $_SERVER['HTTP_REFERER'];
 <br />
 
 <div class='row'>
-	<?php require "includes/sidebar.html"; ?>
-	<div class="large-9 columns">
-		<div class="panel">
+  <?php require "includes/sidebar.html"; ?>
+  <div class="large-9 columns">
+    <div class="panel">
 <?php
 
 // check for minimum PHP version
@@ -43,8 +43,8 @@ $registration = new Registration();
 include("login/views/addfamilymember.php");
 ?>
 
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 
 <?php require "includes/footer.html"; ?>
