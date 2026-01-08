@@ -111,6 +111,7 @@ function register(strAction,strPayID) {
           sendParentsEmail();
           console.warn("Email sent to parents.");}
         alert(data["message"]);
+        location.reload();
       }
     }
   })
