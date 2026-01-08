@@ -169,7 +169,8 @@ function formatDateTimeLocal(date) {
 
 function formatDateTime(dateString) {
 	if (!dateString) return '';
-	var date = new Date(dateString);
+	// Parse the UTC timestamp from the database and convert to local time
+	var date = new Date(dateString + ' UTC');
 	return date.toLocaleString();
 }
 
