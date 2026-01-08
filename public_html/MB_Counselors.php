@@ -5,12 +5,12 @@ require "includes/authHeader.php"; ?>
 
 <br>
 <div class='row'>
-	<?php 
+	<?php
 		if ($login->isUserLoggedIn() == true) {
-			require "includes/m_sidebar.html"; 
+			require "includes/m_sidebar.html";
 		} else {
-			require "includes/sidebar.html"; 
-		}	
+			require "includes/sidebar.html";
+		}
 	?>
 	<div class="large-9 columns">
 		<div class="panel">

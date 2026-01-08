@@ -1,9 +1,25 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', '0');
+
+if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+
+  // respond to Ajax request
+
+} else {
+
+	header('Content-Type: application/json');
+	echo json_encode(['error' => 'Not an AJAX request']);
+
+  die();
+
+}
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
 require_ajax();
 $current_user_id = require_authentication();
+
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -72,4 +88,3 @@ function getLabel($strTable,$id,$mysqli){
 		return "";
 	}
 }
-?>

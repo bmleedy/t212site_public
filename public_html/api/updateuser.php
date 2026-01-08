@@ -1,8 +1,13 @@
 <?php
+// Prevent any output before JSON header
+error_reporting(0);
+ini_set('display_errors', '0');
+
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	echo "Not sure what you are after, but it ain't here.";
+	header('Content-Type: application/json');
+	echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 
@@ -314,25 +319,52 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
 	*/
 	if (($id==="") && ($phone==="")) { return true;}
 
+	$action = '';
+	$phone_details = array(
+		'phone_id' => $id,
+		'phone_number' => $phone,
+		'phone_type' => $type,
+		'user_id' => $user_id
+	);
+
 	if ($phone==="") {
+		$action = 'delete';
 		$query = "DELETE FROM phone WHERE id=?";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('s', $id);
 	} else if ($id==="") {
+		$action = 'create';
 		$query = "INSERT INTO phone (phone , type , user_id) VALUES(?, ?, ?)";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('sss', $phone, $type, $user_id);
 	} else {
+		$action = 'update';
 		$query = "UPDATE phone SET phone=?, type=? WHERE id=?";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('sss', $phone, $type, $id);
 	}
 	if ($statement->execute()){
-		//success
+		// Log successful phone data change
+		log_activity(
+			$mysqli,
+			'update_phone',
+			$phone_details,
+			true,
+			"Phone data {$action}d for user ID: $user_id",
+			$user_id
+		);
 	}else{
+		// Log failed phone data change
+		log_activity(
+			$mysqli,
+			'update_phone',
+			array_merge($phone_details, array('error' => $mysqli->error)),
+			false,
+			"Failed to {$action} phone data for user ID: $user_id",
+			$user_id
+		);
 		echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
 		die;
 	}
 	$statement->close();
 }
-?>
