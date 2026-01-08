@@ -99,19 +99,36 @@ function loadReport() {
     fetch('/api/gettreasurerreport.php', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify(filters)
     })
     .then(response => response.json())
     .then(data => {
+        // Check if response is an error
+        if (data.error) {
+            console.error('API Error:', data.error);
+            document.getElementById('reportResults').innerHTML =
+                '<div class="alert-box alert">Error: ' + data.error + '</div>';
+            return;
+        }
+
+        // Check if data is an array
+        if (!Array.isArray(data)) {
+            console.error('Unexpected response format:', data);
+            document.getElementById('reportResults').innerHTML =
+                '<div class="alert-box alert">Error: Unexpected response format from server.</div>';
+            return;
+        }
+
         reportData = data;
         displayReport(data);
     })
     .catch(error => {
         console.error('Error loading report:', error);
         document.getElementById('reportResults').innerHTML =
-            '<div class="alert-box alert">Error loading report data.</div>';
+            '<div class="alert-box alert">Error loading report data. Please try again.</div>';
     });
 }
 
