@@ -6,10 +6,15 @@
  * Only accessible via AJAX.
  */
 
+// Prevent any output before JSON header
+error_reporting(0);
+ini_set('display_errors', '0');
+
 if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
-	echo "Not sure what you are after, but it ain't here.";
+	header('Content-Type: application/json');
+	echo json_encode(['error' => 'Not an AJAX request']);
   die();
 }
 
@@ -26,14 +31,18 @@ $types = '';
 
 // Date range filters
 if (!empty($input['startDate'])) {
+	// Convert datetime-local format (YYYY-MM-DDTHH:MM) to MySQL datetime format
+	$startDate = str_replace('T', ' ', $input['startDate']) . ':00';
 	$query .= " AND timestamp >= ?";
-	$params[] = $input['startDate'];
+	$params[] = $startDate;
 	$types .= 's';
 }
 
 if (!empty($input['endDate'])) {
+	// Convert datetime-local format (YYYY-MM-DDTHH:MM) to MySQL datetime format
+	$endDate = str_replace('T', ' ', $input['endDate']) . ':59';
 	$query .= " AND timestamp <= ?";
-	$params[] = $input['endDate'];
+	$params[] = $endDate;
 	$types .= 's';
 }
 
@@ -129,5 +138,3 @@ if (isset($statement)) {
 
 // Return JSON
 echo json_encode($logs);
-
-?>

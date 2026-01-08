@@ -201,9 +201,27 @@ function writeRow(element) {
 }
 
 function loadActivityLog() {
+	// Get local datetime values
+	var startDateLocal = document.getElementById('startDate').value;
+	var endDateLocal = document.getElementById('endDate').value;
+
+	// Convert to UTC for database comparison
+	var startDateUTC = '';
+	var endDateUTC = '';
+
+	if (startDateLocal) {
+		var startDate = new Date(startDateLocal);
+		startDateUTC = startDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+	}
+
+	if (endDateLocal) {
+		var endDate = new Date(endDateLocal);
+		endDateUTC = endDate.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:MM
+	}
+
 	var filters = {
-		startDate: document.getElementById('startDate').value,
-		endDate: document.getElementById('endDate').value,
+		startDate: startDateUTC,
+		endDate: endDateUTC,
 		action: document.getElementById('filterAction').value,
 		sourceFile: document.getElementById('filterSourceFile').value,
 		user: document.getElementById('filterUser').value,
