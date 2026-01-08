@@ -14,20 +14,11 @@ require_ajax();
 // Verify authentication
 $current_user_id = require_authentication();
 
+// Check if user has webmaster or super admin access
+require_permission(['wm', 'sa']);
+
 header('Content-Type: application/json');
 require 'connect.php';
-
-// Check if user has webmaster or super admin access
-$access = isset($_SESSION['access']) ? $_SESSION['access'] : [];
-$hasAccess = (in_array("wm", $access) || in_array("sa", $access));
-
-if (!$hasAccess) {
-	echo json_encode([
-		'status' => 'Error',
-		'message' => 'Access denied. Webmaster or Super Admin access required.'
-	]);
-	die();
-}
 
 // Validate required parameters
 $id = validate_int_post('id', true);
