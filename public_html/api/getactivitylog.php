@@ -24,8 +24,20 @@ require 'connect.php';
 // Get JSON input
 $input = json_decode(file_get_contents('php://input'), true);
 
-// Build query with filters
-$query = "SELECT * FROM activity_log WHERE 1=1";
+// Build query with filters - join with users table to get names
+$query = "SELECT
+            al.timestamp,
+            al.source_file,
+            al.action,
+            al.values_json,
+            al.success,
+            al.freetext,
+            al.user,
+            u.user_first,
+            u.user_last
+          FROM activity_log al
+          LEFT JOIN users u ON al.user = u.user_id
+          WHERE 1=1";
 $params = array();
 $types = '';
 
@@ -48,41 +60,41 @@ if (!empty($input['endDate'])) {
 
 // Action filter
 if (!empty($input['action'])) {
-	$query .= " AND action LIKE ?";
+	$query .= " AND al.action LIKE ?";
 	$params[] = '%' . $input['action'] . '%';
 	$types .= 's';
 }
 
 // Source file filter
 if (!empty($input['sourceFile'])) {
-	$query .= " AND source_file LIKE ?";
+	$query .= " AND al.source_file LIKE ?";
 	$params[] = '%' . $input['sourceFile'] . '%';
 	$types .= 's';
 }
 
 // User filter
 if (!empty($input['user'])) {
-	$query .= " AND user = ?";
+	$query .= " AND al.user = ?";
 	$params[] = $input['user'];
 	$types .= 'i';
 }
 
 // Success filter
 if (isset($input['success']) && $input['success'] !== '') {
-	$query .= " AND success = ?";
+	$query .= " AND al.success = ?";
 	$params[] = $input['success'];
 	$types .= 'i';
 }
 
 // Freetext filter
 if (!empty($input['freetext'])) {
-	$query .= " AND freetext LIKE ?";
+	$query .= " AND al.freetext LIKE ?";
 	$params[] = '%' . $input['freetext'] . '%';
 	$types .= 's';
 }
 
 // Order by timestamp DESC (most recent first)
-$query .= " ORDER BY timestamp DESC";
+$query .= " ORDER BY al.timestamp DESC";
 
 // Limit results to prevent overwhelming the browser (max 1000)
 $query .= " LIMIT 1000";
@@ -127,7 +139,9 @@ while ($row = $result->fetch_assoc()) {
 		'values_json' => $row['values_json'],
 		'success' => $row['success'],
 		'freetext' => $row['freetext'],
-		'user' => $row['user']
+		'user' => $row['user'],
+		'user_first' => $row['user_first'],
+		'user_last' => $row['user_last']
 	];
 }
 
