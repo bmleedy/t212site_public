@@ -66,6 +66,10 @@
 	</a>
 	<hr>
 
+  <?php if ((in_array("trs",$access)) || (in_array("wm",$access)) || (in_array("sa",$access))) {
+    echo '<a href="TreasurerReport.php"><p><i class="fi-results-demographics" style="font-size:20px"></i> [Treasurer] Payment Report</p></a><hr>';
+  } ?>
+
   <?php if ((in_array("wm",$access)) || (in_array("sa",$access))) {
     echo '<a href="Patrols.php"><p><i class="fi-flag" style="font-size:20px"></i> [Webmaster] Manage Patrols</p></a><hr>';
     echo '<a href="ActivityLog.php"><p><i class="fi-list" style="font-size:20px"></i> [Webmaster] Activity Log</p></a><hr>';

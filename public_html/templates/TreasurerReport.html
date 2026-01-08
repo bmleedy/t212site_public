@@ -1,0 +1,211 @@
+<h2>Treasurer Report</h2>
+
+<div class="panel">
+    <h4>Report Filters</h4>
+
+    <div class="row">
+        <div class="large-3 columns">
+            <label>Start Date
+                <input type="date" id="startDate">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>End Date
+                <input type="date" id="endDate">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>Scout Name
+                <input type="text" id="scoutName" placeholder="First or Last Name">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>Event Type
+                <select id="eventType">
+                    <option value="">All Types</option>
+                    <option value="1">Campout</option>
+                    <option value="2">Service</option>
+                    <option value="3">Meetings</option>
+                    <option value="4">Hike</option>
+                    <option value="5">Other</option>
+                </select>
+            </label>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-3 columns">
+            <label>Event Name
+                <input type="text" id="eventName" placeholder="Event Name">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>Min Amount
+                <input type="number" id="minAmount" placeholder="0.00" step="0.01" min="0">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>Max Amount
+                <input type="number" id="maxAmount" placeholder="999.99" step="0.01" min="0">
+            </label>
+        </div>
+        <div class="large-3 columns">
+            <label>&nbsp;</label>
+            <button class="button small" onclick="loadReport()">Apply Filters</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-12 columns">
+            <button class="button small secondary" onclick="downloadCSV()">
+                <i class="fi-download"></i> Download CSV
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="reportResults">
+    <p>Click "Apply Filters" to load report data.</p>
+</div>
+
+<script src="/js/sortable-table.js"></script>
+<script>
+let reportData = [];
+
+// Initialize date range to last 90 days
+window.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const ninetyDaysAgo = new Date(today);
+    ninetyDaysAgo.setDate(today.getDate() - 90);
+
+    document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    document.getElementById('startDate').value = ninetyDaysAgo.toISOString().split('T')[0];
+
+    // Auto-load report on page load
+    loadReport();
+});
+
+function loadReport() {
+    const filters = {
+        startDate: document.getElementById('startDate').value,
+        endDate: document.getElementById('endDate').value,
+        scoutName: document.getElementById('scoutName').value,
+        eventType: document.getElementById('eventType').value,
+        eventName: document.getElementById('eventName').value,
+        minAmount: document.getElementById('minAmount').value,
+        maxAmount: document.getElementById('maxAmount').value
+    };
+
+    fetch('/api/gettreasurerreport.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(filters)
+    })
+    .then(response => response.json())
+    .then(data => {
+        reportData = data;
+        displayReport(data);
+    })
+    .catch(error => {
+        console.error('Error loading report:', error);
+        document.getElementById('reportResults').innerHTML =
+            '<div class="alert-box alert">Error loading report data.</div>';
+    });
+}
+
+function displayReport(data) {
+    const resultsDiv = document.getElementById('reportResults');
+
+    if (data.length === 0) {
+        resultsDiv.innerHTML = '<p>No payment records found matching the selected filters.</p>';
+        return;
+    }
+
+    let totalAmount = 0;
+
+    let html = '<table class="sortable-table" id="reportTable">';
+    html += '<thead><tr>';
+    html += '<th data-sort="string">User Name</th>';
+    html += '<th data-sort="date">Payment Date</th>';
+    html += '<th data-sort="date">Outing Date</th>';
+    html += '<th data-sort="string">Event Name</th>';
+    html += '<th data-sort="number">Amount</th>';
+    html += '</tr></thead><tbody>';
+
+    data.forEach(row => {
+        const amount = parseFloat(row.amount);
+        totalAmount += amount;
+
+        html += '<tr>';
+        html += '<td>' + escapeHtml(row.user_name) + '</td>';
+        html += '<td>' + formatDate(row.payment_date) + '</td>';
+        html += '<td>' + formatDate(row.outing_date) + '</td>';
+        html += '<td>' + escapeHtml(row.event_name) + '</td>';
+        html += '<td>$' + amount.toFixed(2) + '</td>';
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+
+    html += '<div class="panel">';
+    html += '<strong>Total Records:</strong> ' + data.length + ' &nbsp;&nbsp;&nbsp; ';
+    html += '<strong>Total Amount:</strong> $' + totalAmount.toFixed(2);
+    html += '</div>';
+
+    resultsDiv.innerHTML = html;
+
+    // Initialize sortable table
+    if (typeof makeSortable === 'function') {
+        makeSortable(document.getElementById('reportTable'));
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function downloadCSV() {
+    if (reportData.length === 0) {
+        alert('No data to download. Please load the report first.');
+        return;
+    }
+
+    let csv = 'User Name,Payment Date,Outing Date,Event Name,Amount\n';
+
+    reportData.forEach(row => {
+        const amount = parseFloat(row.amount).toFixed(2);
+        csv += '"' + (row.user_name || '').replace(/"/g, '""') + '",';
+        csv += '"' + formatDate(row.payment_date) + '",';
+        csv += '"' + formatDate(row.outing_date) + '",';
+        csv += '"' + (row.event_name || '').replace(/"/g, '""') + '",';
+        csv += '"' + amount + '"\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'treasurer_report_' + today + '.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
