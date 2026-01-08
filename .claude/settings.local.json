@@ -6,7 +6,8 @@
       "Bash(php:*)",
       "Bash(find:*)",
       "Bash(mysql --version:*)",
-      "Bash(mysql:*)"
+      "Bash(mysql:*)",
+      "Bash(/Users/bmleedy/t212site_public/convert_tabs.sh:*)"
     ],
     "deny": [],
     "ask": []
