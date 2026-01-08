@@ -47,7 +47,7 @@ echo str_repeat("-", 60) . "\n";
 $getPatrolsContents = file_get_contents($getPatrolsFile);
 
 if (assert_true(
-    strpos($getPatrolsContents, 'HTTP_X_REQUESTED_WITH') !== false,
+    strpos($getPatrolsContents, 'require_ajax()') !== false,
     "getpatrols.php checks for AJAX request"
 )) {
     $passed++;
@@ -123,7 +123,7 @@ echo str_repeat("-", 60) . "\n";
 $getPatrolMembersContents = file_get_contents($getPatrolMembersFile);
 
 if (assert_true(
-    strpos($getPatrolMembersContents, 'HTTP_X_REQUESTED_WITH') !== false,
+    strpos($getPatrolMembersContents, 'require_ajax()') !== false,
     "getpatrolmembers.php checks for AJAX request"
 )) {
     $passed++;
@@ -132,7 +132,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolMembersContents, '$_POST[\'patrol_id\']') !== false,
+    strpos($getPatrolMembersContents, 'validate_int_post') !== false,
     "getpatrolmembers.php accepts patrol_id parameter"
 )) {
     $passed++;
@@ -177,7 +177,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolMembersContents, 'intval($patrol_id)') !== false,
+    strpos($getPatrolMembersContents, 'validate_int_post') !== false ||
+    strpos($getPatrolMembersContents, 'prepare(') !== false,
     "getpatrolmembers.php sanitizes patrol_id (SQL injection protection)"
 )) {
     $passed++;
@@ -416,7 +417,8 @@ echo "Test 9: Security - SQL injection protection\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($getPatrolMembersContents, 'intval(') !== false,
+    strpos($getPatrolMembersContents, 'validate_int_post') !== false ||
+    strpos($getPatrolMembersContents, 'prepare(') !== false,
     "getpatrolmembers.php uses intval() for SQL injection protection"
 )) {
     $passed++;
@@ -425,7 +427,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolMembersContents, 'isset($_POST[\'patrol_id\'])') !== false,
+    strpos($getPatrolMembersContents, "validate_int_post('patrol_id'") !== false,
     "getpatrolmembers.php checks if patrol_id is set"
 )) {
     $passed++;
@@ -435,8 +437,8 @@ if (assert_true(
 
 // Check that both APIs reject non-AJAX requests
 if (assert_true(
-    strpos($getPatrolsContents, 'Not sure what you are after') !== false &&
-    strpos($getPatrolMembersContents, 'Not sure what you are after') !== false,
+    strpos($getPatrolsContents, 'require_ajax()') !== false &&
+    strpos($getPatrolMembersContents, 'require_ajax()') !== false,
     "Both APIs reject non-AJAX requests"
 )) {
     $passed++;

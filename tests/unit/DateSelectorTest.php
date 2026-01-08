@@ -393,7 +393,7 @@ $getPatrolMembersFile = PUBLIC_HTML_DIR . '/api/getpatrolmembers.php';
 $getPatrolMembersContents = file_get_contents($getPatrolMembersFile);
 
 if (assert_true(
-    strpos($getPatrolMembersContents, '$_POST[\'date\']') !== false,
+    strpos($getPatrolMembersContents, 'validate_date_post(\'date\'') !== false,
     "getpatrolmembers.php accepts date parameter"
 )) {
     $passed++;
@@ -402,8 +402,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getPatrolMembersContents, '$date = isset($_POST[\'date\'])') !== false,
-    "Checks if date parameter is set"
+    strpos($getPatrolMembersContents, 'validate_date_post(\'date\'') !== false,
+    "Validates date parameter"
 )) {
     $passed++;
 } else {
@@ -420,8 +420,9 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/real_escape_string\s*\(\s*\$date\s*\)/', $getPatrolMembersContents),
-    "Sanitizes date parameter with real_escape_string"
+    strpos($getPatrolMembersContents, 'validate_date_post(') !== false ||
+    strpos($getPatrolMembersContents, 'prepare(') !== false,
+    "Uses validate_date_post or prepared statements"
 )) {
     $passed++;
 } else {
@@ -441,7 +442,8 @@ $updateAttendanceFile = PUBLIC_HTML_DIR . '/api/updateattendance.php';
 $updateAttendanceContents = file_get_contents($updateAttendanceFile);
 
 if (assert_true(
-    strpos($updateAttendanceContents, '$_POST[\'date\']') !== false,
+    strpos($updateAttendanceContents, "\$_POST['date']") !== false ||
+    strpos($updateAttendanceContents, 'validate_date_post(\'date\'') !== false,
     "updateattendance.php accepts date parameter"
 )) {
     $passed++;
@@ -459,8 +461,10 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/real_escape_string\s*\(\s*\$date\s*\)/', $updateAttendanceContents),
-    "Sanitizes date parameter with real_escape_string"
+    strpos($updateAttendanceContents, 'validate_date_post(') !== false ||
+    strpos($updateAttendanceContents, 'real_escape_string') !== false ||
+    strpos($updateAttendanceContents, 'prepare(') !== false,
+    "Uses validate_date_post or prepared statements or real_escape_string"
 )) {
     $passed++;
 } else {

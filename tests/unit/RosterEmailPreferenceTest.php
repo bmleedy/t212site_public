@@ -31,7 +31,7 @@ if (assert_file_exists($getadultsFile, "getadults.php exists")) {
 $getadultsContents = file_get_contents($getadultsFile);
 
 if (assert_true(
-    strpos($getadultsContents, 'HTTP_X_REQUESTED_WITH') !== false,
+    strpos($getadultsContents, 'require_ajax()') !== false,
     "getadults.php checks for AJAX request"
 )) {
     $passed++;
@@ -148,7 +148,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/\$include_in_roster_emails\s*\?\s*\$row->user_email\s*:\s*[\'"][\'"]/s', $getadultsContents),
+    preg_match('/\$include_in_roster_emails\s*\?\s*(escape_html\()?\$row->user_email(\))?\s*:\s*[\'"][\'"]/s', $getadultsContents),
     "Returns email if opted in, empty string if opted out"
 )) {
     $passed++;
@@ -241,7 +241,7 @@ echo "Test 8: Adult info still returned regardless of preference\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($getadultsContents, "'first' => \$row->user_first") !== false,
+    strpos($getadultsContents, "'first' => escape_html(\$row->user_first)") !== false,
     "First name always returned"
 )) {
     $passed++;
@@ -250,7 +250,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getadultsContents, "'last' => \$row->user_last") !== false,
+    strpos($getadultsContents, "'last' => escape_html(\$row->user_last)") !== false,
     "Last name always returned"
 )) {
     $passed++;
@@ -259,7 +259,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getadultsContents, "'phone'=>\$phones") !== false,
+    strpos($getadultsContents, "'phone' => \$phones") !== false,
     "Phone numbers always returned"
 )) {
     $passed++;
@@ -268,7 +268,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getadultsContents, "'id'=>\$id") !== false,
+    strpos($getadultsContents, "'id' => \$id") !== false,
     "User ID always returned"
 )) {
     $passed++;

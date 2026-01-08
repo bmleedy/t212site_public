@@ -41,8 +41,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    count($notification_types) === 3,
-    "notification_types has exactly 3 entries"
+    count($notification_types) === 4,
+    "notification_types has exactly 4 entries"
 )) {
     $passed++;
 } else {
@@ -228,7 +228,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($getUserContents, 'htmlspecialchars($tooltip)') !== false,
+    strpos($getUserContents, 'escape_html($tooltip)') !== false,
     "getuser.php uses htmlspecialchars for XSS protection"
 )) {
     $passed++;
@@ -382,7 +382,7 @@ echo str_repeat("-", 60) . "\n";
 
 // XSS protection in getuser.php
 if (assert_true(
-    strpos($getUserContents, 'htmlspecialchars') !== false,
+    strpos($getUserContents, 'escape_html') !== false,
     "getuser.php uses htmlspecialchars for output sanitization"
 )) {
     $passed++;

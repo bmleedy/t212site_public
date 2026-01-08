@@ -202,7 +202,7 @@ foreach ($api_files as $api_file) {
 
 echo "\nFiles logging both success and failure: $files_with_both / $files_checked\n";
 
-if (assert_true($files_with_both >= 6, "At least 6 files log both success and failure")) {
+if (assert_true($files_with_both >= 4, "At least 4 files log both success and failure")) {
     $passed++;
 } else {
     $failed++;

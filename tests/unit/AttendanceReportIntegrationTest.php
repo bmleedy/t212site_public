@@ -158,8 +158,8 @@ if (assert_true(
 
 // Check that APIs receive and validate start_date and end_date
 if (assert_true(
-    strpos($eventsApiContents, "\$_POST['start_date']") !== false &&
-    strpos($eventsApiContents, "\$_POST['end_date']") !== false,
+    strpos($eventsApiContents, "validate_date_post('start_date')") !== false &&
+    strpos($eventsApiContents, "validate_date_post('end_date')") !== false,
     "Events API receives start_date and end_date"
 )) {
     $passed++;
@@ -168,8 +168,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($dataApiContents, "\$_POST['start_date']") !== false &&
-    strpos($dataApiContents, "\$_POST['end_date']") !== false,
+    strpos($dataApiContents, "validate_date_post('start_date')") !== false &&
+    strpos($dataApiContents, "validate_date_post('end_date')") !== false,
     "Attendance data API receives start_date and end_date"
 )) {
     $passed++;

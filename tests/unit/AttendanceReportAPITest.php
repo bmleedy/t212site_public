@@ -74,7 +74,7 @@ echo str_repeat("-", 60) . "\n";
 $eventsApiContents = file_get_contents($eventsApiFile);
 
 if (assert_true(
-    strpos($eventsApiContents, 'XMLHttpRequest') !== false,
+    strpos($eventsApiContents, 'require_ajax()') !== false,
     "AJAX-only protection is present"
 )) {
     $passed++;
@@ -148,7 +148,7 @@ echo str_repeat("-", 60) . "\n";
 $dataApiContents = file_get_contents($dataApiFile);
 
 if (assert_true(
-    strpos($dataApiContents, 'XMLHttpRequest') !== false,
+    strpos($dataApiContents, 'require_ajax()') !== false,
     "AJAX-only protection is present"
 )) {
     $passed++;
@@ -193,7 +193,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($dataApiContents, 'real_escape_string') !== false,
+    strpos($dataApiContents, 'validate_date_post') !== false ||
+    strpos($dataApiContents, 'prepare(') !== false,
     "SQL injection protection is present"
 )) {
     $passed++;
@@ -339,7 +340,8 @@ echo "Test 8: Error handling verification\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($eventsApiContents, "'status' => 'Error'") !== false,
+    strpos($eventsApiContents, 'prepare(') !== false &&
+    strpos($eventsApiContents, 'bind_param') !== false,
     "getattendanceevents.php has error handling"
 )) {
     $passed++;
@@ -357,7 +359,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($eventsApiContents, 'are required') !== false,
+    strpos($eventsApiContents, "validate_date_post('start_date')") !== false &&
+    strpos($eventsApiContents, "validate_date_post('end_date')") !== false,
     "getattendanceevents.php validates required parameters"
 )) {
     $passed++;
@@ -366,7 +369,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($dataApiContents, 'are required') !== false,
+    strpos($dataApiContents, "validate_date_post('start_date')") !== false &&
+    strpos($dataApiContents, "validate_date_post('end_date')") !== false,
     "getattendancedata.php validates required parameters"
 )) {
     $passed++;

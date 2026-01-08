@@ -31,7 +31,7 @@ if (assert_file_exists($geteventFile, "getevent.php exists")) {
 $geteventContents = file_get_contents($geteventFile);
 
 if (assert_true(
-    strpos($geteventContents, 'HTTP_X_REQUESTED_WITH') !== false,
+    strpos($geteventContents, 'require_ajax()') !== false,
     "getevent.php checks for AJAX request"
 )) {
     $passed++;

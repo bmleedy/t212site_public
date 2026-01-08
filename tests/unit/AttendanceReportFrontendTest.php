@@ -386,7 +386,7 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($templateContents, 'api/updateattendance.php') !== false,
+    strpos($templateContents, 'api/updateattendance') !== false,
     "Calls updateattendance.php API"
 )) {
     $passed++;

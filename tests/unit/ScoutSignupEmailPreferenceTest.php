@@ -30,7 +30,7 @@ if (assert_file_exists($sendmailFile, "sendmail.php exists")) {
 $sendmailContents = file_get_contents($sendmailFile);
 
 if (assert_true(
-    strpos($sendmailContents, 'HTTP_X_REQUESTED_WITH') !== false,
+    strpos($sendmailContents, 'require_ajax()') !== false,
     "sendmail.php checks for AJAX request"
 )) {
     $passed++;
@@ -57,8 +57,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($sendmailContents, "sendTo==\"scout parents\"") !== false ||
-    strpos($sendmailContents, "sendTo=='scout parents'") !== false,
+    strpos($sendmailContents, '"scout parents"') !== false &&
+    strpos($sendmailContents, '$sendTo') !== false,
     "sendmail.php handles 'scout parents' case"
 )) {
     $passed++;
@@ -241,10 +241,10 @@ echo "\n";
 echo "Test 8: Security checks\n";
 echo str_repeat("-", 60) . "\n";
 
-// Note: The query uses $user_id which comes from $_POST, so it should be sanitized
-// This is a known issue in the codebase but we're checking what's there
+// Note: The query uses prepared statements for security
 if (assert_true(
-    strpos($sendmailContents, 'SELECT parent.user_email, parent.notif_preferences FROM users') !== false,
+    strpos($sendmailContents, 'SELECT parent.user_email, parent.notif_preferences') !== false &&
+    strpos($sendmailContents, 'FROM users') !== false,
     "Query selects from users table correctly"
 )) {
     $passed++;
