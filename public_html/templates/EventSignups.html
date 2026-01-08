@@ -11,34 +11,6 @@
   	  return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
   	}
   }
-  
-	
-	function register(strAction, strUserID, strUserType, strUserName) {
-		if (!confirm("Please click ok to give " + strUserName + " credit for this paperbox.")) {
-			return false;  
-		}
-			
-		var fieldData = {
-			"action": strAction,
-			"user_id": strUserID,
-			"pb_id": pb_id
-		};
-		$.ajax({
-			url: "api/signupPB.php",
-			type: "post",
-			datatype: 'json',
-			data: fieldData,
-			error: function (errorThrown) {
-				console.log(errorThrown);
-			},
-			success: function (data) {
-				if (data["status"] == "Success") {
-					alert(data["message"]);
-					//location.href = "/EventSignups.php";
-				}
-			}
-		})
-	}
 
   function writeRow(element, index, array) {
 	strStart = element['startdate'];
@@ -47,7 +19,7 @@
 	strEnd = element['enddate'];
 	strEnd = strEnd.replace(/-/g,"/");
 	var endDate = new Date(strEnd);
-	
+
 	strTable = strTable + "<tr>";
 	strTable = strTable + writeCell(element["name"] , "150px" , "Signups.php?id=" + element["id"] );
 	strTable = strTable + writeCell(element["location"], "150px" );

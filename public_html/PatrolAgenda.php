@@ -34,16 +34,9 @@
 			    <li>Baden-Powell award, plan Patrol service project, plan Patrol special event, Patrol training (Merit Badge, advancement, Scout skills)</li>
 			   </ol>
 			  </li>
-			  <li>Other Respomsibilities
+			  <li>Other Responsibilities
 			   <ol type="A">
-			    <li> Patrol Quartermaster's Report (how is the patrol equipment)</li>
-			    <li>Paper Box
-			     <ul>
-			      <li>3 weeks before - Announce</li>
-			      <li>2 weeks before - Decide when it will be done</li>
-			      <li>1 week  before - Confirm plan</li>
-			     </ul>
-			    </li>
+			    <li>Patrol Quartermaster's Report (how is the patrol equipment)</li>
 			    <li>Remind Patrol - next time we're Service and Program Patrol</li>
 			   </ol>
 			  </li>
