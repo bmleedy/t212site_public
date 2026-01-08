@@ -8,8 +8,33 @@
 	</div>
 </div>
 
+<!-- New Patrol Form -->
 <div class="row">
 	<div class="large-12 columns">
+		<h4>Add New Patrol</h4>
+		<div class="row">
+			<div class="large-4 columns">
+				<label>Patrol Name
+					<input type="text" id="newPatrolName" placeholder="e.g., Eagles" maxlength="50">
+				</label>
+			</div>
+			<div class="large-3 columns">
+				<label>Sort Order
+					<input type="number" id="newPatrolSort" placeholder="e.g., 10" min="0">
+				</label>
+			</div>
+			<div class="large-5 columns">
+				<label>&nbsp;</label>
+				<button id="addPatrolButton" class="button success">Add Patrol</button>
+			</div>
+		</div>
+		<hr>
+	</div>
+</div>
+
+<div class="row">
+	<div class="large-12 columns">
+		<h4>Existing Patrols</h4>
 		<table id="patrolsTable">
 			<thead>
 				<tr>
@@ -74,6 +99,93 @@ $(document).ready(function() {
 			}
 		});
 	}
+
+	// Add new patrol functionality
+	$('#addPatrolButton').on('click', function() {
+		hideMessages();
+
+		var newName = $('#newPatrolName').val().trim();
+		var newSort = $('#newPatrolSort').val().trim();
+
+		// Validate inputs
+		if (!newName) {
+			showError('Please enter a patrol name.');
+			return;
+		}
+
+		if (!/^[a-zA-Z]+$/.test(newName)) {
+			showError('Patrol name must be a single word containing only letters (no spaces or special characters).');
+			return;
+		}
+
+		if (!newSort) {
+			showError('Please enter a sort order.');
+			return;
+		}
+
+		var sortValue = parseInt(newSort);
+		if (isNaN(sortValue) || sortValue < 0) {
+			showError('Sort order must be a positive number.');
+			return;
+		}
+
+		// Check for duplicate sort values in existing patrols
+		var duplicateSort = patrols.find(function(p) {
+			return parseInt(p.sort) === sortValue;
+		});
+
+		if (duplicateSort) {
+			showError('Sort order ' + sortValue + ' is already used by patrol "' + duplicateSort.label + '". Please choose a different sort order.');
+			return;
+		}
+
+		// Check for duplicate patrol name
+		var duplicateName = patrols.find(function(p) {
+			return p.label.toLowerCase() === newName.toLowerCase();
+		});
+
+		if (duplicateName) {
+			showError('A patrol named "' + duplicateName.label + '" already exists. Please choose a different name.');
+			return;
+		}
+
+		// Disable button during submission
+		$('#addPatrolButton').prop('disabled', true).text('Adding...');
+
+		// Submit to API
+		$.ajax({
+			url: 'api/createpatrol.php',
+			type: 'POST',
+			dataType: 'json',
+			headers: {
+				'X-Requested-With': 'XMLHttpRequest'
+			},
+			data: {
+				label: newName,
+				sort: sortValue
+			},
+			success: function(data) {
+				$('#addPatrolButton').prop('disabled', false).text('Add Patrol');
+
+				if (data.status === 'Success') {
+					showSuccess('Patrol "' + newName + '" created successfully!');
+
+					// Clear form
+					$('#newPatrolName').val('');
+					$('#newPatrolSort').val('');
+
+					// Reload patrols
+					loadPatrols();
+				} else {
+					showError('Failed to create patrol: ' + (data.message || 'Unknown error'));
+				}
+			},
+			error: function() {
+				$('#addPatrolButton').prop('disabled', false).text('Add Patrol');
+				showError('Failed to create patrol. Please try again.');
+			}
+		});
+	});
 
 	function renderTable() {
 		// Sort patrols by sort order
