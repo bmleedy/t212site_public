@@ -319,22 +319,50 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
 	*/
 	if (($id==="") && ($phone==="")) { return true;}
 
+	$action = '';
+	$phone_details = array(
+		'phone_id' => $id,
+		'phone_number' => $phone,
+		'phone_type' => $type,
+		'user_id' => $user_id
+	);
+
 	if ($phone==="") {
+		$action = 'delete';
 		$query = "DELETE FROM phone WHERE id=?";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('s', $id);
 	} else if ($id==="") {
+		$action = 'create';
 		$query = "INSERT INTO phone (phone , type , user_id) VALUES(?, ?, ?)";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('sss', $phone, $type, $user_id);
 	} else {
+		$action = 'update';
 		$query = "UPDATE phone SET phone=?, type=? WHERE id=?";
 		$statement = $mysqli->prepare($query);
 		$statement->bind_param('sss', $phone, $type, $id);
 	}
 	if ($statement->execute()){
-		//success
+		// Log successful phone data change
+		log_activity(
+			$mysqli,
+			'update_phone',
+			$phone_details,
+			true,
+			"Phone data {$action}d for user ID: $user_id",
+			$user_id
+		);
 	}else{
+		// Log failed phone data change
+		log_activity(
+			$mysqli,
+			'update_phone',
+			array_merge($phone_details, array('error' => $mysqli->error)),
+			false,
+			"Failed to {$action} phone data for user ID: $user_id",
+			$user_id
+		);
 		echo json_encode( 'Error : ('. $mysqli->errno .') '. $mysqli->error);
 		die;
 	}
