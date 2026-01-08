@@ -5,11 +5,15 @@
   }
 
   var strTable;
-  function writeCell(strData, strWidth, strLink) {
+  function writeCell(strData, strWidth, strLink, extraStyle) {
+    var style = "width:" + strWidth + ";";
+    if (extraStyle) {
+      style += extraStyle;
+    }
     if (strLink == null) {
-      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
+      return "<td style='" + style + "'>" + strData + "</td>";
     } else {
-      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
+      return "<td style='" + style + "'><a href='" + strLink + "'>" + strData + "</a></td>";
     }
   }
   function writeRow(element, index, array) {
@@ -20,13 +24,18 @@
     strEnd = strEnd.replace(/-/g,"/");
     var endDate = new Date(strEnd);
 
+    var greyStyle = "";
+    if (!element["reg_open"] || element["reg_open"] == "0") {
+      greyStyle = "color: #999;";
+    }
+
     strTable = strTable + "<tr>";
     strTable = strTable + writeCell(element["name"] , "150px" , "Event.php?id=" + element["id"] );
-    strTable = strTable + writeCell(element["location"], "150px" );
-    strTable = strTable + writeCell(startDate.toDateString(), "150px" );
-    strTable = strTable + writeCell(endDate.toDateString(), "150px" );
-    strTable = strTable + writeCell( "$" + element["cost"], "75px" );
-    strTable = strTable + writeCell(element["registered"], "100px" );
+    strTable = strTable + writeCell(element["location"], "150px", null, greyStyle);
+    strTable = strTable + writeCell(startDate.toDateString(), "150px", null, greyStyle);
+    strTable = strTable + writeCell(endDate.toDateString(), "150px", null, greyStyle);
+    strTable = strTable + writeCell( "$" + element["cost"], "75px", null, greyStyle);
+    strTable = strTable + writeCell(element["registered"], "100px", null, greyStyle);
     strTable = strTable + "</tr>";
   }
 
