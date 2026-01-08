@@ -1,70 +1,127 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-	//echo "Not sure what you are after, but it ain't here.";
-  //die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+// Verify AJAX request
+require_ajax();
+
+// Verify authentication
+$current_user_id = require_authentication();
+
+// Require permission to update payments (treasurer or admin)
+require_permission(['trs', 'sa', 'wm']);
 
 header('Content-Type: application/json');
 require 'connect.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
 
-$reg_ids= explode("," , $_POST['reg_ids']);
+// Validate input - reg_ids should be comma-separated integers
+if (!isset($_POST['reg_ids']) || empty($_POST['reg_ids'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Missing registration IDs']);
+    die();
+}
+
+$reg_ids = explode(",", $_POST['reg_ids']);
+$validated_ids = [];
+
+// Validate each ID is an integer
+foreach ($reg_ids as $id) {
+    $id = trim($id);
+    if (filter_var($id, FILTER_VALIDATE_INT) !== false) {
+        $validated_ids[] = (int)$id;
+    }
+}
+
+if (empty($validated_ids)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'No valid registration IDs provided']);
+    die();
+}
 
 $ts_now = date('Y-m-d H:i:s');
 $events = null;
 
+// Prepare update statement
 $query = "UPDATE registration SET paid=1, ts_paid=? WHERE id=?";
 $statement = $mysqli->prepare($query);
 
+foreach ($validated_ids as $id) {
+    // Update payment status
+    $statement->bind_param('si', $ts_now, $id);
+    $statement->execute();
 
-foreach ($reg_ids as &$id) {
+    // Get registration details using prepared statement
+    $query2 = "SELECT * FROM registration WHERE id=?";
+    $stmt2 = $mysqli->prepare($query2);
+    $stmt2->bind_param('i', $id);
+    $stmt2->execute();
+    $results2 = $stmt2->get_result();
+    $row = $results2->fetch_assoc();
+    $stmt2->close();
 
-	$rs = $statement->bind_param('ss', $ts_now, $id);
-	$statement->execute();
+    if (!$row) {
+        continue; // Skip if registration not found
+    }
 
-	$query2 = "SELECT * FROM registration WHERE id='" . $id. "'";
-	$results2 = $mysqli->query($query2);
-	$row = $results2->fetch_assoc();
-	$event_id = $row['event_id'];
-	$reg_id = $row['id'];
-	$query3 = "SELECT user_first, user_last FROM users WHERE user_id=".$row['user_id'];
-	$results3 = $mysqli->query($query3);
-	$row3 = $results3->fetch_assoc();
-	$first = $row3['user_first'];
-	$last = $row3['user_last'];
-	
-	$query4 = "SELECT name,startdate,cost FROM events WHERE id=".$event_id;
-	$results4 = $mysqli->query($query4);
-	while ($row4 = $results4->fetch_assoc()) {
-		$events[] = [
-			'eventname' => $row4['name'],
-			'eventid' => $event_id,
-			'regid' => $reg_id,
-			'startdate'=> $row4['startdate'],
-			'cost'=> $row4['cost'],
-			'username' => $first . ' ' . $last
-		];
-	}
+    $event_id = $row['event_id'];
+    $reg_id = $row['id'];
+    $user_id = $row['user_id'];
+
+    // Get user details using prepared statement
+    $query3 = "SELECT user_first, user_last FROM users WHERE user_id=?";
+    $stmt3 = $mysqli->prepare($query3);
+    $stmt3->bind_param('i', $user_id);
+    $stmt3->execute();
+    $results3 = $stmt3->get_result();
+    $row3 = $results3->fetch_assoc();
+    $stmt3->close();
+
+    if ($row3) {
+        $first = $row3['user_first'];
+        $last = $row3['user_last'];
+    } else {
+        $first = '';
+        $last = '';
+    }
+
+    // Get event details using prepared statement
+    $query4 = "SELECT name, startdate, cost FROM events WHERE id=?";
+    $stmt4 = $mysqli->prepare($query4);
+    $stmt4->bind_param('i', $event_id);
+    $stmt4->execute();
+    $results4 = $stmt4->get_result();
+
+    while ($row4 = $results4->fetch_assoc()) {
+        $events[] = [
+            'eventname' => $row4['name'],
+            'eventid' => $event_id,
+            'regid' => $reg_id,
+            'startdate' => $row4['startdate'],
+            'cost' => $row4['cost'],
+            'username' => $first . ' ' . $last
+        ];
+    }
+    $stmt4->close();
 }
 $statement->close();
 
 // Log batch payment update
 log_activity(
-	$mysqli,
-	'batch_payment_update',
-	array('reg_ids' => $reg_ids, 'count' => count($reg_ids)),
-	true,
-	"Batch payment update completed for " . count($reg_ids) . " registrations",
-	null
+    $mysqli,
+    'ppupdate2.php',
+    'batch_payment_update',
+    json_encode(['reg_ids' => $validated_ids, 'count' => count($validated_ids)]),
+    1, // success
+    "Batch payment update completed for " . count($validated_ids) . " registrations",
+    $current_user_id
 );
 
 $returnMsg = array(
-	'status' => 'Success',
-	'eventData' => $events
+    'status' => 'Success',
+    'eventData' => $events
 );
 echo json_encode($returnMsg);
 die;
-
 ?>

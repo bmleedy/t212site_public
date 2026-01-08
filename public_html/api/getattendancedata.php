@@ -1,21 +1,16 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-	// respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-	die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+require_ajax();
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
 require 'connect.php';
 
-$start_date = isset($_POST['start_date']) ? $_POST['start_date'] : null;
-$end_date = isset($_POST['end_date']) ? $_POST['end_date'] : null;
-
-if (!$start_date || !$end_date) {
-	echo json_encode(['status' => 'Error', 'message' => 'start_date and end_date are required']);
-	die();
-}
+$start_date = validate_date_post('start_date');
+$end_date = validate_date_post('end_date');
 
 // Get all attendance records in the date range
 // Return as associative array keyed by "user_id-date" for easy lookup
@@ -23,10 +18,13 @@ $attendance = array();
 
 $query = "SELECT user_id, date, was_present
           FROM attendance_daily
-          WHERE date >= '" . $mysqli->real_escape_string($start_date) . "'
-          AND date <= '" . $mysqli->real_escape_string($end_date) . "'";
+          WHERE date >= ?
+          AND date <= ?";
 
-$results = $mysqli->query($query);
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('ss', $start_date, $end_date);
+$stmt->execute();
+$results = $stmt->get_result();
 
 if ($results) {
 	while ($row = $results->fetch_assoc()) {
@@ -34,17 +32,18 @@ if ($results) {
 		$attendance[$key] = (bool)$row['was_present'];
 	}
 	$returnMsg = array(
-	'status' => 'Success',
-	'attendance' => $attendance
-);
-echo json_encode($returnMsg);
+		'status' => 'Success',
+		'attendance' => $attendance
+	);
+	echo json_encode($returnMsg);
 } else {
 	// error handling:
-      echo json_encode([
-          'status' => 'Error',
-          'message' => 'Database query failed: ' . $mysqli->error
-      	]);
+	echo json_encode([
+		'status' => 'Error',
+		'message' => 'Database query failed: ' . escape_html($mysqli->error)
+	]);
 }
+$stmt->close();
 
 die();
 ?>

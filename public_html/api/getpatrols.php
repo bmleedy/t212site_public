@@ -1,10 +1,13 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-	// respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-	die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+// Verify AJAX request
+require_ajax();
+
+// Verify authentication
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -13,6 +16,7 @@ require 'connect.php';
 $patrols = array();
 
 // Query patrols table, but only include patrols with active scouts
+// No user input, so no need for prepared statement here
 $query = "SELECT DISTINCT p.id, p.label, p.sort
           FROM patrols AS p
           INNER JOIN scout_info AS si ON p.id = si.patrol_id
@@ -22,23 +26,23 @@ $query = "SELECT DISTINCT p.id, p.label, p.sort
 $results = $mysqli->query($query);
 
 if ($results) {
-	while ($row = $results->fetch_assoc()) {
-		$patrols[] = [
-			'id' => $row['id'],
-			'label' => $row['label']
-		];
-	}
+    while ($row = $results->fetch_assoc()) {
+        $patrols[] = [
+            'id' => $row['id'],
+            'label' => $row['label']
+        ];
+    }
 }
 
 // Add "None" option as specified in requirements
 $patrols[] = [
-	'id' => '0',
-	'label' => 'None'
+    'id' => '0',
+    'label' => 'None'
 ];
 
 $returnMsg = array(
-	'status' => 'Success',
-	'patrols' => $patrols
+    'status' => 'Success',
+    'patrols' => $patrols
 );
 
 echo json_encode($returnMsg);

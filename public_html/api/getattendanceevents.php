@@ -1,21 +1,16 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-	// respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-	die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+require_ajax();
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
 require 'connect.php';
 
-$start_date = isset($_POST['start_date']) ? $_POST['start_date'] : null;
-$end_date = isset($_POST['end_date']) ? $_POST['end_date'] : null;
-
-if (!$start_date || !$end_date) {
-	echo json_encode(['status' => 'Error', 'message' => 'start_date and end_date are required']);
-	die();
-}
+$start_date = validate_date_post('start_date');
+$end_date = validate_date_post('end_date');
 
 // Array to hold all event dates
 $eventDates = array();
@@ -23,11 +18,14 @@ $eventDates = array();
 // Get all events from the events table in the date range
 $query = "SELECT id, name, startdate
           FROM events
-          WHERE DATE(startdate) >= '" . $mysqli->real_escape_string($start_date) . "'
-          AND DATE(startdate) <= '" . $mysqli->real_escape_string($end_date) . "'
+          WHERE DATE(startdate) >= ?
+          AND DATE(startdate) <= ?
           ORDER BY startdate";
 
-$results = $mysqli->query($query);
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('ss', $start_date, $end_date);
+$stmt->execute();
+$results = $stmt->get_result();
 
 if ($results) {
 	while ($row = $results->fetch_assoc()) {
@@ -35,10 +33,11 @@ if ($results) {
 		$eventDates[$date] = [
 			'date' => $date,
 			'event_id' => $row['id'],
-			'event_name' => $row['name']
+			'event_name' => escape_html($row['name'])
 		];
 	}
 }
+$stmt->close();
 
 // Now add all Tuesdays in the date range as "Troop Meeting" events
 $current = strtotime($start_date);

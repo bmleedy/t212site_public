@@ -1,14 +1,15 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-  die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+require_ajax();
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
 require 'connect.php';
-$event_id = $_POST['event_id'];
+
+$event_id = validate_int_post('event_id');
 
 $name = "";
 $location = "";
@@ -16,112 +17,152 @@ $startdate = date("Y-m-d H:i:s");
 $enddate = date("Y-m-d H:i:s");
 $cost = "";
 
-$query="SELECT * FROM events WHERE id=".$event_id;
-$results = $mysqli->query($query);
-if ($results) {
-	$row = $results->fetch_assoc();
-	$event_id = $row['id'];
+// Get event details
+$query = "SELECT * FROM events WHERE id=?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $event_id);
+$stmt->execute();
+$results = $stmt->get_result();
+
+if ($results && $row = $results->fetch_assoc()) {
 	$name = $row['name'];
 	$location = $row['location'];
 	$startdate = $row['startdate'];
 	$enddate = $row['enddate'];
 	$cost = $row['cost'];
-}	
+}
+$stmt->close();
 
-/*	
-$varname = '<p>'. $name . '</p>';
-$varlocation = '<p>'. $location . '</p>';
-$varstartdate = '<p>'. $startdate . '</p>';
-$varenddate = '<p>'. $enddate . '</p>';
-$varcost = '<p>$'. $cost . '</p>';
-*/
-
-$returnData = '<h5>' . $name . ' - Standard Copy</h5>';
+$returnData = '<h5>' . escape_html($name) . ' - Standard Copy</h5>';
 $attendingScouts = null;
-$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, patrol_id, reg.id as register_id, reg.approved_by FROM registration AS reg, users AS u, scout_info AS si WHERE reg.attending=1 AND u.user_type='Scout' AND reg.user_id = u.user_id AND reg.user_id = si.user_id AND reg.event_id=" . $event_id . " ORDER BY patrol_id, user_last, user_first" ;
-$results = $mysqli->query($query);
+
+// Get attending scouts
+$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, patrol_id, reg.id as register_id, reg.approved_by
+          FROM registration AS reg, users AS u, scout_info AS si
+          WHERE reg.attending=1 AND u.user_type='Scout' AND reg.user_id = u.user_id AND reg.user_id = si.user_id AND reg.event_id=?
+          ORDER BY patrol_id, user_last, user_first";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $event_id);
+$stmt->execute();
+$results = $stmt->get_result();
+
 while ($row = $results->fetch_assoc()) {
 	$adultContactInfo = "";
 	$first = "";
 	$isFirstRow = 1;
-	$query2 = "SELECT user_first, user_last, p.type, phone FROM relationships as r, users as u, phone as p WHERE r.adult_id = u.user_id AND r.adult_id = p.user_id AND r.scout_id=" . $row['user_id'] . " ORDER BY u.user_first";
-	$results2 =  $mysqli->query($query2);
+
+	// Get adult contact info for scout
+	$query2 = "SELECT user_first, user_last, p.type, phone
+	           FROM relationships as r, users as u, phone as p
+	           WHERE r.adult_id = u.user_id AND r.adult_id = p.user_id AND r.scout_id=?
+	           ORDER BY u.user_first";
+	$stmt2 = $mysqli->prepare($query2);
+	$stmt2->bind_param('i', $row['user_id']);
+	$stmt2->execute();
+	$results2 = $stmt2->get_result();
+
 	while ($row2 = $results2->fetch_assoc()) {
 		if ($row2['user_first'] != $first) {
-			$first=$row2['user_first'];
+			$first = $row2['user_first'];
 			if ($isFirstRow) {
-				$name = '<strong>' . $first . '</strong>';
+				$name_part = '<strong>' . escape_html($first) . '</strong>';
 				$isFirstRow = 0;
 			} else {
-				$name = '. <strong>' . $first . '</strong>';
+				$name_part = '. <strong>' . escape_html($first) . '</strong>';
 			}
 		} else {
-			$name = '';
+			$name_part = '';
 		}
-		$adultContactInfo = $adultContactInfo . $name . " " . substr($row2['type'],0,1) . "-" . $row2['phone'];
+		$adultContactInfo = $adultContactInfo . $name_part . " " . substr(escape_html($row2['type']), 0, 1) . "-" . escape_html($row2['phone']);
 	}
+	$stmt2->close();
+
 	$attendingScouts[] = [
-		'patrol' => getLabel('patrols',$row['patrol_id'],$mysqli),
+		'patrol' => escape_html(getLabel('patrols', $row['patrol_id'], $mysqli)),
 		'id' => $row['user_id'],
 		'register_id' => $row['register_id'],
 		'approved' => $row['approved_by'],
 		'paid' => $row['paid'],
-		'first' => $row['user_first'],
-		'last' => $row['user_last'],
+		'first' => escape_html($row['user_first']),
+		'last' => escape_html($row['user_last']),
 		'contactInfo' => $adultContactInfo
 	];
 }
+$stmt->close();
 
 $attendingAdults = null;
 
-$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, reg.id as register_id FROM registration AS reg, users AS u WHERE reg.attending=1 AND u.user_type<>'Scout' AND reg.user_id = u.user_id AND reg.event_id=" . $event_id . " ORDER BY user_last, user_first" ;
-$results = $mysqli->query($query);
+// Get attending adults
+$query = "SELECT reg.user_id, paid, seat_belts, user_first, user_last, reg.id as register_id
+          FROM registration AS reg, users AS u
+          WHERE reg.attending=1 AND u.user_type<>'Scout' AND reg.user_id = u.user_id AND reg.event_id=?
+          ORDER BY user_last, user_first";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $event_id);
+$stmt->execute();
+$results = $stmt->get_result();
+
 while ($row = $results->fetch_assoc()) {
 	$adultContactInfo = null;
-	$query2 = "SELECT p.type, phone FROM users as u, phone as p WHERE p.user_id = u.user_id AND u.user_id=" . $row['user_id'] . " ORDER BY u.user_first";
-	$results2 =  $mysqli->query($query2);
-	while ($row2 = $results2->fetch_assoc()) {
-		$adultContactInfo = $adultContactInfo . substr($row2['type'],0,1) . "-" . $row2['phone'] . '<br>';
-	}
 
+	$query2 = "SELECT p.type, phone
+	           FROM users as u, phone as p
+	           WHERE p.user_id = u.user_id AND u.user_id=?
+	           ORDER BY u.user_first";
+	$stmt2 = $mysqli->prepare($query2);
+	$stmt2->bind_param('i', $row['user_id']);
+	$stmt2->execute();
+	$results2 = $stmt2->get_result();
+
+	while ($row2 = $results2->fetch_assoc()) {
+		$adultContactInfo = $adultContactInfo . substr(escape_html($row2['type']), 0, 1) . "-" . escape_html($row2['phone']) . '<br>';
+	}
+	$stmt2->close();
 
 	$attendingAdults[] = [
 		'patrol' => 'Adults',
 		'id' => $row['user_id'],
 		'register_id' => $row['register_id'],
 		'paid' => $row['paid'],
-		'seat_belts' => $row['seat_belts'],
-		'first' => $row['user_first'],
-		'last' => $row['user_last'],
+		'seat_belts' => escape_html($row['seat_belts']),
+		'first' => escape_html($row['user_first']),
+		'last' => escape_html($row['user_last']),
 		'contactInfo' => $adultContactInfo
 	];
 }
-
+$stmt->close();
 
 $returnMsg = array(
-	'startdate' => $startdate,
-	'enddate' => $enddate,
-	'outing_name' => $name,
-	'cost' => $cost,
-	'first' => $user_first,
-	'user_type' => $user_type,
-	'registered' => $registered,
+	'startdate' => escape_html($startdate),
+	'enddate' => escape_html($enddate),
+	'outing_name' => escape_html($name),
+	'cost' => escape_html($cost),
 	'attendingScouts' => $attendingScouts,
 	'attendingAdults' => $attendingAdults,
 	'data' => $returnData
 );
 
 echo json_encode($returnMsg);
-die;
+die();
 
-function getLabel($strTable,$id,$mysqli){
+function getLabel($strTable, $id, $mysqli) {
 	if ($id) {
-		$query = 'SELECT label FROM '.$strTable.' WHERE id='.$id;
-		$results = $mysqli->query($query);
-		$row = $results->fetch_assoc();
-		return $row['label'];
+		// Whitelist allowed tables to prevent SQL injection
+		$allowed_tables = ['patrols', 'ranks', 'leadership'];
+		if (!in_array($strTable, $allowed_tables)) {
+			return "";
+		}
+
+		$query = "SELECT label FROM " . $strTable . " WHERE id=?";
+		$stmt = $mysqli->prepare($query);
+		$stmt->bind_param('i', $id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$row = $result->fetch_assoc();
+		$stmt->close();
+		return $row ? $row['label'] : "";
 	} else {
 		return "";
 	}
-}	
+}
 ?>

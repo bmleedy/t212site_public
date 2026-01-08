@@ -1,96 +1,130 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-  die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+require_ajax();
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
-
 require 'connect.php';
-$id = $_POST['id'];
+
+$id = validate_int_post('id');
 $eventsPay = null;
 $eventsApprove = null;
+$test = array();
 
+// Check if user can access this data (own data or admin)
+require_user_access($id, $current_user_id);
 
+// Get family_id
 $family_id = "";
-$query = "SELECT family_id FROM users WHERE user_id=" . $id;
-$results = $mysqli->query($query);
+$query = "SELECT family_id FROM users WHERE user_id=?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $id);
+$stmt->execute();
+$results = $stmt->get_result();
 if ($row = $results->fetch_assoc()) {
 	$family_id = $row["family_id"];
 }
+$stmt->close();
 
-//$query = "SELECT scout_id FROM relationships WHERE adult_id=" . $id;
-//$query = "SELECT user_id FROM users WHERE user_type='Scout' AND family_id=" . $family_id;
-$query = "SELECT user_id FROM users WHERE family_id=" . $family_id;
-$results = $mysqli->query($query);
+// Get all family members
+$uids = array();
+$query = "SELECT user_id FROM users WHERE family_id=?";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('s', $family_id);
+$stmt->execute();
+$results = $stmt->get_result();
 while ($row = $results->fetch_assoc()) {
 	$uids[] = $row['user_id'];
 }
-//$uids[] = $id;
+$stmt->close();
 
 for ($x = 0; $x < count($uids); $x++) {
 	$user_id = $uids[$x];
-	$query = "SELECT user_first, user_last, user_type FROM users WHERE user_id=".$user_id;
-	$results = $mysqli->query($query);
+
+	// Get user info
+	$query = "SELECT user_first, user_last, user_type FROM users WHERE user_id=?";
+	$stmt = $mysqli->prepare($query);
+	$stmt->bind_param('i', $user_id);
+	$stmt->execute();
+	$results = $stmt->get_result();
 	$row = $results->fetch_assoc();
+	$stmt->close();
+
 	$first = $row['user_first'];
 	$last = $row['user_last'];
 	$type = $row['user_type'];
-	$query2 = "SELECT id,event_id FROM registration WHERE user_id=".$user_id." AND attending=1 AND paid=0 AND approved_by<>0";
-	$results2 = $mysqli->query($query2);
+
+	// Get registrations to pay
+	$query2 = "SELECT id,event_id FROM registration WHERE user_id=? AND attending=1 AND paid=0 AND approved_by<>0";
+	$stmt2 = $mysqli->prepare($query2);
+	$stmt2->bind_param('i', $user_id);
+	$stmt2->execute();
+	$results2 = $stmt2->get_result();
+
 	while ($row2 = $results2->fetch_assoc()) {
 		$event_id = $row2['event_id'];
 		$reg_id = $row2['id'];
-		if ($type=="Scout") {
-			$query3 = "SELECT name,startdate,cost FROM events WHERE cost>0 AND id=".$event_id;
+
+		if ($type == "Scout") {
+			$query3 = "SELECT name,startdate,cost FROM events WHERE cost>0 AND id=?";
 		} else {
-			$query3 = "SELECT name,startdate,adult_cost FROM events WHERE adult_cost>0 AND id=".$event_id;
+			$query3 = "SELECT name,startdate,adult_cost as cost FROM events WHERE adult_cost>0 AND id=?";
 		}
-		$results3 = $mysqli->query($query3);
+
+		$stmt3 = $mysqli->prepare($query3);
+		$stmt3->bind_param('i', $event_id);
+		$stmt3->execute();
+		$results3 = $stmt3->get_result();
+
 		while ($row3 = $results3->fetch_assoc()) {
-			if ($type=="Scout") {
-				$cost=$row3['cost'];
-			} else {
-				$cost=$row3['adult_cost'];
-			}
+			$cost = $row3['cost'];
 			$eventsPay[] = [
-				'eventname' => $row3['name'],
+				'eventname' => escape_html($row3['name']),
 				'eventid' => $event_id,
 				'regid' => $reg_id,
-				'startdate'=> $row3['startdate'],
-				'cost'=> $cost,
-				'scoutname' => $first . ' ' . $last
+				'startdate' => escape_html($row3['startdate']),
+				'cost' => escape_html($cost),
+				'scoutname' => escape_html($first . ' ' . $last)
 			];
 		}
+		$stmt3->close();
 	}
+	$stmt2->close();
 
-	$query2 = "SELECT id,event_id FROM registration WHERE user_id=".$user_id." AND attending=1 AND approved_by=0";
-	$test[] = $query2;
-	$results2 = $mysqli->query($query2);
+	// Get registrations to approve
+	$query2 = "SELECT id,event_id FROM registration WHERE user_id=? AND attending=1 AND approved_by=0";
+	$stmt2 = $mysqli->prepare($query2);
+	$stmt2->bind_param('i', $user_id);
+	$stmt2->execute();
+	$results2 = $stmt2->get_result();
+
 	while ($row2 = $results2->fetch_assoc()) {
 		$event_id = $row2['event_id'];
-		$test[]=$event_id;
 		$reg_id = $row2['id'];
-		$query3 = "SELECT name,startdate,cost FROM events WHERE DATE(startdate) >= DATE(NOW()) AND id=".$event_id;
-		$test[] = $query3;
-		$results3 = $mysqli->query($query3);
+
+		$query3 = "SELECT name,startdate,cost FROM events WHERE DATE(startdate) >= DATE(NOW()) AND id=?";
+		$stmt3 = $mysqli->prepare($query3);
+		$stmt3->bind_param('i', $event_id);
+		$stmt3->execute();
+		$results3 = $stmt3->get_result();
+
 		while ($row3 = $results3->fetch_assoc()) {
-			$test[]=$row3['name'];
 			$eventsApprove[] = [
-				'eventname' => $row3['name'],
+				'eventname' => escape_html($row3['name']),
 				'eventid' => $event_id,
 				'regid' => $reg_id,
-				'startdate'=> $row3['startdate'],
-				'cost'=> $row3['cost'],
-				'scoutname' => $first . ' ' . $last
+				'startdate' => escape_html($row3['startdate']),
+				'cost' => escape_html($row3['cost']),
+				'scoutname' => escape_html($first . ' ' . $last)
 			];
 		}
+		$stmt3->close();
 	}
-
-	
-} 
+	$stmt2->close();
+}
 
 $returnData = 'success';
 $returnMsg = array(
@@ -100,5 +134,5 @@ $returnMsg = array(
 );
 
 echo json_encode($returnMsg);
-die;
+die();
 ?>

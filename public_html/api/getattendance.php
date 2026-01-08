@@ -1,60 +1,53 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-
-  // respond to Ajax request
-
-} else {
-
-	echo "Not sure what you are after, but it ain't here.";
-
-  die();
-
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+require_ajax();
+$current_user_id = require_authentication();
 
 header('Content-Type: application/json');
 require 'connect.php';
-$scouts = null;
-$userid = $_POST['userid'];
-$sort = $_POST['sort'];
-$order = $_POST['order'];
-$typeid = $_POST['typeid'];
-// allowed sorts, name, startdate, location
 
-if ($sort=='name') {
-	$query="SELECT ev.name, ev.location, ev.startdate, ev.id, et.label FROM registration AS reg INNER JOIN events AS ev ON reg.event_id=ev.id INNER JOIN event_types AS et ON ev.type_id = et.id WHERE reg.user_id='" . $userid . "' AND ev.type_id='".$typeid."' ORDER BY ev.name " . $order;
-} else if ($sort=='location') {
-	$query="SELECT ev.name, ev.location, ev.startdate, ev.id, et.label FROM registration AS reg INNER JOIN events AS ev ON reg.event_id=ev.id INNER JOIN event_types AS et ON ev.type_id = et.id WHERE reg.user_id='" . $userid . "' AND ev.type_id='".$typeid."' ORDER BY ev.location " . $order;
-} else {		// default is startdate
-	$query="SELECT ev.name, ev.location, ev.startdate, ev.id, et.label FROM registration AS reg INNER JOIN events AS ev ON reg.event_id=ev.id INNER JOIN event_types AS et ON ev.type_id = et.id WHERE reg.user_id='" . $userid . "' AND ev.type_id='".$typeid."' ORDER BY ev.startdate " . $order;
+// Validate inputs
+$userid = validate_int_post('userid', true);
+$sort = validate_string_post('sort', true, 'startdate', 50);
+$order = validate_string_post('order', true, 'DESC', 10);
+$typeid = validate_int_post('typeid', true);
+
+// Authorization check - user can only view their own data unless they have permission
+if ($userid != $current_user_id) {
+	require_user_access($userid, $current_user_id);
 }
-//echo $query;
-//die();
 
-$results = $mysqli->query($query);
+// Whitelist allowed sort columns
+$allowed_sorts = ['name', 'location', 'startdate'];
+if (!in_array($sort, $allowed_sorts)) {
+	$sort = 'startdate';
+}
+
+// Whitelist allowed order directions
+$allowed_orders = ['ASC', 'DESC'];
+if (!in_array(strtoupper($order), $allowed_orders)) {
+	$order = 'DESC';
+}
+
+$query = "SELECT ev.name, ev.location, ev.startdate, ev.id, et.label FROM registration AS reg INNER JOIN events AS ev ON reg.event_id=ev.id INNER JOIN event_types AS et ON ev.type_id = et.id WHERE reg.user_id=? AND ev.type_id=? ORDER BY ev.$sort $order";
+
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param("ii", $userid, $typeid);
+$stmt->execute();
+$result = $stmt->get_result();
 
 $events = [];
-while ($row = $results->fetch_object()) {
-  /*  $id =  $row->user_id;
-	$phones = null;
-	$rank = getLabel('ranks',$row->rank_id,$mysqli);
-	$patrol = getLabel('patrols',$row->patrol_id,$mysqli);
-	$position = getLabel('leadership',$row->position_id,$mysqli);
-  
-	$query2="SELECT * FROM phone WHERE user_id=" . $id;
-	$results2 = $mysqli->query($query2);
-	if ($results2) {
-		while ($row2 = $results2->fetch_object()){
-			$phones[] = "<a href='tel:" . $row2->phone . "'>" . $row2->phone . "</a> " . $row2->type ;
-		}
-	}. */
+while ($row = $result->fetch_object()) {
 	$events[] = [
-		'name' => $row->name,
-		'location' => $row->location,
-		'startdate'=> $row->startdate,
-		//'label'=> $row->label,
-		'event_id'=> $row->id 
+		'name' => escape_html($row->name),
+		'location' => escape_html($row->location),
+		'startdate'=> escape_html($row->startdate),
+		'event_id'=> $row->id
 	];
 }
+$stmt->close();
 
 echo json_encode($events);
 die();
@@ -62,12 +55,21 @@ die();
 
 function getLabel($strTable,$id,$mysqli){
 	if ($id) {
-		$query = 'SELECT label FROM '.$strTable.' WHERE id='.$id;
-		$results = $mysqli->query($query);
-		$row = $results->fetch_assoc();
+		// Whitelist allowed tables
+		$allowed_tables = ['event_types'];
+		if (!in_array($strTable, $allowed_tables)) {
+			return '';
+		}
+
+		$stmt = $mysqli->prepare("SELECT label FROM $strTable WHERE id=?");
+		$stmt->bind_param("i", $id);
+		$stmt->execute();
+		$result = $stmt->get_result();
+		$row = $result->fetch_assoc();
+		$stmt->close();
 		return $row['label'];
 	} else {
 		return "";
 	}
-}	
-?> 
+}
+?>

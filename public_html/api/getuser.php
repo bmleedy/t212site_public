@@ -1,20 +1,29 @@
 <?php
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-	echo "Not sure what you are after, but it ain't here.";
-  die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+require_ajax();
+$current_user_id = require_authentication();
+
 header('Content-Type: application/json');
 require 'connect.php';
-$id = $_POST['id'];
-$edit = $_POST['edit'];
-$wm = $_POST['wm'];		// = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
-$isAdmin = $_POST['userAdmin'];
 
-$query="SELECT * FROM users WHERE user_id=".$id;
-$results = $mysqli->query($query);
-$row = $results->fetch_object();
+// Validate inputs
+$id = validate_int_post('id', true);
+$edit = validate_bool_post('edit', false);
+$wm = validate_bool_post('wm', false);  // = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
+$isAdmin = validate_bool_post('userAdmin', false);
+
+// Authorization check - user can only view their own data unless they have permission
+if ($id != $current_user_id) {
+	require_user_access($id, $current_user_id);
+}
+
+$stmt = $mysqli->prepare("SELECT * FROM users WHERE user_id=?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$result = $stmt->get_result();
+$row = $result->fetch_object();
 $user_first = $row->user_first;
 $user_last = $row->user_last;
 $user_email = $row->user_email;
@@ -23,11 +32,12 @@ $user_id = $row->user_id;
 $user_type = $row->user_type;
 $family_id = $row->family_id;
 $notif_preferences = $row->notif_preferences;
+$stmt->close();
 
 if ($edit && !$wm) {
-	$varFirst = '<input type="text" id="user_first" required value="'. $user_first . '"/>';
-	$varLast = '<input type="text" id="user_last" required value="'. $user_last . '"/>';
-	$varEmail = '<input type="text" id="user_email" required value="'. $user_email . '"/>';
+	$varFirst = '<input type="text" id="user_first" required value="'. escape_html($user_first) . '"/>';
+	$varLast = '<input type="text" id="user_last" required value="'. escape_html($user_last) . '"/>';
+	$varEmail = '<input type="text" id="user_email" required value="'. escape_html($user_email) . '"/>';
 
 	$isScout='';
 	$isAlumni='';
@@ -59,46 +69,54 @@ if ($edit && !$wm) {
 			<option value="Other" '.$isOther .'>Other</option>
 			<option value="Delete" '.$isDelete .'>Delete</option>
 		</select>';
-        $varUserName = '<p>' . $user_name . '</p>';
+        $varUserName = '<p>' . escape_html($user_name) . '</p>';
     if ($isAdmin) {
-        $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. $family_id . '"/></label></div>';
+        $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. escape_html($family_id) . '"/></label></div>';
 		$varFamilyID = '';
     } else {
-        $varFamilyID = '<input type="hidden" id="family_id" value="'. $family_id . '" />';
+        $varFamilyID = '<input type="hidden" id="family_id" value="'. escape_html($family_id) . '" />';
 		$varFamilyIDData = '';
     }
 } else {
 	if ($user_type=="Scout") {
-		$mailTo = '<a href="mailto:' . $user_email ;
+		$mailTo = '<a href="mailto:' . escape_html($user_email) ;
 		$sep = ';';
-		$query3 = "SELECT user_email FROM users WHERE user_type !='Scout' AND family_id=" . $family_id;
-		$results3 = $mysqli->query($query3);
-		while ($row3 = $results3->fetch_assoc()) {
-			$mailTo = $mailTo . $sep . $row3['user_email'];
+		$stmt = $mysqli->prepare("SELECT user_email FROM users WHERE user_type !='Scout' AND family_id=?");
+		$stmt->bind_param("i", $family_id);
+		$stmt->execute();
+		$result3 = $stmt->get_result();
+		while ($row3 = $result3->fetch_assoc()) {
+			$mailTo = $mailTo . $sep . escape_html($row3['user_email']);
 		}
+		$stmt->close();
 		$mailTo = $mailTo . '?Subject=Troop 212 Summer Camp Merit Badge Follow-up">Email Scout & Parents</a>';
 	}
 
-	$varFirst = '<p>'.$user_first.'</p>';
-	$varLast = '<p>'.$user_last.'</p>';
-	if ($user_type=="Scout") {$varEmail = '<p>'.$user_email.'<br>'.$mailTo.'</p>';}
+	$varFirst = '<p>'.escape_html($user_first).'</p>';
+	$varLast = '<p>'.escape_html($user_last).'</p>';
+	if ($user_type=="Scout") {$varEmail = '<p>'.escape_html($user_email).'<br>'.$mailTo.'</p>';}
 	else {$varEmail='';}
 
-	$varUserType = '<p>'.$user_type.'</p>'.'<input type="hidden" id="user_type" value="'. $user_type . '" />';
-	$varUserName = '<p>'.$user_name.'</p>';
+	$varUserType = '<p>'.escape_html($user_type).'</p>'.'<input type="hidden" id="user_type" value="'. escape_html($user_type) . '" />';
+	$varUserName = '<p>'.escape_html($user_name).'</p>';
     if ($isAdmin) {
-        $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. $family_id . '"/></label></div>';
+        $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. escape_html($family_id) . '"/></label></div>';
 		$varFamilyID='';
     } else {
-        $varFamilyID = '<input type="hidden" id="family_id" value="'. $family_id . '" />';
+        $varFamilyID = '<input type="hidden" id="family_id" value="'. escape_html($family_id) . '" />';
     }
 }
 
-$query="SELECT * FROM phone WHERE user_id=".$id;
-$results = $mysqli->query($query);
+$stmt = $mysqli->prepare("SELECT * FROM phone WHERE user_id=?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+$results = $stmt->get_result();
 if ($results == false) {
     die("ERROR in ".__FILE__."could not query MySQL");
 }
+$varPhone = [];
+$varType = [];
+$varID = [];
 for ($i = 1; $i <= 3; $i++) {
 	$row = $results->fetch_assoc();
 	if (!$row) {
@@ -123,7 +141,7 @@ for ($i = 1; $i <= 3; $i++) {
 		$isHome = "";
 		$varID[] = $row["id"];
 		if ($edit && !$wm) {
-			$varPhone[] = '<input type="text" id="user_phone_'.$i.'" value="'. $row["phone"] . '"/>';
+			$varPhone[] = '<input type="text" id="user_phone_'.$i.'" value="'. escape_html($row["phone"]) . '"/>';
 			if ($row["type"]=="My Cell") {
 				$isCell =  "SELECTED" ;
 			} elseif ($row["type"] == "Parent") {
@@ -139,11 +157,12 @@ for ($i = 1; $i <= 3; $i++) {
 					<option value="Landline" '.$isWork.'>Landline</option>
 				</select>';
 		} else {
-			$varPhone[] = '<p>'. $row["phone"] .'</p>';
-			$varType[] = '<p>'. $row["type"] .'</p>';
+			$varPhone[] = '<p>'. escape_html($row["phone"]) .'</p>';
+			$varType[] = '<p>'. escape_html($row["type"]) .'</p>';
 		}
 	}
-};
+}
+$stmt->close();
 
 // Build notification preferences section
 require_once '../includes/notification_types.php';
@@ -181,14 +200,14 @@ foreach ($notification_types as $index => $notif) {
 	}
 
 	if ($edit && !$wm) {
-		$varNotifPrefs .= '<label title="' . htmlspecialchars($tooltip) . '">';
-		$varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . $key . '" id="notif_' . $key . '" value="' . $key . '" ' . $is_checked . ' />';
-		$varNotifPrefs .= ' ' . htmlspecialchars($display_name);
+		$varNotifPrefs .= '<label title="' . escape_html($tooltip) . '">';
+		$varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . escape_html($key) . '" id="notif_' . escape_html($key) . '" value="' . escape_html($key) . '" ' . $is_checked . ' />';
+		$varNotifPrefs .= ' ' . escape_html($display_name);
 		$varNotifPrefs .= '</label><br>';
 	} else {
 		// Display mode - show preferences as text
 		$status = ($is_checked === 'checked') ? 'Enabled' : 'Disabled';
-		$varNotifPrefs .= '<p><strong>' . htmlspecialchars($display_name) . ':</strong> ' . $status . '</p>';
+		$varNotifPrefs .= '<p><strong>' . escape_html($display_name) . ':</strong> ' . $status . '</p>';
 	}
 
 	// Close column
@@ -200,9 +219,9 @@ foreach ($notification_types as $index => $notif) {
 $varNotifPrefs .= '</div>';
 
 $varData = $varFamilyID .
-'<input type="hidden" id="phone_id_1" value="'. $varID[0] . '" />
-<input type="hidden" id="phone_id_2" value="'. $varID[1] . '" />
-<input type="hidden" id="phone_id_3" value="'. $varID[2] . '" />
+'<input type="hidden" id="phone_id_1" value="'. escape_html($varID[0]) . '" />
+<input type="hidden" id="phone_id_2" value="'. escape_html($varID[1]) . '" />
+<input type="hidden" id="phone_id_3" value="'. escape_html($varID[2]) . '" />
 	<div class="row">
   	<div class="large-6 columns">
       <label>First Name
