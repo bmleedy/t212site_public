@@ -36,9 +36,9 @@ This document describes the comprehensive test suite for the activity logging fu
 
 **Tests Included:**
 - ✅ Activity logger file existence
-- ✅ All 9 API files include activity_logger.php
-- ✅ All 9 API files call log_activity() (26 total calls)
-- ✅ All 16 expected action names present
+- ✅ All 8 API files include activity_logger.php
+- ✅ All 8 API files call log_activity() (24 total calls)
+- ✅ All 14 expected action names present
 - ✅ Cleanup script exists and configured correctly
 - ✅ Function signatures correct
 - ✅ Email alert configuration correct
@@ -147,7 +147,6 @@ This will run all tests including:
 - ✅ `/public_html/api/add_merch.php`
 - ✅ `/public_html/api/ppupdate2.php`
 - ✅ `/public_html/api/pay.php`
-- ✅ `/public_html/api/pprecharter.php`
 - ✅ `/db_copy/cleanup_activity_log.php`
 
 ### Functionality Tested
@@ -164,7 +163,7 @@ This will run all tests including:
 - ✅ 90-day cleanup script
 - ✅ Database schema
 
-### Actions Verified (16 total)
+### Actions Verified (14 total)
 1. `update_user`
 2. `cancel_registration`
 3. `mark_registration_paid`
@@ -180,7 +179,6 @@ This will run all tests including:
 13. `update_order_item`
 14. `batch_payment_update`
 15. `update_payment_status`
-16. `batch_recharter_update`
 
 ---
 
@@ -189,9 +187,9 @@ This will run all tests including:
 ### Static Analysis Test Results
 ```
 Test 1: ✅ PASSED - activity_logger.php file exists
-Test 2: ✅ PASSED - All 9 API files include activity_logger.php
-Test 3: ✅ PASSED - All API files call log_activity() (26 calls total)
-Test 4: ✅ PASSED - All 16 action names present
+Test 2: ✅ PASSED - All 8 API files include activity_logger.php
+Test 3: ✅ PASSED - All API files call log_activity() (24 calls total)
+Test 4: ✅ PASSED - All 14 action names present
 Test 5: ⚠️  FAILED - Regex pattern detection (functionality OK)
 Test 6: ✅ PASSED - Cleanup script configured correctly
 Test 7: ✅ PASSED - Function signatures correct

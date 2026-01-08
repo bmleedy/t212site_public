@@ -74,8 +74,7 @@ $api_files = [
     'amd_event.php',
     'add_merch.php',
     'ppupdate2.php',
-    'pay.php',
-    'pprecharter.php'
+    'pay.php'
 ];
 
 $all_include_logger = true;
@@ -151,8 +150,7 @@ $expected_actions = [
     'amd_event.php' => ['update_event', 'create_event'],
     'add_merch.php' => ['create_order', 'update_order_item'],
     'ppupdate2.php' => ['batch_payment_update'],
-    'pay.php' => ['update_payment_status'],
-    'pprecharter.php' => ['batch_recharter_update']
+    'pay.php' => ['update_payment_status']
 ];
 
 $all_actions_present = true;
