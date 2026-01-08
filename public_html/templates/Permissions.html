@@ -1,0 +1,349 @@
+<style>
+	.permissions-filters {
+		background: #f5f5f5;
+		padding: 20px;
+		margin-bottom: 20px;
+		border-radius: 5px;
+	}
+	.filter-row {
+		margin-bottom: 15px;
+	}
+	.filter-row label {
+		display: inline-block;
+		width: 120px;
+		font-weight: bold;
+	}
+	.filter-row input, .filter-row select {
+		padding: 5px;
+		margin-right: 10px;
+	}
+	#permissionsTable {
+		width: 100%;
+		border-collapse: collapse;
+		margin-top: 20px;
+	}
+	#permissionsTable th {
+		background: #333;
+		color: white;
+		padding: 10px;
+		text-align: left;
+		position: sticky;
+		top: 0;
+	}
+	#permissionsTable td {
+		padding: 8px;
+		border-bottom: 1px solid #ddd;
+		vertical-align: middle;
+	}
+	#permissionsTable tr:hover {
+		background: #f9f9f9;
+	}
+	.filter-input {
+		width: 150px;
+		padding: 3px;
+		font-size: 0.9em;
+	}
+	.btn-filter {
+		background: #0078A8;
+		color: white;
+		padding: 8px 15px;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+	}
+	.btn-filter:hover {
+		background: #005580;
+	}
+	.btn-clear {
+		background: #6c757d;
+		color: white;
+		padding: 8px 15px;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		margin-left: 10px;
+	}
+	.btn-clear:hover {
+		background: #545b62;
+	}
+	.btn-save {
+		background: #28a745;
+		color: white;
+		padding: 10px 20px;
+		border: none;
+		border-radius: 3px;
+		cursor: pointer;
+		font-size: 1em;
+		margin-top: 20px;
+	}
+	.btn-save:hover {
+		background: #218838;
+	}
+	.user-count {
+		margin: 10px 0;
+		font-weight: bold;
+	}
+	.permission-checkbox {
+		margin: 0 5px;
+	}
+	.user-name {
+		font-weight: bold;
+	}
+	.user-type {
+		color: #666;
+		font-size: 0.9em;
+		font-style: italic;
+	}
+	.permission-header {
+		text-align: center;
+	}
+	.permission-cell {
+		text-align: center;
+	}
+	.legend {
+		background: #e9ecef;
+		padding: 15px;
+		margin-bottom: 20px;
+		border-radius: 5px;
+	}
+	.legend h4 {
+		margin-top: 0;
+	}
+	.legend ul {
+		margin: 10px 0;
+		padding-left: 20px;
+	}
+	.legend li {
+		margin: 5px 0;
+	}
+</style>
+
+<h2>User Permissions Management</h2>
+<p>Manage system permissions for all active users. Changes are logged to the activity log.</p>
+
+<div class="legend">
+	<h4>Permission Codes:</h4>
+	<ul>
+		<li><strong>sa</strong> - Super Admin (full access to everything)</li>
+		<li><strong>wm</strong> - Webmaster (manage site, view logs, manage patrols)</li>
+		<li><strong>ue</strong> - User Edit (create/edit users)</li>
+		<li><strong>oe</strong> - Outing Edit (manage events)</li>
+		<li><strong>pl</strong> - Patrol Leader (access patrol tools - auto-managed by position)</li>
+		<li><strong>trs</strong> - Treasurer (financial access)</li>
+	</ul>
+	<p><em>Note: The 'pl' permission is automatically managed based on Scout position. Manual changes will be overwritten when the user's position is updated.</em></p>
+</div>
+
+<div class="permissions-filters">
+	<h3>Filters</h3>
+
+	<div class="filter-row">
+		<label for="filterUserType">User Type:</label>
+		<select id="filterUserType">
+			<option value="">All Users</option>
+			<option value="Scout">Scouts Only</option>
+			<option value="Adult">Adults Only</option>
+		</select>
+	</div>
+
+	<div class="filter-row">
+		<label for="filterName">Name:</label>
+		<input type="text" id="filterName" class="filter-input" placeholder="Search by name" />
+	</div>
+
+	<div class="filter-row">
+		<label for="filterPermission">Has Permission:</label>
+		<select id="filterPermission">
+			<option value="">All Permissions</option>
+			<option value="sa">Super Admin (sa)</option>
+			<option value="wm">Webmaster (wm)</option>
+			<option value="ue">User Edit (ue)</option>
+			<option value="oe">Outing Edit (oe)</option>
+			<option value="pl">Patrol Leader (pl)</option>
+			<option value="trs">Treasurer (trs)</option>
+		</select>
+	</div>
+
+	<div class="filter-row">
+		<label></label>
+		<button class="btn-filter" onclick="loadPermissions()">Apply Filters</button>
+		<button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
+	</div>
+</div>
+
+<div class="user-count" id="userCount"></div>
+
+<div id="permissionsData">
+	<p>Loading...</p>
+</div>
+
+<button class="btn-save" onclick="savePermissions()">Save All Changes</button>
+
+<div id="saveMessage" style="margin-top: 20px; font-weight: bold;"></div>
+
+<script type="text/javascript">
+var userData = []; // Store loaded user data
+
+function writeRow(user) {
+	// Parse current permissions into an array
+	var permissions = user.user_access ? user.user_access.split('.') : [];
+
+	var row = '<tr data-user-id="' + user.user_id + '">';
+	row += '<td>' + user.user_id + '</td>';
+	row += '<td class="user-name">' + user.user_first + ' ' + user.user_last + '<br><span class="user-type">' + user.user_type + '</span></td>';
+
+	// Create checkboxes for each permission
+	var permissionCodes = ['sa', 'wm', 'ue', 'oe', 'pl', 'trs'];
+	permissionCodes.forEach(function(code) {
+		var checked = permissions.includes(code) ? 'checked' : '';
+		var disabled = code === 'pl' ? 'disabled title="Auto-managed by position"' : '';
+		row += '<td class="permission-cell">';
+		row += '<input type="checkbox" class="permission-checkbox" ';
+		row += 'data-user-id="' + user.user_id + '" ';
+		row += 'data-permission="' + code + '" ';
+		row += checked + ' ' + disabled + ' />';
+		row += '</td>';
+	});
+
+	row += '</tr>';
+	return row;
+}
+
+function loadPermissions() {
+	var filters = {
+		userType: document.getElementById('filterUserType').value,
+		name: document.getElementById('filterName').value,
+		permission: document.getElementById('filterPermission').value
+	};
+
+	$.ajax({
+		url: "api/getpermissions.php",
+		type: "post",
+		data: JSON.stringify(filters),
+		contentType: 'application/json',
+		datatype: 'json',
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			console.log('Error:', errorThrown);
+			console.log('Status:', textStatus);
+			$('#permissionsData').html('<p style="color: red;">Error loading permissions. Please try again.</p>');
+		},
+		success: function(data) {
+			console.log('Loaded', data.length, 'users');
+			userData = data; // Store for saving later
+
+			if (data.length === 0) {
+				$('#permissionsData').html('<p>No users found for the selected filters.</p>');
+				$('#userCount').html('0 users found');
+				return;
+			}
+
+			var table = '<table id="permissionsTable">';
+			table += '<thead><tr>';
+			table += '<th>User ID</th>';
+			table += '<th>Name</th>';
+			table += '<th class="permission-header">sa<br><small>Super Admin</small></th>';
+			table += '<th class="permission-header">wm<br><small>Webmaster</small></th>';
+			table += '<th class="permission-header">ue<br><small>User Edit</small></th>';
+			table += '<th class="permission-header">oe<br><small>Outing Edit</small></th>';
+			table += '<th class="permission-header">pl<br><small>Patrol Leader</small></th>';
+			table += '<th class="permission-header">trs<br><small>Treasurer</small></th>';
+			table += '</tr></thead>';
+			table += '<tbody>';
+
+			data.forEach(function(user) {
+				table += writeRow(user);
+			});
+
+			table += '</tbody></table>';
+
+			$('#permissionsData').html(table);
+			$('#userCount').html(data.length + ' users found');
+			$('#saveMessage').html('');
+		}
+	});
+}
+
+function clearFilters() {
+	document.getElementById('filterUserType').value = '';
+	document.getElementById('filterName').value = '';
+	document.getElementById('filterPermission').value = '';
+	loadPermissions();
+}
+
+function savePermissions() {
+	// Collect all permission changes
+	var updates = [];
+
+	userData.forEach(function(user) {
+		var userId = user.user_id;
+		var newPermissions = [];
+
+		// Get all checked checkboxes for this user (except disabled ones)
+		var checkboxes = document.querySelectorAll('input[data-user-id="' + userId + '"]:not(:disabled)');
+		checkboxes.forEach(function(checkbox) {
+			if (checkbox.checked) {
+				newPermissions.push(checkbox.getAttribute('data-permission'));
+			}
+		});
+
+		// Always include 'pl' if it was originally there (it's disabled, so won't be in checkboxes)
+		var originalPermissions = user.user_access ? user.user_access.split('.') : [];
+		if (originalPermissions.includes('pl') && !newPermissions.includes('pl')) {
+			newPermissions.push('pl');
+		}
+
+		// Create the new permission string
+		var newAccessString = newPermissions.join('.');
+
+		// Only include if changed
+		if (newAccessString !== user.user_access) {
+			updates.push({
+				user_id: userId,
+				user_access: newAccessString,
+				old_access: user.user_access
+			});
+		}
+	});
+
+	if (updates.length === 0) {
+		$('#saveMessage').html('<span style="color: #856404;">No changes to save.</span>');
+		return;
+	}
+
+	// Confirm before saving
+	if (!confirm('Save permission changes for ' + updates.length + ' user(s)?')) {
+		return;
+	}
+
+	$('#saveMessage').html('<span style="color: #0078A8;">Saving...</span>');
+
+	$.ajax({
+		url: "api/updatepermissions.php",
+		type: "post",
+		data: JSON.stringify({ updates: updates }),
+		contentType: 'application/json',
+		datatype: 'json',
+		error: function(XMLHttpRequest, textStatus, errorThrown) {
+			console.log('Error:', errorThrown);
+			console.log('Status:', textStatus);
+			$('#saveMessage').html('<span style="color: red;">Error saving permissions. Please try again.</span>');
+		},
+		success: function(response) {
+			if (response.status === 'Success') {
+				$('#saveMessage').html('<span style="color: green;">✅ Successfully updated ' + response.updated + ' user(s). Changes logged to activity log.</span>');
+				// Reload to reflect changes
+				setTimeout(function() {
+					loadPermissions();
+				}, 2000);
+			} else {
+				$('#saveMessage').html('<span style="color: red;">❌ Error: ' + (response.message || 'Unknown error') + '</span>');
+			}
+		}
+	});
+}
+
+// Load data when page loads
+$(document).ready(function() {
+	loadPermissions();
+});
+</script>

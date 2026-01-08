@@ -68,6 +68,10 @@
     echo '<a href="ActivityLog.php"><p><i class="fi-list" style="font-size:20px"></i> [Webmaster] Activity Log</p></a><hr>';
   } ?>
 
+  <?php if (in_array("sa",$access)) {
+    echo '<a href="Permissions.php"><p><i class="fi-key" style="font-size:20px"></i> [Admin] Permissions</p></a><hr>';
+  } ?>
+
 	<a href="login/index.php?logout">
 	<p><i class="fi-power" style="font-size:20px"></i>
 	Logoff</p>
