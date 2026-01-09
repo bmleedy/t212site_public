@@ -1,4 +1,4 @@
-<?php 
+<?php
   $serverName = $_SERVER['SERVER_NAME'];
   $serverPort = $_SERVER['SERVER_PORT'];
   $url = dirname('https://' . $serverName . $_SERVER['REQUEST_URI']);
@@ -6,7 +6,8 @@
   $cancelUrl =  $url . "/EventPay.php";
 ?>
 
-<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<!-- PayPal JavaScript SDK with Venmo, Card, and Apple Pay support -->
+<script src="https://www.paypal.com/sdk/js?client-id=AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b9gAll40TKZ0SMk6E&enable-funding=venmo&currency=USD"></script>
 
 <script type="text/javascript">
 var objEvents = [];
@@ -14,69 +15,101 @@ var payItems=[];
 var reg_ids='';
 var strTable;
 var user_id;
-    
-paypal.Button.render({
-  env: 'production', // Specify 'sandbox' for the test environment
 
-  client: {
-    //OLD:
-    //sandbox:    'AWy3LrholYBtr_nGJRIVNcOLYrHTWRj7Oo2gAuYOReZ4c-HjG3B03THga5rmjHiYXdwzPWWs_e69QLCr',
-    //production: 'AQCKEa3RB9bPHFnnONdxGgouip5w6RhDelDn5IliWlc9Y3Njy-xXqLsE_VxBe0psdWjCWc0BiJc7SCt2'
-    //NEW
-    sandbox:    'AWW6UGuBzF55iIUojsyH6v9LWZwdrL3WWpWghxgPvRC4WoFhZ8IY2XENBQgg1o_r93XI-EluTuZtTXnG',
-    production: 'AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b9gAll40TKZ0SMk6E'
-  },
-    
-  payment: function() {
-    payItems = []; // Reset for each payment
-    reg_ids = '';  // Reset for each payment
-    var env    = this.props.env;
-    var client = this.props.client;
-    var total=0;
-    var pay_cb = $('[type=checkbox]');
-    for (i = 0; i < pay_cb.length; i++) {
-      if (pay_cb[i].checked) {
-        if (reg_ids == '') {
-          reg_ids = pay_cb[i].id;
-        } else {
-          reg_ids = reg_ids + ',' + pay_cb[i].id;
-        }
-        for (x=0; x < objEvents.length; x++ ) {
-          if (objEvents[x].sku == pay_cb[i].id) {
-            payItems.push(objEvents[x]);
-            break;
+// Initialize PayPal Buttons when DOM is ready
+function initPayPalButtons() {
+  paypal.Buttons({
+    // Style the buttons
+    style: {
+      layout: 'vertical',
+      color: 'gold',
+      shape: 'rect',
+      label: 'paypal'
+    },
+
+    // Called when the button is clicked
+    createOrder: function(data, actions) {
+      payItems = []; // Reset for each payment
+      reg_ids = '';  // Reset for each payment
+      var total = 0;
+      var pay_cb = $('[type=checkbox]');
+      var itemsForOrder = [];
+
+      for (var i = 0; i < pay_cb.length; i++) {
+        if (pay_cb[i].checked) {
+          if (reg_ids == '') {
+            reg_ids = pay_cb[i].id;
+          } else {
+            reg_ids = reg_ids + ',' + pay_cb[i].id;
           }
+          for (var x = 0; x < objEvents.length; x++) {
+            if (objEvents[x].sku == pay_cb[i].id) {
+              payItems.push(objEvents[x]);
+              // Build items array for the new SDK format
+              itemsForOrder.push({
+                name: objEvents[x].name.substring(0, 127), // PayPal limits to 127 chars
+                unit_amount: {
+                  currency_code: 'USD',
+                  value: objEvents[x].price
+                },
+                quantity: '1'
+              });
+              break;
+            }
+          }
+          total = total + Number(pay_cb[i].value);
         }
-        total = total + Number(pay_cb[i].value);
       }
+
+      // Validate that at least one event is selected
+      if (total === 0) {
+        alert('Please select at least one event to pay for.');
+        return Promise.reject(new Error('No events selected'));
+      }
+
+      // Build a description string with event names
+      var eventNames = payItems.map(function(item) { return item.description; }).join(', ');
+      var userId = user_id || strID;
+      var paymentDescription = "Scout Event: " + eventNames.substring(0, 127);
+
+      return actions.order.create({
+        purchase_units: [{
+          description: paymentDescription,
+          amount: {
+            currency_code: 'USD',
+            value: total.toFixed(2),
+            breakdown: {
+              item_total: {
+                currency_code: 'USD',
+                value: total.toFixed(2)
+              }
+            }
+          },
+          items: itemsForOrder
+        }]
+      });
+    },
+
+    // Called when the payment is approved
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        // Redirect to the return page with registration IDs
+        window.location = "PPReturnPage2.php?reg_ids=" + reg_ids;
+      });
+    },
+
+    // Called when there's an error
+    onError: function(err) {
+      console.error('PayPal error:', err);
+      alert('There was an error processing your payment. Please try again.');
+    },
+
+    // Called when the user cancels
+    onCancel: function(data) {
+      console.log('Payment cancelled by user');
     }
-
-    // Build a description string with event names
-    var eventNames = payItems.map(function(item) { return item.name + "|" + item.description; }).join(', ');
-    var userId = user_id || strID; // Use your user ID variable
-    var paymentDescription = "Scout|Event: " + eventNames + " - User ID: " + userId;
-
-    return paypal.rest.payment.create(env, client, {
-      intent: "sale",
-      transactions: [{
-        amount: { total: total, currency: 'USD' } ,
-        item_list: { 
-          items: payItems
-        },
-        description: paymentDescription // Attach event names and user ID
-      }]
-    });
-  },
-
-  commit: true, // Optional: show a 'Pay Now' button in the checkout flow
-
-  onAuthorize: function(data, actions) {
-    // Optional: display a confirmation page here
-    return actions.payment.execute().then(function() {
-      window.location="PPReturnPage2.php?reg_ids=" + reg_ids;
-    });
-  }
-}, '#paypal-button');
+  }).render('#paypal-button');
+}
 
 function writeCell(strData, strWidth, strLink) {
   if (strLink == null) {
@@ -146,12 +179,17 @@ $(document).ready(function () {
 
       if (data.eventDataPay == null) {
         $("#userdataPay").append("<p>You do not have any Events to Pay for.</p>");
+        // Hide PayPal button if no events to pay for
+        $("#paypal-button").hide();
       } else {
         $("#userdataPay").append("<p>Please select all events you would like to pay for and click the Pay button.</p>");
+        $("#userdataPay").append("<p><em>You can pay with PayPal, Venmo, or Credit/Debit Card.</em></p>");
         strTable = "<table><tr><th></th><th>Scout</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
         data['eventDataPay'].forEach(writeRow);
         strTable = strTable + "</table>";
         $("#userdataPay").append(strTable);
+        // Initialize PayPal buttons after data is loaded
+        initPayPalButtons();
       }
     }
   });
