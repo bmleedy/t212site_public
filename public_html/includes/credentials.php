@@ -211,96 +211,25 @@ class Credentials {
     }
 
     // ========================================================================
-    // PAYPAL PRODUCTION CREDENTIALS
+    // PAYPAL CREDENTIALS (JavaScript SDK)
     // ========================================================================
 
     /**
-     * Get PayPal production username
-     *
-     * @return string
-     */
-    public function getPayPalProductionUsername() {
-        return $this->credentials['Paypal']['production']['UserName'] ?? '';
-    }
-
-    /**
-     * Get PayPal production password
-     *
-     * @return string
-     */
-    public function getPayPalProductionPassword() {
-        return $this->credentials['Paypal']['production']['Password'] ?? '';
-    }
-
-    /**
-     * Get PayPal production signature
-     *
-     * @return string
-     */
-    public function getPayPalProductionSignature() {
-        return $this->credentials['Paypal']['production']['Signature'] ?? '';
-    }
-
-    /**
-     * Get PayPal production App ID
-     *
-     * @return string
-     */
-    public function getPayPalProductionAppId() {
-        return $this->credentials['Paypal']['production']['AppId'] ?? '';
-    }
-
-    // ========================================================================
-    // PAYPAL SANDBOX CREDENTIALS
-    // ========================================================================
-
-    /**
-     * Get PayPal sandbox username
-     *
-     * @return string
-     */
-    public function getPayPalSandboxUsername() {
-        return $this->credentials['Paypal']['sandbox']['UserName'] ?? '';
-    }
-
-    /**
-     * Get PayPal sandbox password
-     *
-     * @return string
-     */
-    public function getPayPalSandboxPassword() {
-        return $this->credentials['Paypal']['sandbox']['Password'] ?? '';
-    }
-
-    /**
-     * Get PayPal sandbox signature
-     *
-     * @return string
-     */
-    public function getPayPalSandboxSignature() {
-        return $this->credentials['Paypal']['sandbox']['Signature'] ?? '';
-    }
-
-    /**
-     * Get PayPal sandbox App ID
-     *
-     * @return string
-     */
-    public function getPayPalSandboxAppId() {
-        return $this->credentials['Paypal']['sandbox']['AppId'] ?? '';
-    }
-
-    // ========================================================================
-    // PAYPAL CLIENT ID
-    // ========================================================================
-
-    /**
-     * Get PayPal Client ID (for SDK)
+     * Get PayPal Client ID for JavaScript SDK
      *
      * @return string
      */
     public function getPayPalClientId() {
         return $this->credentials['paypal_client_id'] ?? '';
+    }
+
+    /**
+     * Get PayPal Sandbox Client ID for JavaScript SDK (for testing)
+     *
+     * @return string
+     */
+    public function getPayPalSandboxClientId() {
+        return $this->credentials['paypal_sandbox_client_id'] ?? '';
     }
 
     // ========================================================================

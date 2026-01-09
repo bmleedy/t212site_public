@@ -1,9 +1,15 @@
-<?php 
+<?php
 session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require "includes/authHeader.php";
+require_once "includes/credentials.php";
+
 $user_id = $_SESSION['user_id'];
 $ref = $_SERVER['HTTP_REFERER'];
+
+// Get PayPal client ID from credentials
+$creds = Credentials::getInstance();
+$paypal_client_id = $creds->getPayPalClientId();
 ?>
 <input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
 <input type="hidden" id="ref" value="<?php echo $ref; ?>">

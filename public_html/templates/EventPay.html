@@ -7,7 +7,7 @@
 ?>
 
 <!-- PayPal JavaScript SDK with Venmo, Card, and Apple Pay support -->
-<script src="https://www.paypal.com/sdk/js?client-id=AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b9gAll40TKZ0SMk6E&enable-funding=venmo&currency=USD"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($paypal_client_id); ?>&enable-funding=venmo&currency=USD"></script>
 
 <script type="text/javascript">
 var objEvents = [];
