@@ -96,10 +96,35 @@
   </a>
   <hr>
 
-  <?php if ((in_array("trs",$access)) || (in_array("wm",$access)) || (in_array("sa",$access))) {
-    echo '<a href="TreasurerReport.php"><p><i class="fi-results-demographics" style="font-size:20px"></i> [Treasurer] Payment Report</p></a><hr>';
-    echo '<a href="ManageTShirtOrders.php"><p><i class="fi-shopping-cart" style="font-size:20px"></i> T-Shirt Orders</p></a><hr>';
-  } ?>
+  <?php
+  // Check if user has treasurer permissions
+  $hasTreasurerAccess = (in_array("trs",$access) || in_array("wm",$access) || in_array("sa",$access));
+  if ($hasTreasurerAccess) {
+  ?>
+  <div class="treasurer-menu">
+    <a href="javascript:void(0);" onclick="toggleTreasurerMenu()" style="display:block;">
+      <p><i class="fi-dollar" style="font-size:20px"></i> Treasurer <i id="treasurerMenuArrow" class="fi-arrow-down" style="font-size:12px; float:right; margin-top:5px;"></i></p>
+    </a>
+    <div id="treasurerMenuItems" style="display:none; padding-left:15px; border-left:2px solid #ddd; margin-left:10px;">
+      <a href="TreasurerReport.php"><p><i class="fi-results-demographics" style="font-size:16px"></i> Payment Report</p></a>
+      <a href="ManageTShirtOrders.php"><p><i class="fi-shopping-cart" style="font-size:16px"></i> T-Shirt Orders</p></a>
+    </div>
+  </div>
+  <hr>
+  <script>
+  function toggleTreasurerMenu() {
+    var menu = document.getElementById('treasurerMenuItems');
+    var arrow = document.getElementById('treasurerMenuArrow');
+    if (menu.style.display === 'none') {
+      menu.style.display = 'block';
+      arrow.className = 'fi-arrow-up';
+    } else {
+      menu.style.display = 'none';
+      arrow.className = 'fi-arrow-down';
+    }
+  }
+  </script>
+  <?php } ?>
 
   <?php
   // Check if user has any admin permissions
