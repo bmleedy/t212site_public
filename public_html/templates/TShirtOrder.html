@@ -1,0 +1,314 @@
+<!-- PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($paypal_client_id); ?>&enable-funding=venmo&currency=USD"></script>
+
+<h2>Order Class B T-Shirts</h2>
+
+<div id="loadingMessage">Loading pricing information...</div>
+<div id="ordersDisabled" style="display:none;">
+    <div data-alert class="alert-box warning">
+        T-shirt ordering is currently disabled. Please check back later.
+    </div>
+</div>
+
+<div id="orderForm" style="display:none;">
+    <div class="row">
+        <div class="large-4 columns">
+            <div id="tshirtImage">
+                <img id="productImage" src="/images/tshirt-classb.jpg" alt="Class B T-Shirt" style="width:100%; max-width:300px; border:1px solid #ddd; padding:5px;">
+            </div>
+        </div>
+        <div class="large-8 columns">
+            <h4>Select Sizes and Quantities</h4>
+            <p>Select the quantity for each size you want to order.</p>
+
+            <table id="sizeTable" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>Size</th>
+                        <th>Price</th>
+                        <th style="width:100px;">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody id="sizeTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="text-align:right;"><strong>Total:</strong></td>
+                        <td><strong>$<span id="orderTotal">0.00</span></strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <hr>
+
+    <h4>Your Information</h4>
+    <p>Please provide your contact information for order pickup.</p>
+
+    <div class="row">
+        <div class="large-6 columns">
+            <label>Full Name <span style="color:red;">*</span>
+                <input type="text" id="customerName" placeholder="Your full name" required>
+            </label>
+        </div>
+        <div class="large-6 columns">
+            <label>Email Address <span style="color:red;">*</span>
+                <input type="email" id="customerEmail" placeholder="your.email@example.com" required>
+            </label>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="large-6 columns">
+            <label>Phone Number <span style="color:red;">*</span>
+                <input type="tel" id="customerPhone" placeholder="(555) 123-4567" required>
+            </label>
+        </div>
+        <div class="large-6 columns">
+            <label>Address (for our records) <span style="color:red;">*</span>
+                <input type="text" id="customerAddress" placeholder="Your address" required>
+            </label>
+        </div>
+    </div>
+
+    <hr>
+
+    <div id="paymentSection">
+        <h4>Payment</h4>
+        <p><em>You can pay with PayPal, Venmo, or Credit/Debit Card.</em></p>
+
+        <div id="validationError" style="display:none;" data-alert class="alert-box alert">
+            <span id="validationErrorText"></span>
+        </div>
+
+        <div id="paypal-button-container"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var itemPrices = {};
+var orderEnabled = false;
+
+$(document).ready(function() {
+    loadConfig();
+});
+
+function loadConfig() {
+    $.ajax({
+        url: 'api/tshirt_getconfig.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            $('#loadingMessage').hide();
+
+            if (!data.orders_enabled) {
+                $('#ordersDisabled').show();
+                return;
+            }
+
+            orderEnabled = true;
+            $('#orderForm').show();
+
+            // Set image
+            if (data.image_url) {
+                $('#productImage').attr('src', data.image_url);
+            }
+
+            // Build size table
+            var tbody = $('#sizeTableBody');
+            tbody.empty();
+
+            data.items.forEach(function(item) {
+                itemPrices[item.code] = item.price;
+
+                var sizeLabel = item.name.replace('Class B T-Shirt - ', '');
+                var row = '<tr>' +
+                    '<td>' + escapeHtml(sizeLabel) + '</td>' +
+                    '<td>$' + item.price.toFixed(2) + '</td>' +
+                    '<td><input type="number" id="qty_' + item.code + '" min="0" max="99" value="0" style="width:70px;" onchange="updateTotal()"></td>' +
+                    '</tr>';
+                tbody.append(row);
+            });
+
+            // Initialize PayPal buttons
+            initPayPalButtons();
+        },
+        error: function(xhr, status, error) {
+            $('#loadingMessage').html('<div class="alert-box alert">Failed to load pricing. Please refresh the page.</div>');
+            console.error('Config load error:', error);
+        }
+    });
+}
+
+function updateTotal() {
+    var total = 0;
+    for (var code in itemPrices) {
+        var qty = parseInt($('#qty_' + code).val()) || 0;
+        total += qty * itemPrices[code];
+    }
+    $('#orderTotal').text(total.toFixed(2));
+}
+
+function validateForm() {
+    var errors = [];
+
+    // Check quantities
+    var totalQty = 0;
+    for (var code in itemPrices) {
+        totalQty += parseInt($('#qty_' + code).val()) || 0;
+    }
+    if (totalQty === 0) {
+        errors.push('Please select at least one item.');
+    }
+
+    // Check required fields
+    if (!$('#customerName').val().trim()) {
+        errors.push('Please enter your name.');
+    }
+    if (!$('#customerEmail').val().trim()) {
+        errors.push('Please enter your email address.');
+    }
+    if (!$('#customerPhone').val().trim()) {
+        errors.push('Please enter your phone number.');
+    }
+    if (!$('#customerAddress').val().trim()) {
+        errors.push('Please enter your address.');
+    }
+
+    // Validate email format
+    var email = $('#customerEmail').val().trim();
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+        errors.push('Please enter a valid email address.');
+    }
+
+    if (errors.length > 0) {
+        $('#validationErrorText').html(errors.join('<br>'));
+        $('#validationError').show();
+        return false;
+    }
+
+    $('#validationError').hide();
+    return true;
+}
+
+function getOrderData() {
+    var data = {
+        customer_name: $('#customerName').val().trim(),
+        customer_email: $('#customerEmail').val().trim(),
+        customer_phone: $('#customerPhone').val().trim(),
+        shipping_address: $('#customerAddress').val().trim()
+    };
+
+    // Add quantities
+    for (var code in itemPrices) {
+        var fieldName = code.replace('tshirt_', 'qty_');
+        data[fieldName] = parseInt($('#qty_' + code).val()) || 0;
+    }
+
+    return data;
+}
+
+function initPayPalButtons() {
+    paypal.Buttons({
+        style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'paypal'
+        },
+
+        createOrder: function(data, actions) {
+            if (!validateForm()) {
+                return Promise.reject(new Error('Validation failed'));
+            }
+
+            var total = parseFloat($('#orderTotal').text());
+            if (total <= 0) {
+                $('#validationErrorText').text('Please select at least one item.');
+                $('#validationError').show();
+                return Promise.reject(new Error('No items selected'));
+            }
+
+            // Build items list for PayPal
+            var items = [];
+            for (var code in itemPrices) {
+                var qty = parseInt($('#qty_' + code).val()) || 0;
+                if (qty > 0) {
+                    var sizeName = code.replace('tshirt_', '').toUpperCase();
+                    items.push({
+                        name: 'Class B T-Shirt - ' + sizeName,
+                        unit_amount: {
+                            currency_code: 'USD',
+                            value: itemPrices[code].toFixed(2)
+                        },
+                        quantity: qty.toString()
+                    });
+                }
+            }
+
+            return actions.order.create({
+                purchase_units: [{
+                    description: 'Troop 212 Class B T-Shirt Order',
+                    amount: {
+                        currency_code: 'USD',
+                        value: total.toFixed(2),
+                        breakdown: {
+                            item_total: {
+                                currency_code: 'USD',
+                                value: total.toFixed(2)
+                            }
+                        }
+                    },
+                    items: items
+                }]
+            });
+        },
+
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                // Payment successful - create order in our database
+                var orderData = getOrderData();
+                orderData.paypal_order_id = data.orderID;
+
+                $.ajax({
+                    url: 'api/tshirt_createorder.php',
+                    type: 'POST',
+                    data: orderData,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'Success') {
+                            window.location.href = 'TShirtOrderComplete.php?order_id=' + response.order_id;
+                        } else {
+                            alert('Order was paid but there was an error saving it. Please contact us. Error: ' + response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Order was paid but there was an error saving it. Please contact us.');
+                        console.error('Order save error:', error);
+                    }
+                });
+            });
+        },
+
+        onError: function(err) {
+            console.error('PayPal error:', err);
+            if (err.message !== 'Validation failed' && err.message !== 'No items selected') {
+                alert('There was an error processing your payment. Please try again.');
+            }
+        },
+
+        onCancel: function(data) {
+            console.log('Payment cancelled by user');
+        }
+    }).render('#paypal-button-container');
+}
+
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+</script>

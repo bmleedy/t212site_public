@@ -229,6 +229,9 @@
         setButtons(varEdit, showEdit, user_type, webMaster);
         $('#scoutData').append(data['scoutData']);
         $('#scoutData').append(data['addressData']);
+        if (data['notifData']) {
+          $('#notifData').append(data['notifData']);
+        }
         if (user_type != "Scout") {
           $('#mb_panel').append(data['mbData']);
           toggleDiv("divMB");
@@ -248,6 +251,7 @@
 
   <div id="userData"></div>
   <div id="scoutData"></div>
+  <div id="notifData"></div>
   <div id="userButtons"></div>
   <div id="profilepic"></div>
 

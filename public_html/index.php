@@ -85,5 +85,15 @@ require_once( 'login/inc_login.php');
   </a>
 </div>
 
+<div class="row">
+  <a href="TShirtOrder.php">
+    <div class="large-3 columns">
+      <div class="panel">
+        <p><i class="fi-shirt" style="font-size:20px"></i> Order Class B T-Shirts</p>
+      </div>
+    </div>
+  </a>
+</div>
+
 
 <?php require "includes/footer.html"; ?>

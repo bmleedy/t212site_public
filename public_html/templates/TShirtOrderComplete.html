@@ -1,0 +1,88 @@
+<div data-alert class="alert-box success">
+    <strong>Thank you for your order!</strong> Your payment has been received.
+</div>
+
+<h2>Order Confirmation</h2>
+
+<div class="row">
+    <div class="large-12 columns">
+        <table style="width:100%;">
+            <tr>
+                <td style="width:150px;"><strong>Order Number:</strong></td>
+                <td>#<?php echo htmlspecialchars($order['id']); ?></td>
+            </tr>
+            <tr>
+                <td><strong>Order Date:</strong></td>
+                <td><?php echo date('F j, Y g:i A', strtotime($order['order_date'])); ?></td>
+            </tr>
+            <tr>
+                <td><strong>Name:</strong></td>
+                <td><?php echo htmlspecialchars($order['customer_name']); ?></td>
+            </tr>
+            <tr>
+                <td><strong>Email:</strong></td>
+                <td><?php echo htmlspecialchars($order['customer_email']); ?></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<hr>
+
+<h4>Items Ordered</h4>
+
+<table style="width:100%;">
+    <thead>
+        <tr>
+            <th>Item</th>
+            <th style="text-align:center;">Quantity</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        $sizes = [
+            'qty_xs' => 'Class B T-Shirt - XS',
+            'qty_s' => 'Class B T-Shirt - S',
+            'qty_m' => 'Class B T-Shirt - M',
+            'qty_l' => 'Class B T-Shirt - L',
+            'qty_xl' => 'Class B T-Shirt - XL',
+            'qty_xxl' => 'Class B T-Shirt - XXL'
+        ];
+
+        foreach ($sizes as $field => $name) {
+            $qty = intval($order[$field]);
+            if ($qty > 0) {
+                echo '<tr>';
+                echo '<td>' . htmlspecialchars($name) . '</td>';
+                echo '<td style="text-align:center;">' . $qty . '</td>';
+                echo '</tr>';
+            }
+        }
+        ?>
+    </tbody>
+    <tfoot>
+        <tr>
+            <td style="text-align:right;"><strong>Total:</strong></td>
+            <td style="text-align:center;"><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
+        </tr>
+    </tfoot>
+</table>
+
+<hr>
+
+<h4>Pickup Information</h4>
+
+<div class="panel callout">
+    <p><i class="fi-info" style="font-size:20px;"></i> <strong>Important:</strong></p>
+    <ul>
+        <li>Your order will be available for pickup at the next troop meeting.</li>
+        <li>We will contact you when your order is ready.</li>
+        <li>Please bring this order number (#<?php echo $order['id']; ?>) when picking up.</li>
+    </ul>
+</div>
+
+<p>A confirmation email has been sent to <strong><?php echo htmlspecialchars($order['customer_email']); ?></strong>.</p>
+
+<p>If you have any questions about your order, please contact us.</p>
+
+<p><a href="index.php" class="button">Return to Home</a></p>

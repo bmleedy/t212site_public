@@ -98,6 +98,7 @@
 
   <?php if ((in_array("trs",$access)) || (in_array("wm",$access)) || (in_array("sa",$access))) {
     echo '<a href="TreasurerReport.php"><p><i class="fi-results-demographics" style="font-size:20px"></i> [Treasurer] Payment Report</p></a><hr>';
+    echo '<a href="ManageTShirtOrders.php"><p><i class="fi-shopping-cart" style="font-size:20px"></i> T-Shirt Orders</p></a><hr>';
   } ?>
 
   <?php
@@ -112,6 +113,7 @@
     <div id="adminMenuItems" style="display:none; padding-left:15px; border-left:2px solid #ddd; margin-left:10px;">
       <?php if ((in_array("wm",$access)) || (in_array("sa",$access))) {
         echo '<a href="Patrols.php"><p><i class="fi-flag" style="font-size:16px"></i> Manage Patrols</p></a>';
+        echo '<a href="ManageItemPrices.php"><p><i class="fi-dollar" style="font-size:16px"></i> Item Prices</p></a>';
         echo '<a href="ActivityLog.php"><p><i class="fi-list" style="font-size:16px"></i> Activity Log</p></a>';
       } ?>
       <?php if (in_array("sa",$access)) {

@@ -1,0 +1,283 @@
+<h2>Manage T-Shirt Orders</h2>
+
+<div id="stats" class="row" style="margin-bottom:20px;">
+    <div class="large-3 columns">
+        <div class="panel callout">
+            <p style="margin:0;"><strong>Total Orders:</strong> <span id="statTotal">0</span></p>
+        </div>
+    </div>
+    <div class="large-3 columns">
+        <div class="panel" style="background:#ffc;">
+            <p style="margin:0;"><strong>Unfulfilled:</strong> <span id="statUnfulfilled">0</span></p>
+        </div>
+    </div>
+    <div class="large-3 columns">
+        <div class="panel" style="background:#cfc;">
+            <p style="margin:0;"><strong>Fulfilled:</strong> <span id="statFulfilled">0</span></p>
+        </div>
+    </div>
+    <div class="large-3 columns">
+        <div class="panel callout">
+            <p style="margin:0;"><strong>Revenue:</strong> $<span id="statRevenue">0.00</span></p>
+        </div>
+    </div>
+</div>
+
+<div class="row" style="margin-bottom:15px;">
+    <div class="large-4 columns">
+        <label>Filter by Status:
+            <select id="statusFilter" onchange="loadOrders()">
+                <option value="all">All Orders</option>
+                <option value="unfulfilled" selected>Unfulfilled Only</option>
+                <option value="fulfilled">Fulfilled Only</option>
+            </select>
+        </label>
+    </div>
+    <div class="large-8 columns" style="text-align:right; padding-top:25px;">
+        <button class="button small" onclick="loadOrders()"><i class="fi-refresh"></i> Refresh</button>
+        <button class="button small secondary" onclick="exportCSV()"><i class="fi-download"></i> Export CSV</button>
+    </div>
+</div>
+
+<div id="loadingMessage">Loading orders...</div>
+<div id="noOrders" style="display:none;">
+    <p><em>No orders found matching the selected filter.</em></p>
+</div>
+
+<div id="ordersTable" style="display:none; overflow-x:auto;">
+    <table style="width:100%;">
+        <thead>
+            <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+        </tbody>
+    </table>
+</div>
+
+<!-- Order Details Modal -->
+<div id="orderModal" class="reveal-modal" data-reveal aria-labelledby="modalTitle" aria-hidden="true" role="dialog">
+    <h3 id="modalTitle">Order Details</h3>
+    <div id="orderModalContent"></div>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+</div>
+
+<script type="text/javascript">
+var allOrders = [];
+
+$(document).ready(function() {
+    loadOrders();
+});
+
+function loadOrders() {
+    var status = $('#statusFilter').val();
+
+    $('#loadingMessage').show();
+    $('#ordersTable').hide();
+    $('#noOrders').hide();
+
+    $.ajax({
+        url: 'api/tshirt_getorders.php',
+        type: 'POST',
+        data: { status: status },
+        dataType: 'json',
+        success: function(data) {
+            $('#loadingMessage').hide();
+
+            if (data.status !== 'Success') {
+                alert('Error loading orders: ' + (data.message || 'Unknown error'));
+                return;
+            }
+
+            // Update stats
+            $('#statTotal').text(data.stats.total_orders);
+            $('#statUnfulfilled').text(data.stats.unfulfilled_orders);
+            $('#statFulfilled').text(data.stats.fulfilled_orders);
+            $('#statRevenue').text(data.stats.total_revenue.toFixed(2));
+
+            allOrders = data.orders;
+
+            if (data.orders.length === 0) {
+                $('#noOrders').show();
+                return;
+            }
+
+            renderOrdersTable(data.orders);
+            $('#ordersTable').show();
+        },
+        error: function(xhr, status, error) {
+            $('#loadingMessage').html('<div class="alert-box alert">Failed to load orders. Please try again.</div>');
+            console.error('Load error:', error);
+        }
+    });
+}
+
+function renderOrdersTable(orders) {
+    var tbody = $('#ordersTableBody');
+    tbody.empty();
+
+    orders.forEach(function(order) {
+        var itemsSummary = buildItemsSummary(order);
+        var statusBadge = order.fulfilled ?
+            '<span style="background:#cfc; padding:2px 8px; border-radius:3px;">Fulfilled</span>' :
+            '<span style="background:#ffc; padding:2px 8px; border-radius:3px;">Pending</span>';
+
+        var actions = '';
+        if (!order.fulfilled) {
+            actions = '<button class="button tiny" onclick="fulfillOrder(' + order.id + ')">Mark Fulfilled</button>';
+        } else {
+            actions = '<small>by ' + escapeHtml(order.fulfilled_by_name || 'Unknown') + '</small>';
+        }
+
+        var row = '<tr>' +
+            '<td><a href="#" onclick="showOrderDetails(' + order.id + '); return false;">#' + order.id + '</a></td>' +
+            '<td>' + formatDate(order.order_date) + '</td>' +
+            '<td>' + escapeHtml(order.customer_name) + '</td>' +
+            '<td><a href="mailto:' + escapeHtml(order.customer_email) + '">' + escapeHtml(order.customer_email) + '</a></td>' +
+            '<td>' + escapeHtml(order.customer_phone) + '</td>' +
+            '<td>' + itemsSummary + '</td>' +
+            '<td>$' + order.total_amount.toFixed(2) + '</td>' +
+            '<td>' + statusBadge + '</td>' +
+            '<td>' + actions + '</td>' +
+            '</tr>';
+
+        tbody.append(row);
+    });
+}
+
+function buildItemsSummary(order) {
+    var items = [];
+    if (order.qty_xs > 0) items.push('XS:' + order.qty_xs);
+    if (order.qty_s > 0) items.push('S:' + order.qty_s);
+    if (order.qty_m > 0) items.push('M:' + order.qty_m);
+    if (order.qty_l > 0) items.push('L:' + order.qty_l);
+    if (order.qty_xl > 0) items.push('XL:' + order.qty_xl);
+    if (order.qty_xxl > 0) items.push('XXL:' + order.qty_xxl);
+    return items.join(', ');
+}
+
+function fulfillOrder(orderId) {
+    if (!confirm('Mark order #' + orderId + ' as fulfilled?')) {
+        return;
+    }
+
+    $.ajax({
+        url: 'api/tshirt_fulfillorder.php',
+        type: 'POST',
+        data: { order_id: orderId },
+        dataType: 'json',
+        success: function(data) {
+            if (data.status === 'Success') {
+                loadOrders();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('Failed to update order. Please try again.');
+            console.error('Fulfill error:', error);
+        }
+    });
+}
+
+function showOrderDetails(orderId) {
+    var order = allOrders.find(function(o) { return o.id === orderId; });
+    if (!order) return;
+
+    var html = '<table style="width:100%;">' +
+        '<tr><td><strong>Order #:</strong></td><td>' + order.id + '</td></tr>' +
+        '<tr><td><strong>Date:</strong></td><td>' + formatDateTime(order.order_date) + '</td></tr>' +
+        '<tr><td><strong>Customer:</strong></td><td>' + escapeHtml(order.customer_name) + '</td></tr>' +
+        '<tr><td><strong>Email:</strong></td><td>' + escapeHtml(order.customer_email) + '</td></tr>' +
+        '<tr><td><strong>Phone:</strong></td><td>' + escapeHtml(order.customer_phone) + '</td></tr>' +
+        '<tr><td><strong>Address:</strong></td><td>' + escapeHtml(order.shipping_address) + '</td></tr>' +
+        '</table>' +
+        '<hr>' +
+        '<h5>Items Ordered</h5>' +
+        '<table style="width:100%;">' +
+        '<tr><th>Size</th><th>Quantity</th></tr>';
+
+    if (order.qty_xs > 0) html += '<tr><td>XS</td><td>' + order.qty_xs + '</td></tr>';
+    if (order.qty_s > 0) html += '<tr><td>S</td><td>' + order.qty_s + '</td></tr>';
+    if (order.qty_m > 0) html += '<tr><td>M</td><td>' + order.qty_m + '</td></tr>';
+    if (order.qty_l > 0) html += '<tr><td>L</td><td>' + order.qty_l + '</td></tr>';
+    if (order.qty_xl > 0) html += '<tr><td>XL</td><td>' + order.qty_xl + '</td></tr>';
+    if (order.qty_xxl > 0) html += '<tr><td>XXL</td><td>' + order.qty_xxl + '</td></tr>';
+
+    html += '<tr><td><strong>Total</strong></td><td><strong>$' + order.total_amount.toFixed(2) + '</strong></td></tr>' +
+        '</table>';
+
+    if (order.fulfilled) {
+        html += '<hr><p><strong>Fulfilled:</strong> ' + formatDateTime(order.fulfilled_date) + ' by ' + escapeHtml(order.fulfilled_by_name || 'Unknown') + '</p>';
+    }
+
+    $('#orderModalContent').html(html);
+    $('#orderModal').foundation('reveal', 'open');
+}
+
+function exportCSV() {
+    if (allOrders.length === 0) {
+        alert('No orders to export.');
+        return;
+    }
+
+    var csv = 'Order #,Date,Customer,Email,Phone,Address,XS,S,M,L,XL,XXL,Total,Status,Fulfilled Date,Fulfilled By\n';
+
+    allOrders.forEach(function(order) {
+        csv += order.id + ',';
+        csv += '"' + order.order_date + '",';
+        csv += '"' + order.customer_name.replace(/"/g, '""') + '",';
+        csv += '"' + order.customer_email + '",';
+        csv += '"' + order.customer_phone + '",';
+        csv += '"' + order.shipping_address.replace(/"/g, '""') + '",';
+        csv += order.qty_xs + ',';
+        csv += order.qty_s + ',';
+        csv += order.qty_m + ',';
+        csv += order.qty_l + ',';
+        csv += order.qty_xl + ',';
+        csv += order.qty_xxl + ',';
+        csv += order.total_amount.toFixed(2) + ',';
+        csv += (order.fulfilled ? 'Fulfilled' : 'Pending') + ',';
+        csv += '"' + (order.fulfilled_date || '') + '",';
+        csv += '"' + (order.fulfilled_by_name || '') + '"\n';
+    });
+
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var url = window.URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'tshirt_orders_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    return d.toLocaleDateString();
+}
+
+function formatDateTime(dateStr) {
+    if (!dateStr) return '';
+    var d = new Date(dateStr);
+    return d.toLocaleString();
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+</script>

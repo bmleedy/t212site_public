@@ -219,8 +219,77 @@ $returnMsg = array(
     'user_type' => $user_type,
     'scoutData' => $scoutData,
     'addressData' => $addressData,
-    'mbData' => $mbData
+    'mbData' => $mbData,
+    'notifData' => ''
 );
+
+// Add notification preferences for treasurers
+// First, get the current user's permissions
+$current_user_permissions = array();
+$perm_query = "SELECT user_access FROM users WHERE user_id = ?";
+$perm_stmt = $mysqli->prepare($perm_query);
+$perm_stmt->bind_param('i', $id);
+$perm_stmt->execute();
+$perm_result = $perm_stmt->get_result();
+if ($perm_row = $perm_result->fetch_assoc()) {
+    $current_user_permissions = explode('.', $perm_row['user_access']);
+}
+$perm_stmt->close();
+
+// If user has treasurer permission and is viewing their own profile in edit mode
+if ((in_array('trs', $current_user_permissions) || in_array('sa', $current_user_permissions))
+    && $id == $current_user_id) {
+
+    // Get current notification preferences from users.notif_preferences JSON column
+    $notif_prefs = [];
+    $notif_query = "SELECT notif_preferences FROM users WHERE user_id = ?";
+    $notif_stmt = $mysqli->prepare($notif_query);
+    $notif_stmt->bind_param('i', $id);
+    $notif_stmt->execute();
+    $notif_result = $notif_stmt->get_result();
+    if ($notif_row = $notif_result->fetch_assoc()) {
+        if (!empty($notif_row['notif_preferences'])) {
+            $decoded = json_decode($notif_row['notif_preferences'], true);
+            if (is_array($decoded)) {
+                $notif_prefs = $decoded;
+            }
+        }
+    }
+    $notif_stmt->close();
+
+    // Define available notification types for treasurers
+    $notif_types = array(
+        'tshirt_order' => 'Email me when a new T-shirt order is placed'
+    );
+
+    $notifData = '<hr><div class="row"><div class="large-12 columns">';
+    $notifData .= '<label><strong>Notification Preferences</strong></label>';
+    $notifData .= '<p style="font-size:0.9em; color:#666;">Choose which email notifications you would like to receive:</p>';
+
+    if ($edit) {
+        foreach ($notif_types as $type => $label) {
+            // Default to enabled if no preference set
+            $is_enabled = !isset($notif_prefs[$type]) || $notif_prefs[$type] == true;
+            $checked = $is_enabled ? 'checked' : '';
+            $notifData .= '<div class="large-12 columns" style="margin-bottom:10px;">';
+            $notifData .= '<input type="checkbox" class="notifPrefCheckbox" id="notif_' . escape_html($type) . '" value="' . escape_html($type) . '" ' . $checked . '> ';
+            $notifData .= '<label for="notif_' . escape_html($type) . '" style="display:inline;">' . escape_html($label) . '</label>';
+            $notifData .= '</div>';
+        }
+    } else {
+        $notifData .= '<ul>';
+        foreach ($notif_types as $type => $label) {
+            $is_enabled = !isset($notif_prefs[$type]) || $notif_prefs[$type] == true;
+            $status = $is_enabled ? '<span style="color:green;">Enabled</span>' : '<span style="color:#999;">Disabled</span>';
+            $notifData .= '<li>' . escape_html($label) . ': ' . $status . '</li>';
+        }
+        $notifData .= '</ul>';
+    }
+
+    $notifData .= '</div></div>';
+    $returnMsg['notifData'] = $notifData;
+}
+
 echo json_encode($returnMsg);
 die;
 
