@@ -143,6 +143,38 @@ Log out completely before starting this section.
 
 ---
 
+## SECTION 6A: T-Shirt Store Features
+
+### 6A.1 Public Order Page (TShirtOrder.php) - Logged Out
+- [ ] Page loads without errors (no login required)
+- [ ] T-shirt image displays
+- [ ] Size selection dropdowns appear (XS through XXL)
+- [ ] Customer information form displays (Name, Email, Phone, Address)
+- [ ] PayPal buttons load
+- [ ] Selecting quantities updates total automatically
+- [ ] Form validation prevents empty submissions
+
+### 6A.2 Order Management (ManageTShirtOrders.php) - Requires trs/wm/sa
+- [ ] Page loads with order list
+- [ ] Statistics panel shows: Total, Unfulfilled, Fulfilled, Revenue
+- [ ] Filter dropdown works (All/Unfulfilled/Fulfilled)
+- [ ] Clicking order number opens details modal
+- [ ] Export CSV button downloads file
+- [ ] DO NOT mark orders fulfilled on production unless intended
+
+### 6A.3 Item Price Management (ManageItemPrices.php) - Requires wm/sa ONLY
+- [ ] "Item Prices" link appears in Admin menu (for wm/sa users)
+- [ ] Page loads with T-shirt sizes and prices
+- [ ] Price edit functionality works
+- [ ] DO NOT change prices unless intended
+
+### 6A.4 Notification Preferences (User Profile)
+- [ ] Treasurer users see "Notification Preferences" section
+- [ ] T-shirt order notification toggle works
+- [ ] Preference saves correctly
+
+---
+
 ## SECTION 7: Admin Menu (Expand & Test)
 
 ### 7.1 Menu Functionality
@@ -254,6 +286,8 @@ Resize browser or use mobile emulation.
 |                             |      |      |       |
 | 6. Treasurer                |      |      |       |
 |                             |      |      |       |
+| 6A. T-Shirt Store           |      |      |       |
+|                             |      |      |       |
 | 7. Admin                    |      |      |       |
 |                             |      |      |       |
 | 8. Permissions              |      |      |       |
@@ -288,12 +322,16 @@ The following features/scenarios CANNOT be fully tested with this method:
 6. **Delete User** - Cannot safely test user deletion
 7. **Email Notifications** - Would send real emails to users
 8. **Patrol/Committee Create/Delete** - Would affect production reference data
+9. **T-Shirt Order Payment** - Would create real orders in production database
+10. **T-Shirt Order Fulfillment** - Would affect real order status
+11. **Item Price Changes** - Would affect live pricing for customers
 
 ### Cannot Test (External Dependencies)
-1. **PayPal Integration** - Requires real payment flow
+1. **PayPal Integration** - Requires real payment flow (use sandbox for T-shirt order testing)
 2. **Google Calendar** - Depends on external Google API
 3. **Facebook Links** - External site, can only verify link works
 4. **Password Reset Email** - Would require testing email delivery
+5. **T-Shirt Order Emails** - Sends real emails to customers and treasurers
 
 ### Cannot Test (Requires Specific Conditions)
 1. **Registration Conflict Detection** - Requires overlapping events
@@ -313,5 +351,6 @@ The following features/scenarios CANNOT be fully tested with this method:
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Last Updated: January 2026*
+*Added: T-Shirt Store feature tests (Section 6A)*
