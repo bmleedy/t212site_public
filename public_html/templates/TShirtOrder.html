@@ -97,8 +97,9 @@ $(document).ready(function() {
 
 function loadConfig() {
     $.ajax({
-        url: 'api/tshirt_getconfig.php',
-        type: 'GET',
+        url: 'api/order_getconfig.php',
+        type: 'POST',
+        data: { category: 'tshirt' },
         dataType: 'json',
         success: function(data) {
             $('#loadingMessage').hide();
@@ -195,20 +196,26 @@ function validateForm() {
 }
 
 function getOrderData() {
-    var data = {
+    // Build items array for the generic order API
+    var items = [];
+    for (var code in itemPrices) {
+        var qty = parseInt($('#qty_' + code).val()) || 0;
+        if (qty > 0) {
+            items.push({
+                item_code: code,
+                quantity: qty
+            });
+        }
+    }
+
+    return {
         customer_name: $('#customerName').val().trim(),
         customer_email: $('#customerEmail').val().trim(),
         customer_phone: $('#customerPhone').val().trim(),
-        shipping_address: $('#customerAddress').val().trim()
+        shipping_address: $('#customerAddress').val().trim(),
+        order_type: 'tshirt',
+        items: JSON.stringify(items)
     };
-
-    // Add quantities
-    for (var code in itemPrices) {
-        var fieldName = code.replace('tshirt_', 'qty_');
-        data[fieldName] = parseInt($('#qty_' + code).val()) || 0;
-    }
-
-    return data;
 }
 
 function initPayPalButtons() {
@@ -274,7 +281,7 @@ function initPayPalButtons() {
                 orderData.paypal_order_id = data.orderID;
 
                 $.ajax({
-                    url: 'api/tshirt_createorder.php',
+                    url: 'api/order_create.php',
                     type: 'POST',
                     data: orderData,
                     dataType: 'json',

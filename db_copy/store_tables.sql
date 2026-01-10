@@ -1,32 +1,31 @@
--- T-Shirt Store Database Tables
--- Run this SQL to create the required tables for the T-shirt ordering system
+-- Store Database Tables
+-- Run this SQL to create the required tables for the online store
+-- Supports T-shirts, merchandise, and future item types
 
 -- ============================================================================
--- Table: tshirt_orders
--- Stores all T-shirt orders placed through the website
+-- Table: orders
+-- Stores all orders placed through the website (T-shirts, merchandise, etc.)
 -- ============================================================================
-CREATE TABLE IF NOT EXISTS tshirt_orders (
+CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    order_type VARCHAR(50) NOT NULL DEFAULT 'merchandise',  -- 'tshirt', 'merchandise', etc.
+
+    -- Customer information
     customer_email VARCHAR(255) NOT NULL,
     customer_phone VARCHAR(20) NOT NULL,
     customer_name VARCHAR(255) NOT NULL,
     shipping_address TEXT NOT NULL,
 
-    -- Quantities per size
-    qty_xs INT NOT NULL DEFAULT 0,
-    qty_s INT NOT NULL DEFAULT 0,
-    qty_m INT NOT NULL DEFAULT 0,
-    qty_l INT NOT NULL DEFAULT 0,
-    qty_xl INT NOT NULL DEFAULT 0,
-    qty_xxl INT NOT NULL DEFAULT 0,
-
+    -- Order totals
     total_amount DECIMAL(10,2) NOT NULL,
 
-    -- Status tracking
+    -- Payment status
     paid TINYINT NOT NULL DEFAULT 0,
     paid_date DATETIME NULL,
     paypal_order_id VARCHAR(100) NULL,
+
+    -- Fulfillment status
     fulfilled TINYINT NOT NULL DEFAULT 0,
     fulfilled_date DATETIME NULL,
     fulfilled_by INT NULL,
@@ -37,7 +36,26 @@ CREATE TABLE IF NOT EXISTS tshirt_orders (
 
     INDEX idx_paid (paid),
     INDEX idx_fulfilled (fulfilled),
-    INDEX idx_order_date (order_date)
+    INDEX idx_order_date (order_date),
+    INDEX idx_order_type (order_type)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ============================================================================
+-- Table: order_items
+-- Stores individual line items for each order
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    item_code VARCHAR(20) NOT NULL,
+    item_name VARCHAR(100) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL,
+    line_total DECIMAL(10,2) NOT NULL,
+
+    INDEX idx_order_id (order_id),
+    INDEX idx_item_code (item_code),
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ============================================================================
@@ -82,11 +100,31 @@ CREATE TABLE IF NOT EXISTS store_config (
 -- Insert initial store configuration
 INSERT INTO store_config (config_key, config_value) VALUES
     ('tshirt_orders_enabled', '1'),
-    ('tshirt_image_url', '/images/tshirt-classb.jpg')
+    ('tshirt_image_url', '/images/tshirt-classb.jpg'),
+    ('store_enabled', '1')
 ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
 
+-- ============================================================================
+-- Migration: If you have existing tshirt_orders data, run this to migrate
+-- ============================================================================
+-- To migrate existing tshirt_orders to the new structure:
+--
+-- INSERT INTO orders (id, order_date, order_type, customer_email, customer_phone,
+--     customer_name, shipping_address, total_amount, paid, paid_date, paypal_order_id,
+--     fulfilled, fulfilled_date, fulfilled_by, source_ip, notes)
+-- SELECT id, order_date, 'tshirt', customer_email, customer_phone,
+--     customer_name, shipping_address, total_amount, paid, paid_date, paypal_order_id,
+--     fulfilled, fulfilled_date, fulfilled_by, source_ip, notes
+-- FROM tshirt_orders;
+--
+-- Then for each order, insert the line items:
+-- INSERT INTO order_items (order_id, item_code, item_name, quantity, unit_price, line_total)
+-- SELECT id, 'tshirt_xs', 'Class B T-Shirt - XS', qty_xs, 15.00, qty_xs * 15.00
+-- FROM tshirt_orders WHERE qty_xs > 0;
+-- (repeat for each size)
+
 -- Note: Notification preferences are stored in the users.notif_preferences JSON column
--- Example JSON format: {"tshirt_order": true}
+-- Example JSON format: {"tshirt_order": true, "new_order": true}
 -- Notification types currently supported:
 -- 'tshirt_order' - New T-shirt order placed (for treasurers)
--- Future types can be added as needed
+-- 'new_order' - Any new order placed (for treasurers)

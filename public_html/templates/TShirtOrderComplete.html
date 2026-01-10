@@ -36,34 +36,22 @@
         <tr>
             <th>Item</th>
             <th style="text-align:center;">Quantity</th>
+            <th style="text-align:right;">Price</th>
         </tr>
     </thead>
     <tbody>
-        <?php
-        $sizes = [
-            'qty_xs' => 'Class B T-Shirt - XS',
-            'qty_s' => 'Class B T-Shirt - S',
-            'qty_m' => 'Class B T-Shirt - M',
-            'qty_l' => 'Class B T-Shirt - L',
-            'qty_xl' => 'Class B T-Shirt - XL',
-            'qty_xxl' => 'Class B T-Shirt - XXL'
-        ];
-
-        foreach ($sizes as $field => $name) {
-            $qty = intval($order[$field]);
-            if ($qty > 0) {
-                echo '<tr>';
-                echo '<td>' . htmlspecialchars($name) . '</td>';
-                echo '<td style="text-align:center;">' . $qty . '</td>';
-                echo '</tr>';
-            }
-        }
-        ?>
+        <?php foreach ($order_items as $item): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($item['item_name']); ?></td>
+            <td style="text-align:center;"><?php echo intval($item['quantity']); ?></td>
+            <td style="text-align:right;">$<?php echo number_format($item['line_total'], 2); ?></td>
+        </tr>
+        <?php endforeach; ?>
     </tbody>
     <tfoot>
         <tr>
-            <td style="text-align:right;"><strong>Total:</strong></td>
-            <td style="text-align:center;"><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
+            <td colspan="2" style="text-align:right;"><strong>Total:</strong></td>
+            <td style="text-align:right;"><strong>$<?php echo number_format($order['total_amount'], 2); ?></strong></td>
         </tr>
     </tfoot>
 </table>

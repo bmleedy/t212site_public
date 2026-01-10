@@ -86,9 +86,9 @@ function loadOrders() {
     $('#noOrders').hide();
 
     $.ajax({
-        url: 'api/tshirt_getorders.php',
+        url: 'api/order_getall.php',
         type: 'POST',
-        data: { status: status },
+        data: { status: status, order_type: 'tshirt' },
         dataType: 'json',
         success: function(data) {
             $('#loadingMessage').hide();
@@ -155,14 +155,17 @@ function renderOrdersTable(orders) {
 }
 
 function buildItemsSummary(order) {
-    var items = [];
-    if (order.qty_xs > 0) items.push('XS:' + order.qty_xs);
-    if (order.qty_s > 0) items.push('S:' + order.qty_s);
-    if (order.qty_m > 0) items.push('M:' + order.qty_m);
-    if (order.qty_l > 0) items.push('L:' + order.qty_l);
-    if (order.qty_xl > 0) items.push('XL:' + order.qty_xl);
-    if (order.qty_xxl > 0) items.push('XXL:' + order.qty_xxl);
-    return items.join(', ');
+    if (!order.items || order.items.length === 0) {
+        return order.total_qty + ' items';
+    }
+
+    var summary = [];
+    order.items.forEach(function(item) {
+        // Extract size from item name for T-shirts
+        var label = item.item_name.replace('Class B T-Shirt - ', '');
+        summary.push(label + ':' + item.quantity);
+    });
+    return summary.join(', ');
 }
 
 function fulfillOrder(orderId) {
@@ -171,7 +174,7 @@ function fulfillOrder(orderId) {
     }
 
     $.ajax({
-        url: 'api/tshirt_fulfillorder.php',
+        url: 'api/order_fulfill.php',
         type: 'POST',
         data: { order_id: orderId },
         dataType: 'json',
@@ -204,16 +207,18 @@ function showOrderDetails(orderId) {
         '<hr>' +
         '<h5>Items Ordered</h5>' +
         '<table style="width:100%;">' +
-        '<tr><th>Size</th><th>Quantity</th></tr>';
+        '<tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th></tr>';
 
-    if (order.qty_xs > 0) html += '<tr><td>XS</td><td>' + order.qty_xs + '</td></tr>';
-    if (order.qty_s > 0) html += '<tr><td>S</td><td>' + order.qty_s + '</td></tr>';
-    if (order.qty_m > 0) html += '<tr><td>M</td><td>' + order.qty_m + '</td></tr>';
-    if (order.qty_l > 0) html += '<tr><td>L</td><td>' + order.qty_l + '</td></tr>';
-    if (order.qty_xl > 0) html += '<tr><td>XL</td><td>' + order.qty_xl + '</td></tr>';
-    if (order.qty_xxl > 0) html += '<tr><td>XXL</td><td>' + order.qty_xxl + '</td></tr>';
+    if (order.items && order.items.length > 0) {
+        order.items.forEach(function(item) {
+            html += '<tr><td>' + escapeHtml(item.item_name) + '</td>';
+            html += '<td>' + item.quantity + '</td>';
+            html += '<td>$' + item.unit_price.toFixed(2) + '</td>';
+            html += '<td>$' + item.line_total.toFixed(2) + '</td></tr>';
+        });
+    }
 
-    html += '<tr><td><strong>Total</strong></td><td><strong>$' + order.total_amount.toFixed(2) + '</strong></td></tr>' +
+    html += '<tr><td colspan="3"><strong>Total</strong></td><td><strong>$' + order.total_amount.toFixed(2) + '</strong></td></tr>' +
         '</table>';
 
     if (order.fulfilled) {
@@ -230,21 +235,26 @@ function exportCSV() {
         return;
     }
 
-    var csv = 'Order #,Date,Customer,Email,Phone,Address,XS,S,M,L,XL,XXL,Total,Status,Fulfilled Date,Fulfilled By\n';
+    var csv = 'Order #,Date,Customer,Email,Phone,Address,Items,Total,Status,Fulfilled Date,Fulfilled By\n';
 
     allOrders.forEach(function(order) {
+        // Build items string
+        var itemsStr = '';
+        if (order.items && order.items.length > 0) {
+            var itemsList = [];
+            order.items.forEach(function(item) {
+                itemsList.push(item.item_name + ' x' + item.quantity);
+            });
+            itemsStr = itemsList.join('; ');
+        }
+
         csv += order.id + ',';
         csv += '"' + order.order_date + '",';
         csv += '"' + order.customer_name.replace(/"/g, '""') + '",';
         csv += '"' + order.customer_email + '",';
         csv += '"' + order.customer_phone + '",';
         csv += '"' + order.shipping_address.replace(/"/g, '""') + '",';
-        csv += order.qty_xs + ',';
-        csv += order.qty_s + ',';
-        csv += order.qty_m + ',';
-        csv += order.qty_l + ',';
-        csv += order.qty_xl + ',';
-        csv += order.qty_xxl + ',';
+        csv += '"' + itemsStr.replace(/"/g, '""') + '",';
         csv += order.total_amount.toFixed(2) + ',';
         csv += (order.fulfilled ? 'Fulfilled' : 'Pending') + ',';
         csv += '"' + (order.fulfilled_date || '') + '",';
@@ -255,7 +265,7 @@ function exportCSV() {
     var url = window.URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'tshirt_orders_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.download = 'orders_' + new Date().toISOString().slice(0,10) + '.csv';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
