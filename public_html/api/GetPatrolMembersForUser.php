@@ -54,14 +54,16 @@ if (!$patrol_row || !$patrol_row['patrol_id']) {
 $patrol_id = $patrol_row['patrol_id'];
 $patrol_name = $patrol_row['patrol_name'];
 
-// Get all scouts in this patrol with their info
+// Get all scouts in this patrol with their info (only active, non-alumni scouts)
 $query = "SELECT u.user_id, u.user_first, u.user_last,
                  r.label as rank_name, l.label as position_name
           FROM users u
           JOIN scout_info si ON u.user_id = si.user_id
           LEFT JOIN ranks r ON si.rank_id = r.id
           LEFT JOIN leadership l ON si.position_id = l.id
-          WHERE si.patrol_id = ? AND u.user_active = 1
+          WHERE si.patrol_id = ?
+          AND u.user_active = 1
+          AND u.user_type = 'Scout'
           ORDER BY u.user_last, u.user_first";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('i', $patrol_id);

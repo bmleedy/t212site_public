@@ -54,15 +54,17 @@ if (!$patrol_row || !$patrol_row['patrol_id']) {
 $patrol_id = $patrol_row['patrol_id'];
 $patrol_name = $patrol_row['patrol_name'];
 
-// Get all scouts in this patrol
+// Get all scouts in this patrol (only active, non-alumni scouts)
 $emails = [];
 $phones = [];
 
-// Get scout emails and their family emails
+// Get scout emails and their family emails (only user_type = 'Scout')
 $query = "SELECT DISTINCT u.user_email, u.user_first, u.user_last, u.user_type, u.family_id
           FROM users u
           JOIN scout_info si ON u.user_id = si.user_id
-          WHERE si.patrol_id = ? AND u.user_active = 1";
+          WHERE si.patrol_id = ?
+          AND u.user_active = 1
+          AND u.user_type = 'Scout'";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('i', $patrol_id);
 $stmt->execute();
