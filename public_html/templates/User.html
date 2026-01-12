@@ -214,8 +214,17 @@
 
           // SMS button (for mobile devices)
           if (data.phones && data.phones.length > 0) {
-            var phoneList = data.phones.join(',');
-            var smsLink = 'sms:' + phoneList;
+            // Detect platform and use appropriate SMS URI format
+            // iOS: sms:/open?addresses=num1,num2
+            // Android: sms:num1,num2
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            var smsLink;
+
+            if (isIOS) {
+              smsLink = 'sms:/open?addresses=' + data.phones.join(',');
+            } else {
+              smsLink = 'sms:' + data.phones.join(',');
+            }
 
             btnHtml += '&nbsp;<a href="' + smsLink + '" class="round small button secondary">';
             btnHtml += '<i class="fi-telephone" style="font-size:14px;"></i> Send Patrol Text</a>';
