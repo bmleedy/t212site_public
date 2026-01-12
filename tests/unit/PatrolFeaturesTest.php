@@ -321,6 +321,254 @@ if (assert_true($cleans_phone, "getPatrolEmails.php sanitizes phone numbers")) {
 }
 
 // =============================================================================
+// Test 15: Event Attendee Phones API exists
+// =============================================================================
+echo "\n--- Test 15: Event Attendee Phones API ---\n";
+
+$event_api_path = PUBLIC_HTML_DIR . '/api/getEventAttendeePhones.php';
+if (assert_file_exists($event_api_path, "getEventAttendeePhones.php exists")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 16: getEventAttendeePhones.php requires authentication
+// =============================================================================
+echo "\n--- Test 16: getEventAttendeePhones.php Security ---\n";
+
+$event_content = file_get_contents($event_api_path);
+
+$has_auth = strpos($event_content, 'require_authentication') !== false;
+if (assert_true($has_auth, "getEventAttendeePhones.php requires authentication")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$has_ajax = strpos($event_content, 'require_ajax') !== false;
+if (assert_true($has_ajax, "getEventAttendeePhones.php requires AJAX")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 17: getEventAttendeePhones.php requires proper permissions
+// =============================================================================
+echo "\n--- Test 17: getEventAttendeePhones.php Permission Check ---\n";
+
+$checks_er = strpos($event_content, "'er'") !== false;
+if (assert_true($checks_er, "getEventAttendeePhones.php checks for 'er' permission")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$checks_oe = strpos($event_content, "'oe'") !== false;
+if (assert_true($checks_oe, "getEventAttendeePhones.php checks for 'oe' permission")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$checks_sa = strpos($event_content, "'sa'") !== false;
+if (assert_true($checks_sa, "getEventAttendeePhones.php checks for 'sa' permission")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 18: getEventAttendeePhones.php returns required data
+// =============================================================================
+echo "\n--- Test 18: getEventAttendeePhones.php Returns Phone Lists ---\n";
+
+$returns_all_phones = strpos($event_content, "'all_phones'") !== false;
+if (assert_true($returns_all_phones, "getEventAttendeePhones.php returns all_phones")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$returns_adult_phones = strpos($event_content, "'adult_phones'") !== false;
+if (assert_true($returns_adult_phones, "getEventAttendeePhones.php returns adult_phones")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$returns_event_name = strpos($event_content, "'event_name'") !== false;
+if (assert_true($returns_event_name, "getEventAttendeePhones.php returns event_name")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 19: getEventAttendeePhones.php uses prepared statements
+// =============================================================================
+echo "\n--- Test 19: getEventAttendeePhones.php Uses Prepared Statements ---\n";
+
+$uses_prepared = strpos($event_content, '->prepare(') !== false;
+if (assert_true($uses_prepared, "getEventAttendeePhones.php uses prepared statements")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 20: getEventAttendeePhones.php queries required tables
+// =============================================================================
+echo "\n--- Test 20: getEventAttendeePhones.php Queries Required Tables ---\n";
+
+$queries_registration = strpos($event_content, 'registration') !== false;
+if (assert_true($queries_registration, "getEventAttendeePhones.php queries registration table")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$queries_users = strpos($event_content, 'users') !== false;
+if (assert_true($queries_users, "getEventAttendeePhones.php queries users table")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$queries_phone = strpos($event_content, 'phone') !== false;
+if (assert_true($queries_phone, "getEventAttendeePhones.php queries phone table")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$queries_events = strpos($event_content, 'events') !== false;
+if (assert_true($queries_events, "getEventAttendeePhones.php queries events table")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 21: getEventAttendeePhones.php sanitizes phone numbers
+// =============================================================================
+echo "\n--- Test 21: getEventAttendeePhones.php Phone Sanitization ---\n";
+
+$cleans_phone = strpos($event_content, 'preg_replace') !== false;
+if (assert_true($cleans_phone, "getEventAttendeePhones.php sanitizes phone numbers")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 22: Event.html has SMS button functionality
+// =============================================================================
+echo "\n--- Test 22: Event.html Has SMS Button Functions ---\n";
+
+$event_template_path = PUBLIC_HTML_DIR . '/templates/Event.html';
+$event_template_content = file_get_contents($event_template_path);
+
+$has_load_sms = strpos($event_template_content, 'loadEventSMSButtons') !== false;
+if (assert_true($has_load_sms, "Event.html has loadEventSMSButtons function")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$has_sms_div = strpos($event_template_content, 'eventSMSButtons') !== false;
+if (assert_true($has_sms_div, "Event.html has eventSMSButtons div")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 23: Event.html SMS buttons have iOS/Android detection
+// =============================================================================
+echo "\n--- Test 23: Event.html Platform Detection ---\n";
+
+$has_ios_detection = strpos($event_template_content, 'iPad|iPhone|iPod') !== false;
+if (assert_true($has_ios_detection, "Event.html detects iOS devices")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$has_sms_link = strpos($event_template_content, 'sms:') !== false;
+if (assert_true($has_sms_link, "Event.html creates sms links")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 24: Event.html SMS buttons text matches requirements
+// =============================================================================
+echo "\n--- Test 24: Event.html Button Labels ---\n";
+
+$has_all_attendees = strpos($event_template_content, 'Text All Attendees') !== false;
+if (assert_true($has_all_attendees, "Event.html has 'Text All Attendees' button")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$has_adult_attendees = strpos($event_template_content, 'Text Adult Attendees') !== false;
+if (assert_true($has_adult_attendees, "Event.html has 'Text Adult Attendees' button")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 25: User.html SMS has iOS/Android detection
+// =============================================================================
+echo "\n--- Test 25: User.html Platform Detection ---\n";
+
+$user_has_ios_detection = strpos($template_content, 'iPad|iPhone|iPod') !== false;
+if (assert_true($user_has_ios_detection, "User.html detects iOS devices")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 26: APIs filter active scouts only
+// =============================================================================
+echo "\n--- Test 26: APIs Filter Active Scouts ---\n";
+
+$emails_filters_active = strpos($emails_content, "user_active = 1") !== false;
+if (assert_true($emails_filters_active, "getPatrolEmails.php filters active users")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$emails_filters_scout = strpos($emails_content, "user_type = 'Scout'") !== false ||
+                        strpos($emails_content, "user_type != 'Scout'") !== false;
+if (assert_true($emails_filters_scout, "getPatrolEmails.php filters by user_type")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$members_filters_active = strpos($members_content, "user_active = 1") !== false;
+if (assert_true($members_filters_active, "GetPatrolMembersForUser.php filters active users")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+$members_filters_scout = strpos($members_content, "user_type = 'Scout'") !== false;
+if (assert_true($members_filters_scout, "GetPatrolMembersForUser.php filters Scout type")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
 // Summary
 // =============================================================================
 test_summary($passed, $failed);

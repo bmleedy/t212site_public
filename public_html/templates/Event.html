@@ -432,6 +432,8 @@ $(document).ready(function(){
       if (window.initSortableTables) {
         window.initSortableTables();
       }
+      // Load SMS buttons for attendees
+      loadEventSMSButtons();
     }
   });
 
@@ -525,6 +527,57 @@ $(document).ready(function(){
     temp_link.click();
     document.body.removeChild(temp_link);
 }
+
+function loadEventSMSButtons() {
+  // Only load for users with event roster permission
+  if (showPR != "1") return;
+
+  $.ajax({
+    url: "api/getEventAttendeePhones.php",
+    type: "post",
+    data: { event_id: event_id },
+    dataType: 'json',
+    error: function(xhr, status, error) {
+      console.log("Error loading attendee phones:", error);
+    },
+    success: function(data) {
+      if (data.status === 'Success') {
+        var btnHtml = '';
+
+        // Detect platform for SMS URI format
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+        // Text All Attendees button
+        if (data.all_phones && data.all_phones.length > 0) {
+          var allSmsLink;
+          if (isIOS) {
+            allSmsLink = 'sms:/open?addresses=' + data.all_phones.join(',');
+          } else {
+            allSmsLink = 'sms:' + data.all_phones.join(',');
+          }
+          btnHtml += '<a href="' + allSmsLink + '" class="round tiny button secondary">';
+          btnHtml += '<i class="fi-telephone" style="font-size:14px;"></i> Text All Attendees</a>&nbsp;';
+        }
+
+        // Text Adult Attendees button
+        if (data.adult_phones && data.adult_phones.length > 0) {
+          var adultSmsLink;
+          if (isIOS) {
+            adultSmsLink = 'sms:/open?addresses=' + data.adult_phones.join(',');
+          } else {
+            adultSmsLink = 'sms:' + data.adult_phones.join(',');
+          }
+          btnHtml += '<a href="' + adultSmsLink + '" class="round tiny button secondary">';
+          btnHtml += '<i class="fi-telephone" style="font-size:14px;"></i> Text Adult Attendees</a>';
+        }
+
+        if (btnHtml) {
+          $('#eventSMSButtons').html(btnHtml);
+        }
+      }
+    }
+  });
+}
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
@@ -533,6 +586,7 @@ $(document).ready(function(){
   <div id="outingData"></div>
   <div id="ics"></div>
   <div id="userButtons"></div>
+  <div id="eventSMSButtons" style="margin-bottom:10px;"></div>
   <div id="attendingData"></div>
 </form>
 
