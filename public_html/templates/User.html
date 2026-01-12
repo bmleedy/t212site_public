@@ -172,10 +172,106 @@
       if (showEdit == "1") {
         var family_id = $('#family_id').val();
         buttonData = '<a href="addfamilymember.php?familyID=' + family_id + '" class="round small button">Add Family Member</a>&nbsp;';
-        buttonData = buttonData + '<a onclick="editDoc();" class="round small button">Edit</a><div class="clearfix"></div>';
+        buttonData = buttonData + '<a onclick="editDoc();" class="round small button">Edit</a>';
+
+        // Add patrol email button placeholder (will be populated by loadPatrolEmailButton)
+        buttonData = buttonData + '<span id="patrolEmailBtn"></span>';
+
+        buttonData = buttonData + '<div class="clearfix"></div>';
       }
     }
     $('#userButtons').append(buttonData);
+
+    // Load patrol email button if viewing a scout
+    if (user_type == 'Scout' && varEdit != "1" && showEdit == "1") {
+      loadPatrolEmailButton();
+    }
+  }
+
+  function loadPatrolEmailButton() {
+    $.ajax({
+      url: "api/getPatrolEmails.php",
+      type: "post",
+      data: { user_id: strID },
+      dataType: 'json',
+      error: function(xhr, status, error) {
+        console.log("Error loading patrol emails:", error);
+      },
+      success: function(data) {
+        if (data.status === 'Success') {
+          var patrolName = data.patrol_name;
+          var btnHtml = '';
+
+          // Email button
+          if (data.emails && data.emails.length > 0) {
+            var emailList = data.emails.join(',');
+            var subject = encodeURIComponent('[' + patrolName + '] ');
+            var mailtoLink = 'mailto:' + emailList + '?subject=' + subject;
+
+            btnHtml += '&nbsp;<a href="' + mailtoLink + '" class="round small button secondary">';
+            btnHtml += '<i class="fi-mail" style="font-size:14px;"></i> Email ' + escapeHtml(patrolName) + '</a>';
+          }
+
+          // SMS button (for mobile devices)
+          if (data.phones && data.phones.length > 0) {
+            var phoneList = data.phones.join(',');
+            var smsLink = 'sms:' + phoneList;
+
+            btnHtml += '&nbsp;<a href="' + smsLink + '" class="round small button secondary">';
+            btnHtml += '<i class="fi-telephone" style="font-size:14px;"></i> Send Patrol Text</a>';
+          }
+
+          $('#patrolEmailBtn').html(btnHtml);
+        }
+      }
+    });
+  }
+
+  function loadPatrolMembers() {
+    $.ajax({
+      url: "api/GetPatrolMembersForUser.php",
+      type: "post",
+      data: { user_id: strID },
+      dataType: 'json',
+      error: function(xhr, status, error) {
+        console.log("Error loading patrol members:", error);
+      },
+      success: function(data) {
+        if (data.status === 'Success' && data.members && data.members.length > 0) {
+          var patrolName = data.patrol_name;
+
+          // Update the accordion header with patrol name
+          $('#patrolMembersHeader').text(patrolName + ' Patrol Members');
+
+          // Build the table
+          var strTable = "<table><thead><tr>";
+          strTable += "<th>Name</th>";
+          strTable += "<th>Rank</th>";
+          strTable += "<th>Position</th>";
+          strTable += "</tr></thead><tbody>";
+
+          data.members.forEach(function(member) {
+            strTable += "<tr>";
+            strTable += "<td><a href='User.php?id=" + member.user_id + "'>" + escapeHtml(member.first_name) + " " + escapeHtml(member.last_name) + "</a></td>";
+            strTable += "<td>" + escapeHtml(member.rank) + "</td>";
+            strTable += "<td>" + escapeHtml(member.position) + "</td>";
+            strTable += "</tr>";
+          });
+
+          strTable += "</tbody></table>";
+
+          $('#patrol_members_content').html(strTable);
+          $('#divPatrolMembers').show();
+        }
+      }
+    });
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
   }
 
   $(document).ready(function () {
@@ -232,6 +328,10 @@
         if (data['notifData']) {
           $('#notifData').append(data['notifData']);
         }
+        // Load patrol members for scouts
+        if (user_type == "Scout") {
+          loadPatrolMembers();
+        }
         if (user_type != "Scout") {
           $('#mb_panel').append(data['mbData']);
           toggleDiv("divMB");
@@ -261,6 +361,18 @@
         <dd class="accordion-navigation">
           <a href="#mb_panel">Merit Badges</a>
           <div id="mb_panel" class="content active">
+          </div>
+        </dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="row" style="display:none" id="divPatrolMembers">
+    <div class="large-12 columns">
+      <dl class="accordion" data-accordion>
+        <dd class="accordion-navigation">
+          <a href="#patrol_members_content" id="patrolMembersHeader">Patrol Members</a>
+          <div id="patrol_members_content" class="content" style="background-color: #e8e8e8;">
           </div>
         </dd>
       </dl>
