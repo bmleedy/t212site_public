@@ -6,8 +6,9 @@
  * Used for "Text All Attendees" and "Text Adult Attendees" buttons on Event page.
  */
 
-error_reporting(0);
-ini_set('display_errors', '0');
+// Temporarily enable errors for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
 
 session_start();
 require 'auth_helper.php';
