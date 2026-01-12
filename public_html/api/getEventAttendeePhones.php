@@ -31,25 +31,6 @@ if (!$event_id) {
     exit;
 }
 
-// Check if user has permission to see attendee info (event roster or admin)
-$user_access = [];
-$access_query = "SELECT user_access FROM users WHERE user_id = ?";
-$access_stmt = $mysqli->prepare($access_query);
-$access_stmt->bind_param('i', $current_user_id);
-$access_stmt->execute();
-$access_result = $access_stmt->get_result();
-if ($access_row = $access_result->fetch_assoc()) {
-    $user_access = explode('.', $access_row['user_access']);
-}
-$access_stmt->close();
-
-// Require er (event roster), oe (outing editor), or sa (site admin) permission
-$has_permission = in_array('er', $user_access) || in_array('oe', $user_access) || in_array('sa', $user_access);
-if (!$has_permission) {
-    echo json_encode(['status' => 'Error', 'message' => 'Permission denied']);
-    exit;
-}
-
 // Get event name
 $event_name = '';
 $event_query = "SELECT name FROM events WHERE id = ?";

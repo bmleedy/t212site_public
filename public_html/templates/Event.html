@@ -529,9 +529,6 @@ $(document).ready(function(){
 }
 
 function loadEventSMSButtons() {
-  // Only load for users with event roster permission
-  if (showPR != "1") return;
-
   $.ajax({
     url: "api/getEventAttendeePhones.php",
     type: "post",
