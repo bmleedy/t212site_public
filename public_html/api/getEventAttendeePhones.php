@@ -6,9 +6,8 @@
  * Used for "Text All Attendees" and "Text Adult Attendees" buttons on Event page.
  */
 
-// Temporarily enable errors for debugging
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
+error_reporting(0);
+ini_set('display_errors', '0');
 
 session_start();
 require 'auth_helper.php';
@@ -47,12 +46,12 @@ $event_stmt->close();
 $all_phones = [];
 $adult_phones = [];
 
-// Get registered attendees (not cancelled)
+// Get registered attendees (attending, not cancelled)
 $query = "SELECT r.user_id, u.user_type, u.family_id
           FROM registration r
           JOIN users u ON r.user_id = u.user_id
           WHERE r.event_id = ?
-          AND r.cancelled = 0
+          AND r.attending = 1
           AND u.user_active = 1";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('i', $event_id);

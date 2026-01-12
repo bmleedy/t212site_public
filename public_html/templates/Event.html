@@ -529,7 +529,6 @@ $(document).ready(function(){
 }
 
 function loadEventSMSButtons() {
-  console.log("loadEventSMSButtons called, event_id:", event_id);
   $.ajax({
     url: "api/getEventAttendeePhones.php",
     type: "post",
@@ -537,10 +536,8 @@ function loadEventSMSButtons() {
     dataType: 'json',
     error: function(xhr, status, error) {
       console.log("Error loading attendee phones:", error);
-      console.log("XHR response:", xhr.responseText);
     },
     success: function(data) {
-      console.log("getEventAttendeePhones response:", data);
       if (data.status === 'Success') {
         var btnHtml = '';
 
