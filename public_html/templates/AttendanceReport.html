@@ -5,8 +5,11 @@ var user_id;
 var canEditAttendance = false; // Whether user can edit attendance (wm/sa only)
 var startDate = null; // Start date for attendance report
 var endDate = null; // End date for attendance report
+var selectedPatrol = 'all'; // Selected patrol filter ('all' or patrol_id)
 var eventDates = []; // Array of dates with events
 var attendanceData = {}; // Attendance data keyed by "user_id-date"
+var allScouts = []; // All scouts data (unfiltered)
+var patrols = []; // List of unique patrols
 
 $(document).ready(function() {
   user_id = document.getElementById('user_id').value;
@@ -19,8 +22,13 @@ $(document).ready(function() {
   // Add CSV download button
   $('#reportContent').append('<div class="row"><div class="large-12 columns"><button id="downloadCSV" class="button small">Download CSV</button></div></div>');
 
-  // Add date range selectors
-  $('#reportContent').append('<div class="row"><div class="large-6 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div><div class="large-6 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div></div>');
+  // Add date range selectors and patrol filter
+  var filterHTML = '<div class="row">';
+  filterHTML += '<div class="large-4 columns"><label>Start Date:</label><input type="date" id="startDateSelector" /></div>';
+  filterHTML += '<div class="large-4 columns"><label>End Date:</label><input type="date" id="endDateSelector" /></div>';
+  filterHTML += '<div class="large-4 columns"><label>Patrol:</label><select id="patrolSelector"><option value="all">All Patrols</option></select></div>';
+  filterHTML += '</div>';
+  $('#reportContent').append(filterHTML);
 
   // Set default date range
   setDefaultDateRange();
@@ -36,6 +44,13 @@ $(document).ready(function() {
     endDate = $(this).val();
     console.log("End date changed to: " + endDate);
     loadScouts(); // Reload table with new date range
+  });
+
+  // Add change event handler for patrol selector
+  $('#patrolSelector').on('change', function() {
+    selectedPatrol = $(this).val();
+    console.log("Patrol filter changed to: " + selectedPatrol);
+    rebuildTableWithFilter(); // Rebuild table with new filter
   });
 
   // Add table container
@@ -60,12 +75,12 @@ function setDefaultDateRange() {
   var endDay = String(pacificDate.getDate()).padStart(2, '0');
   endDate = endYear + '-' + endMonth + '-' + endDay;
 
-  // Calculate start date (2 months ago)
-  var twoMonthsAgo = new Date(pacificDate);
-  twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-  var startYear = twoMonthsAgo.getFullYear();
-  var startMonth = String(twoMonthsAgo.getMonth() + 1).padStart(2, '0');
-  var startDay = String(twoMonthsAgo.getDate()).padStart(2, '0');
+  // Calculate start date (1 month ago)
+  var oneMonthAgo = new Date(pacificDate);
+  oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+  var startYear = oneMonthAgo.getFullYear();
+  var startMonth = String(oneMonthAgo.getMonth() + 1).padStart(2, '0');
+  var startDay = String(oneMonthAgo.getDate()).padStart(2, '0');
   startDate = startYear + '-' + startMonth + '-' + startDay;
 
   // Set the date selector values
@@ -138,9 +153,13 @@ function loadScoutsWithEvents() {
 
     if (scoutsData.status === "Success" && attendanceDataResponse.status === "Success") {
       attendanceData = attendanceDataResponse.attendance || {};
+      allScouts = scoutsData.scouts || [];
 
-      if (scoutsData.scouts && scoutsData.scouts.length > 0) {
-        buildAttendanceTable(scoutsData.scouts);
+      // Extract unique patrols and populate dropdown
+      populatePatrolDropdown(allScouts);
+
+      if (allScouts.length > 0) {
+        rebuildTableWithFilter();
       } else {
         $('#attendanceTable').html('<p>No scouts found.</p>');
       }
@@ -152,6 +171,70 @@ function loadScoutsWithEvents() {
     console.error("Error loading data:", error);
     $('#attendanceTable').html('<p class="alert-box alert">Error loading data. Please try again.</p>');
   });
+}
+
+function populatePatrolDropdown(scouts) {
+  // Extract unique patrols
+  var patrolMap = {};
+  scouts.forEach(function(scout) {
+    if (scout.patrol_id && !patrolMap[scout.patrol_id]) {
+      patrolMap[scout.patrol_id] = scout.patrol;
+    }
+  });
+
+  // Convert to array and sort by patrol name
+  patrols = [];
+  for (var patrolId in patrolMap) {
+    patrols.push({
+      id: patrolId,
+      name: patrolMap[patrolId]
+    });
+  }
+  patrols.sort(function(a, b) {
+    return a.name.localeCompare(b.name);
+  });
+
+  // Clear existing options (except "All Patrols") and add patrol options
+  var dropdown = $('#patrolSelector');
+  dropdown.find('option:not([value="all"])').remove();
+
+  patrols.forEach(function(patrol) {
+    dropdown.append('<option value="' + patrol.id + '">' + patrol.name + '</option>');
+  });
+
+  // Add "No Patrol" option if any scouts have no patrol
+  var hasNoPatrol = scouts.some(function(scout) {
+    return !scout.patrol_id;
+  });
+  if (hasNoPatrol) {
+    dropdown.append('<option value="none">No Patrol</option>');
+  }
+
+  console.log("Populated patrol dropdown with " + patrols.length + " patrols");
+}
+
+function rebuildTableWithFilter() {
+  // Filter scouts based on selected patrol
+  var filteredScouts;
+  if (selectedPatrol === 'all') {
+    filteredScouts = allScouts;
+  } else if (selectedPatrol === 'none') {
+    filteredScouts = allScouts.filter(function(scout) {
+      return !scout.patrol_id;
+    });
+  } else {
+    filteredScouts = allScouts.filter(function(scout) {
+      return scout.patrol_id == selectedPatrol;
+    });
+  }
+
+  console.log("Filtered to " + filteredScouts.length + " scouts (patrol: " + selectedPatrol + ")");
+
+  if (filteredScouts.length > 0) {
+    buildAttendanceTable(filteredScouts);
+  } else {
+    $('#attendanceTable').html('<p>No scouts found for the selected patrol.</p>');
+  }
 }
 
 function buildAttendanceTable(scouts) {
