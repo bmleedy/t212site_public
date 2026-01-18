@@ -19,7 +19,7 @@ require_permission(['sa']);
 header('Content-Type: application/json');
 require 'connect.php';
 
-// Get all active users (exclude scouts and alumni based on user_type)
+// Get all active users (exclude scouts, alumni, and deleted users)
 $users = array();
 
 $query = "SELECT user_id, user_first, user_last
@@ -27,6 +27,7 @@ $query = "SELECT user_id, user_first, user_last
           WHERE user_active = 1
             AND user_type != 'Scout'
             AND user_type NOT LIKE 'Alum%'
+            AND user_type != 'Delete'
           ORDER BY user_last ASC, user_first ASC";
 $results = $mysqli->query($query);
 
