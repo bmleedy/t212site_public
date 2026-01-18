@@ -9,7 +9,7 @@ if ( array_key_exists("edit", $_GET) ) {
 }
 
 if ( array_key_exists("id", $_GET) ) {
-  $id = $_GET["id"];
+  $id = intval($_GET["id"]);
 } else {
   echo("<div><b>An error Occurred. User ID Not Provided.  Try again.</b></div>");
   die;
@@ -17,8 +17,9 @@ if ( array_key_exists("id", $_GET) ) {
 
 $showEdit = 0;
 
-// Give webmaster access
-if (in_array("wm",$access)) {
+// $wm = 1 only when webmaster is editing someone else's profile
+// When editing your own profile, $wm = 0 so fields are editable
+if (in_array("wm",$access) && ($id != intval($userID))) {
   $wm = 1;
 } else {
   $wm = 0;

@@ -303,6 +303,15 @@
     var webMaster = document.getElementById('webMaster').value;
     var userAdmin = document.getElementById('userAdmin').value;
 
+    // Debug: Log what values are being read from hidden inputs
+    console.log("DEBUG User.html - Hidden input values:", {
+      user_id: strID,
+      edit: varEdit,
+      showEdit: showEdit,
+      webMaster: webMaster,
+      userAdmin: userAdmin
+    });
+
     var fieldData = {
       "id": strID,
       "edit": varEdit,
@@ -310,16 +319,17 @@
       "wm": webMaster,
       "userAdmin": userAdmin
     };
+    console.log("DEBUG User.html - Sending to getuser.php:", fieldData);
     $.ajax({
       url: "api/getuser.php",
       type: "post",
       data: fieldData,
       dataType: 'json',
       error: function (data) {
-        console.log(data);
+        console.log("DEBUG User.html - getuser.php ERROR:", data);
       },
       success: function (data) {
-        //console.log(data);
+        console.log("DEBUG User.html - getuser.php SUCCESS, data length:", data ? data.length : 0);
         $('#userData').append(data);
         $('#profilepic').append('<br><img src="profile_pics/' + strID + '.jpeg" alt="Profile Picture" class="profilepic" onerror="this.src=\'profile_pics/goat.jpeg\'" width=200 height=200>');
         //$('#profilepic').append('<img src="profile_pics/goat.webp" alt="Profile Picture" width=200 height=200 class="profilepic">');
