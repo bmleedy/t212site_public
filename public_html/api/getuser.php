@@ -104,8 +104,11 @@ if ($edit && !$wm) {
 
   $varFirst = '<p>'.escape_html($user_first).'</p>';
   $varLast = '<p>'.escape_html($user_last).'</p>';
-  if ($user_type=="Scout") {$varEmail = '<p>'.escape_html($user_email).'<br>'.$mailTo.'</p>';}
-  else {$varEmail='';}
+  if ($user_type=="Scout") {
+    $varEmail = '<p>'.escape_html($user_email).'<br>'.$mailTo.'</p>';
+  } else {
+    $varEmail = '<p>'.escape_html($user_email).'</p>';
+  }
 
   $varUserType = '<p>'.escape_html($user_type).'</p>'.'<input type="hidden" id="user_type" value="'. escape_html($user_type) . '" />';
   $varUserName = '<p>'.escape_html($user_name).'</p>';

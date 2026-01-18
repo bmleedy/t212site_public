@@ -111,14 +111,16 @@ if ($user_type == 'Scout') {
     /************ Adult Merit Badge Info / Family Info / Address *******************************/
 } else {
     /***** Get Scout Info ***********/
-    $query = "SELECT user_first, user_last FROM users WHERE family_id=? AND user_type='Scout'";
+    $query = "SELECT user_id, user_first, user_last FROM users WHERE family_id=? AND user_type='Scout'";
     $stmt = $mysqli->prepare($query);
     $stmt->bind_param('i', $family_id);
     $stmt->execute();
     $results = $stmt->get_result();
-    $scoutData = '<div class="row"><div class="large-6 columns"><label>My Scouts</label><p>';
+    $scoutData = '<div class="row" style="margin-top:20px;"><div class="large-6 columns"><label>My Scouts</label><p>';
     while ($row = $results->fetch_assoc()) {
-        $scoutData = $scoutData . escape_html($row['user_first']) . ' ' . escape_html($row['user_last']) . '<br>';
+        $scout_id = (int)$row['user_id'];
+        $scout_name = escape_html($row['user_first']) . ' ' . escape_html($row['user_last']);
+        $scoutData = $scoutData . '<a href="User.php?id=' . $scout_id . '">' . $scout_name . '</a><br>';
     }
     $scoutData = $scoutData . '</p></div>';
     $stmt->close();
