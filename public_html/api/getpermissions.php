@@ -17,11 +17,23 @@ $input = json_decode(file_get_contents('php://input'), true);
 $userType = isset($input['userType']) ? $input['userType'] : '';
 $name = isset($input['name']) ? $input['name'] : '';
 $permission = isset($input['permission']) ? $input['permission'] : '';
+$showDeleted = isset($input['showDeleted']) ? $input['showDeleted'] : false;
+$showAlumni = isset($input['showAlumni']) ? $input['showAlumni'] : false;
 
 // Build query with filters
 $query = "SELECT user_id, user_first, user_last, user_type, user_access
           FROM users
           WHERE user_active = 1";
+
+// Exclude deleted users by default unless showDeleted is true
+if (!$showDeleted) {
+  $query .= " AND user_type != 'Delete'";
+}
+
+// Exclude alumni users by default unless showAlumni is true
+if (!$showAlumni) {
+  $query .= " AND user_type NOT LIKE 'Alum%'";
+}
 
 $params = [];
 $types = '';

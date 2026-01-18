@@ -165,6 +165,18 @@
   </div>
 
   <div class="filter-row">
+    <label for="filterShowDeleted">Show Deleted:</label>
+    <input type="checkbox" id="filterShowDeleted" style="margin:0; vertical-align:middle;" />
+    <span style="color:#666; font-size:0.9em; margin-left:5px;">Include users with type "Delete"</span>
+  </div>
+
+  <div class="filter-row">
+    <label for="filterShowAlumni">Show Alumni:</label>
+    <input type="checkbox" id="filterShowAlumni" style="margin:0; vertical-align:middle;" />
+    <span style="color:#666; font-size:0.9em; margin-left:5px;">Include users with type "Alumni"</span>
+  </div>
+
+  <div class="filter-row">
     <label></label>
     <button class="btn-filter" onclick="loadPermissions()">Apply Filters</button>
     <button class="btn-clear" onclick="clearFilters()">Clear Filters</button>
@@ -213,7 +225,9 @@ function loadPermissions() {
   var filters = {
     userType: document.getElementById('filterUserType').value,
     name: document.getElementById('filterName').value,
-    permission: document.getElementById('filterPermission').value
+    permission: document.getElementById('filterPermission').value,
+    showDeleted: document.getElementById('filterShowDeleted').checked,
+    showAlumni: document.getElementById('filterShowAlumni').checked
   };
 
   $.ajax({
@@ -267,6 +281,8 @@ function clearFilters() {
   document.getElementById('filterUserType').value = '';
   document.getElementById('filterName').value = '';
   document.getElementById('filterPermission').value = '';
+  document.getElementById('filterShowDeleted').checked = false;
+  document.getElementById('filterShowAlumni').checked = false;
   loadPermissions();
 }
 
