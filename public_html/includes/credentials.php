@@ -215,11 +215,25 @@ class Credentials {
     // ========================================================================
 
     /**
-     * Get PayPal Client ID for JavaScript SDK
+     * Get PayPal Client ID based on environment setting
+     * Returns production client ID by default, or sandbox if environment is set to 'sandbox'
      *
      * @return string
      */
     public function getPayPalClientId() {
+        $environment = $this->getPayPalEnvironment();
+        if ($environment === 'sandbox') {
+            return $this->credentials['paypal_sandbox_client_id'] ?? '';
+        }
+        return $this->credentials['paypal_client_id'] ?? '';
+    }
+
+    /**
+     * Get PayPal Production Client ID for JavaScript SDK
+     *
+     * @return string
+     */
+    public function getPayPalProductionClientId() {
         return $this->credentials['paypal_client_id'] ?? '';
     }
 
@@ -230,6 +244,25 @@ class Credentials {
      */
     public function getPayPalSandboxClientId() {
         return $this->credentials['paypal_sandbox_client_id'] ?? '';
+    }
+
+    /**
+     * Get PayPal environment setting ('production' or 'sandbox')
+     * Defaults to 'production' if not set
+     *
+     * @return string
+     */
+    public function getPayPalEnvironment() {
+        return $this->credentials['paypal_environment'] ?? 'production';
+    }
+
+    /**
+     * Check if PayPal is in sandbox mode
+     *
+     * @return bool
+     */
+    public function isPayPalSandbox() {
+        return $this->getPayPalEnvironment() === 'sandbox';
     }
 
     // ========================================================================
