@@ -77,7 +77,7 @@
     $.ajax({
       url: "api/updateuser.php",
       type: "post",
-      datatype: 'json',
+      dataType: 'json',
       data: fieldData,
       error: function (XMLHttpRequest, textStatus, errorThrown) {
         console.log(errorThrown);
@@ -135,7 +135,7 @@
     $.ajax({
       url: "api/getattendance.php",
       type: "post",
-      datatype: 'json',
+      dataType: 'json',
       data: fieldData,
       error: function (data) {
         console.log(data);
@@ -314,7 +314,7 @@
       url: "api/getuser.php",
       type: "post",
       data: fieldData,
-      datatype: 'json',
+      dataType: 'json',
       error: function (data) {
         console.log(data);
       },
@@ -329,7 +329,7 @@
       url: "api/getOtherUserInfo.php",
       type: "post",
       data: fieldData,
-      datatype: 'text',
+      dataType: 'json',
       error: function (XMLHttpRequest, textStatus, errorThrown) {
         console.log("error .ready");
         console.log(textStatus);
