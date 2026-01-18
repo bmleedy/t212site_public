@@ -128,6 +128,8 @@ writePhoneData($_POST['phone_id_2'], $_POST['phone_2'], $_POST['phone_type_2'], 
 writePhoneData($_POST['phone_id_3'], $_POST['phone_3'], $_POST['phone_type_3'], $id, $mysqli);
 
 // Update address in families table (only for non-scouts who have address fields)
+error_log("Address update check - user_type: $user_type, family_id in POST: " . (array_key_exists("family_id", $_POST) ? 'yes' : 'no') . ", address1 in POST: " . (array_key_exists("address1", $_POST) ? 'yes' : 'no'));
+
 if ($user_type != "Scout" && array_key_exists("family_id", $_POST) && array_key_exists("address1", $_POST)) {
   $family_id = $_POST['family_id'];
   $address1 = $_POST['address1'];
@@ -136,28 +138,70 @@ if ($user_type != "Scout" && array_key_exists("family_id", $_POST) && array_key_
   $state = $_POST['state'];
   $zip = $_POST['zip'];
 
-  $addr_query = "UPDATE families SET address1=?, address2=?, city=?, state=?, zip=? WHERE family_id=?";
-  $addr_stmt = $mysqli->prepare($addr_query);
-  if ($addr_stmt) {
-    $addr_stmt->bind_param('sssssi', $address1, $address2, $city, $state, $zip, $family_id);
-    if ($addr_stmt->execute()) {
-      // Log successful address update
-      log_activity(
-        $mysqli,
-        'update_address',
-        array(
-          'family_id' => $family_id,
-          'user_id' => $id
-        ),
-        true,
-        "Address updated for family ID: $family_id",
-        $id
-      );
-    } else {
-      error_log("Failed to update address for family_id $family_id: " . $mysqli->error);
+  error_log("Address update: family_id=$family_id, address1=$address1, city=$city, state=$state, zip=$zip");
+
+  // Check if family record exists first
+  $check_query = "SELECT family_id FROM families WHERE family_id=?";
+  $check_stmt = $mysqli->prepare($check_query);
+  $check_stmt->bind_param('i', $family_id);
+  $check_stmt->execute();
+  $check_result = $check_stmt->get_result();
+  $family_exists = $check_result->num_rows > 0;
+  $check_stmt->close();
+
+  if ($family_exists) {
+    // Update existing family record
+    $addr_query = "UPDATE families SET address1=?, address2=?, city=?, state=?, zip=? WHERE family_id=?";
+    $addr_stmt = $mysqli->prepare($addr_query);
+    if ($addr_stmt) {
+      $addr_stmt->bind_param('sssssi', $address1, $address2, $city, $state, $zip, $family_id);
+      if ($addr_stmt->execute()) {
+        $affected_rows = $addr_stmt->affected_rows;
+        error_log("Address UPDATE executed successfully. Rows affected: $affected_rows");
+        log_activity(
+          $mysqli,
+          'update_address',
+          array(
+            'family_id' => $family_id,
+            'user_id' => $id
+          ),
+          true,
+          "Address updated for family ID: $family_id",
+          $id
+        );
+      } else {
+        error_log("Failed to update address for family_id $family_id: " . $mysqli->error);
+      }
+      $addr_stmt->close();
     }
-    $addr_stmt->close();
+  } else {
+    // Insert new family record
+    error_log("Family record does not exist for family_id $family_id, creating new record");
+    $addr_query = "INSERT INTO families (family_id, address1, address2, city, state, zip) VALUES (?, ?, ?, ?, ?, ?)";
+    $addr_stmt = $mysqli->prepare($addr_query);
+    if ($addr_stmt) {
+      $addr_stmt->bind_param('isssss', $family_id, $address1, $address2, $city, $state, $zip);
+      if ($addr_stmt->execute()) {
+        error_log("Address INSERT executed successfully for new family_id: $family_id");
+        log_activity(
+          $mysqli,
+          'create_address',
+          array(
+            'family_id' => $family_id,
+            'user_id' => $id
+          ),
+          true,
+          "Address created for family ID: $family_id",
+          $id
+        );
+      } else {
+        error_log("Failed to insert address for family_id $family_id: " . $mysqli->error);
+      }
+      $addr_stmt->close();
+    }
   }
+} else {
+  error_log("Address update SKIPPED - condition not met");
 }
 
 $query = "UPDATE users SET user_first=?, user_last=?, user_email=?, notif_preferences=? WHERE user_id=?";

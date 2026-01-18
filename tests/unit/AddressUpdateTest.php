@@ -295,6 +295,40 @@ if (assert_true(
     $failed++;
 }
 
+// ============================================================================
+// TEST 5b: Family record existence check and INSERT fallback
+// ============================================================================
+
+echo "Test 5b: Family record handling\n";
+echo str_repeat("-", 60) . "\n";
+
+if (assert_true(
+    strpos($updateUserContents, 'SELECT family_id FROM families WHERE family_id=?') !== false,
+    "updateuser.php checks if family record exists"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
+    strpos($updateUserContents, 'INSERT INTO families') !== false,
+    "updateuser.php can INSERT new family record if needed"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+if (assert_true(
+    strpos($updateUserContents, "'create_address'") !== false,
+    "updateuser.php logs address creation for new families"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
 echo "\n";
 
 // ============================================================================
