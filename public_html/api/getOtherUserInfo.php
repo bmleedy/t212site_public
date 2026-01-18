@@ -137,12 +137,20 @@ if ($user_type == 'Scout') {
             $city = $row["city"];
             $state = $row["state"];
             $zip = $row["zip"];
-            if ($state == "") {
-                $state = "WA";
-            }
         }
     }
     $stmt->close();
+
+    // Set defaults for empty fields
+    if ($city == "") {
+        $city = "Gig Harbor";
+    }
+    if ($state == "") {
+        $state = "WA";
+    }
+    if ($zip == "") {
+        $zip = "98332";
+    };
 
     /** if read mode, append address & scout data so they appear side by side. blank addressdata when done so it's not displayed**
      ** if edit mode, need to terminate scoutData with a closing </div> **/

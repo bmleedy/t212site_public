@@ -330,7 +330,7 @@ $varData = $varFamilyID .
     </div>
 
     <div class="large-6 columns">
-      <label>Type
+      <label>User Type
         ' . $varUserType . '
       </label>
     </div>' .
