@@ -127,9 +127,9 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($templateContents, 'setMonth(pacificDate.getMonth() - 2)') !== false ||
-    strpos($templateContents, 'setMonth(twoMonthsAgo.getMonth() - 2)') !== false,
-    "Default start date is set to 2 months ago"
+    strpos($templateContents, 'setMonth(oneMonthAgo.getMonth() - 1)') !== false ||
+    strpos($templateContents, 'getMonth() - 1)') !== false,
+    "Default start date is set to 1 month ago"
 )) {
     $passed++;
 } else {

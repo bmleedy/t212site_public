@@ -1,5 +1,16 @@
 <h2>Manage T-Shirt Orders</h2>
 
+<div class="row" style="margin-bottom:15px;">
+    <div class="large-12 columns">
+        <div class="panel" style="background:#f0f0f0; padding:10px 15px;">
+            <label style="margin:0; font-weight:normal;">
+                <input type="checkbox" id="ordersEnabledToggle" style="margin:0 8px 0 0;" />
+                <strong>Enable T-Shirt Orders</strong> - When enabled, the "Order Class B T-Shirts" link will be visible on the home page.
+            </label>
+        </div>
+    </div>
+</div>
+
 <div id="stats" class="row" style="margin-bottom:20px;">
     <div class="large-3 columns">
         <div class="panel callout">
@@ -75,8 +86,59 @@
 var allOrders = [];
 
 $(document).ready(function() {
+    loadConfig();
     loadOrders();
+
+    // Handle toggle change
+    $('#ordersEnabledToggle').on('change', function() {
+        var enabled = $(this).is(':checked') ? '1' : '0';
+        updateConfig('tshirt_orders_enabled', enabled);
+    });
 });
+
+function loadConfig() {
+    $.ajax({
+        url: 'api/tshirt_getconfig.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            if (data.status === 'Success') {
+                $('#ordersEnabledToggle').prop('checked', data.orders_enabled);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Failed to load config:', error);
+        }
+    });
+}
+
+function updateConfig(key, value) {
+    $.ajax({
+        url: 'api/tshirt_updateconfig.php',
+        type: 'POST',
+        data: { config_key: key, config_value: value },
+        dataType: 'json',
+        success: function(data) {
+            if (data.status === 'Success') {
+                console.log('Config updated: ' + key + ' = ' + value);
+            } else {
+                alert('Error updating config: ' + data.message);
+                // Revert checkbox on error
+                if (key === 'tshirt_orders_enabled') {
+                    $('#ordersEnabledToggle').prop('checked', value !== '1');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('Failed to update configuration. Please try again.');
+            console.error('Update config error:', error);
+            // Revert checkbox on error
+            if (key === 'tshirt_orders_enabled') {
+                $('#ordersEnabledToggle').prop('checked', value !== '1');
+            }
+        }
+    });
+}
 
 function loadOrders() {
     var status = $('#statusFilter').val();

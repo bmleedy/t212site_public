@@ -1,15 +1,24 @@
 <!DOCTYPE html>
 
-<?php 
+<?php
 
 require "includes/header.html";
 // if the "logoff" parameter is set, then clear the session so user
-//  will need to log in again 
+//  will need to log in again
 require_once( 'login/inc_login.php');
-// if (isset($_GET['logout'])) {
-//  //$_SESSION = array();  // empty the variables
-//  //session_destroy();    // end the session so the start must be called again
-// }
+
+// Check if T-shirt orders are enabled
+$tshirt_orders_enabled = false;
+require_once 'api/connect.php';
+$config_query = "SELECT config_value FROM store_config WHERE config_key = 'tshirt_orders_enabled'";
+$config_result = $mysqli->query($config_query);
+if ($config_result && $row = $config_result->fetch_assoc()) {
+    $tshirt_orders_enabled = ($row['config_value'] === '1');
+} else {
+    // Default to enabled if no config exists
+    $tshirt_orders_enabled = true;
+}
+$mysqli->close();
 
 ?>
 <br />
@@ -85,6 +94,7 @@ require_once( 'login/inc_login.php');
   </a>
 </div>
 
+<?php if ($tshirt_orders_enabled): ?>
 <div class="row">
   <a href="TShirtOrder.php">
     <div class="large-3 columns">
@@ -94,6 +104,7 @@ require_once( 'login/inc_login.php');
     </div>
   </a>
 </div>
+<?php endif; ?>
 
 
 <?php require "includes/footer.html"; ?>
