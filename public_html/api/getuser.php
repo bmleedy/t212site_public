@@ -215,7 +215,7 @@ foreach ($notification_types as $notif) {
   }
 }
 
-$varNotifPrefs = '<div class="row"><div class="large-12 columns"><h5>Notification Preferences</h5></div></div>';
+$varNotifPrefs = '<div class="row"><div class="large-12 columns"><label>Notification Preferences</label></div></div>';
 $varNotifPrefs .= '<div class="row">';
 
 // Build checkboxes in two columns
@@ -239,10 +239,10 @@ foreach ($filtered_notification_types as $index => $notif) {
   }
 
   if ($edit && !$wm) {
-    $varNotifPrefs .= '<label title="' . escape_html($tooltip) . '">';
+    $varNotifPrefs .= '<label title="' . escape_html($tooltip) . '" style="margin-bottom:4px;display:block;">';
     $varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . escape_html($key) . '" id="notif_' . escape_html($key) . '" value="' . escape_html($key) . '" ' . $is_checked . ' />';
     $varNotifPrefs .= ' ' . escape_html($display_name);
-    $varNotifPrefs .= '</label><br>';
+    $varNotifPrefs .= '</label>';
   } else {
     // Display mode - show preferences with colored status
     if ($is_checked === 'checked') {
@@ -250,7 +250,7 @@ foreach ($filtered_notification_types as $index => $notif) {
     } else {
       $status = '<span style="color:#999;">Disabled</span>';
     }
-    $varNotifPrefs .= '<p><strong>' . escape_html($display_name) . ':</strong> ' . $status . '</p>';
+    $varNotifPrefs .= '<div style="margin-bottom:4px;"><strong>' . escape_html($display_name) . ':</strong> ' . $status . '</div>';
   }
 
   // Close column
