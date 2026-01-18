@@ -177,6 +177,18 @@ $stmt->close();
 // Build notification preferences section
 require_once '../includes/notification_types.php';
 
+// Get user permissions for filtering notifications
+$user_permissions = array();
+$perm_query = "SELECT user_access FROM users WHERE user_id = ?";
+$perm_stmt = $mysqli->prepare($perm_query);
+$perm_stmt->bind_param('i', $id);
+$perm_stmt->execute();
+$perm_result = $perm_stmt->get_result();
+if ($perm_row = $perm_result->fetch_assoc()) {
+    $user_permissions = explode('.', $perm_row['user_access']);
+}
+$perm_stmt->close();
+
 // Parse existing preferences (if any)
 $prefs_array = array();
 if ($notif_preferences) {
@@ -186,14 +198,31 @@ if ($notif_preferences) {
   }
 }
 
+// Filter notification types based on user permissions
+$filtered_notification_types = array();
+foreach ($notification_types as $notif) {
+  // If no permission required, or user has required permission, include it
+  if (!isset($notif['requires_permission'])) {
+    $filtered_notification_types[] = $notif;
+  } else {
+    // Check if user has any of the required permissions
+    foreach ($notif['requires_permission'] as $required_perm) {
+      if (in_array($required_perm, $user_permissions)) {
+        $filtered_notification_types[] = $notif;
+        break;
+      }
+    }
+  }
+}
+
 $varNotifPrefs = '<div class="row"><div class="large-12 columns"><h5>Notification Preferences</h5></div></div>';
 $varNotifPrefs .= '<div class="row">';
 
 // Build checkboxes in two columns
-$half = ceil(count($notification_types) / 2);
+$half = ceil(count($filtered_notification_types) / 2);
 $column_count = 0;
 
-foreach ($notification_types as $index => $notif) {
+foreach ($filtered_notification_types as $index => $notif) {
   // Start new column
   if ($index == 0 || $index == $half) {
     $varNotifPrefs .= '<div class="large-6 columns">';
@@ -215,13 +244,17 @@ foreach ($notification_types as $index => $notif) {
     $varNotifPrefs .= ' ' . escape_html($display_name);
     $varNotifPrefs .= '</label><br>';
   } else {
-    // Display mode - show preferences as text
-    $status = ($is_checked === 'checked') ? 'Enabled' : 'Disabled';
+    // Display mode - show preferences with colored status
+    if ($is_checked === 'checked') {
+      $status = '<span style="color:green;">Enabled</span>';
+    } else {
+      $status = '<span style="color:#999;">Disabled</span>';
+    }
     $varNotifPrefs .= '<p><strong>' . escape_html($display_name) . ':</strong> ' . $status . '</p>';
   }
 
   // Close column
-  if ($index == $half - 1 || $index == count($notification_types) - 1) {
+  if ($index == $half - 1 || $index == count($filtered_notification_types) - 1) {
     $varNotifPrefs .= '</div>';
   }
 }

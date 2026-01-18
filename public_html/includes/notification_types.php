@@ -29,5 +29,11 @@ $notification_types = array(
         'key' => 'canc',  // CANCellation
         'display_name' => 'Cancellation Notifications',
         'tooltip' => 'Check this box to receive email notifications when someone cancels registration for an event you are organizing (Scout in Charge or Adult in Charge).'
+    ),
+    array(
+        'key' => 'tshirt_order',  // T-Shirt Order notifications
+        'display_name' => 'T-Shirt Order Emails',
+        'tooltip' => 'Check this box to receive an email when a new T-shirt order is placed.',
+        'requires_permission' => array('trs', 'sa')  // Only show for treasurers and site admins
     )
 );
