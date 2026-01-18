@@ -250,7 +250,7 @@ foreach ($filtered_notification_types as $index => $notif) {
     } else {
       $status = '<span style="color:#999;">Disabled</span>';
     }
-    $varNotifPrefs .= '<div style="margin-bottom:4px;"><strong>' . escape_html($display_name) . ':</strong> ' . $status . '</div>';
+    $varNotifPrefs .= '<p style="margin-bottom:4px;">' . escape_html($display_name) . ': ' . $status . '</p>';
   }
 
   // Close column

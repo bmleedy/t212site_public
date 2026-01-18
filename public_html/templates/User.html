@@ -150,9 +150,22 @@
         strTable = strTable + "<th><a href=javascript:loadEVTable('startdate','" + strTypeID + "','" + strDateOrder + "')>Start Date</a></th>";
         strTable = strTable + "<th><a href=javascript:loadEVTable('name','" + strTypeID + "','asc')>Event Name</a></th>";
         strTable = strTable + "<th><a href=javascript:loadEVTable('location','" + strTypeID + "','asc')>Location</a></th>";
-        strTable = strTable + "</tr></thead>";
-        data.forEach(writeRow);
-        strTable = strTable + "</table>";
+        strTable = strTable + "</tr></thead><tbody>";
+
+        // Build table rows
+        data.forEach(function(element) {
+          var strStart = element['startdate'];
+          strStart = strStart.replace(/-/g, "/");
+          var startDate = new Date(strStart);
+
+          strTable = strTable + "<tr>";
+          strTable = strTable + "<td style='width:150px;'>" + startDate.toDateString() + "</td>";
+          strTable = strTable + "<td style='width:200px;'><a href='Event.php?id=" + element["event_id"] + "'>" + element["name"] + "</a></td>";
+          strTable = strTable + "<td style='width:200px;'>" + element["location"] + "</td>";
+          strTable = strTable + "</tr>";
+        });
+
+        strTable = strTable + "</tbody></table>";
         //console.log(strTable);
         $(divName).append(strTable);
         $("#divEvents" + strTypeID).show();
