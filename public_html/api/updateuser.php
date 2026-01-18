@@ -127,6 +127,39 @@ writePhoneData($_POST['phone_id_1'], $_POST['phone_1'], $_POST['phone_type_1'], 
 writePhoneData($_POST['phone_id_2'], $_POST['phone_2'], $_POST['phone_type_2'], $id, $mysqli);
 writePhoneData($_POST['phone_id_3'], $_POST['phone_3'], $_POST['phone_type_3'], $id, $mysqli);
 
+// Update address in families table (only for non-scouts who have address fields)
+if ($user_type != "Scout" && array_key_exists("family_id", $_POST) && array_key_exists("address1", $_POST)) {
+  $family_id = $_POST['family_id'];
+  $address1 = $_POST['address1'];
+  $address2 = array_key_exists("address2", $_POST) ? $_POST['address2'] : '';
+  $city = $_POST['city'];
+  $state = $_POST['state'];
+  $zip = $_POST['zip'];
+
+  $addr_query = "UPDATE families SET address1=?, address2=?, city=?, state=?, zip=? WHERE family_id=?";
+  $addr_stmt = $mysqli->prepare($addr_query);
+  if ($addr_stmt) {
+    $addr_stmt->bind_param('sssssi', $address1, $address2, $city, $state, $zip, $family_id);
+    if ($addr_stmt->execute()) {
+      // Log successful address update
+      log_activity(
+        $mysqli,
+        'update_address',
+        array(
+          'family_id' => $family_id,
+          'user_id' => $id
+        ),
+        true,
+        "Address updated for family ID: $family_id",
+        $id
+      );
+    } else {
+      error_log("Failed to update address for family_id $family_id: " . $mysqli->error);
+    }
+    $addr_stmt->close();
+  }
+}
+
 $query = "UPDATE users SET user_first=?, user_last=?, user_email=?, notif_preferences=? WHERE user_id=?";
 $statement = $mysqli->prepare($query);
 if ($statement === false) {
