@@ -137,6 +137,49 @@ if (assert_true(
 echo "\n";
 
 // ============================================================================
+// TEST 5: SA and UE users should always have full edit access
+// ============================================================================
+
+echo "Test 5: SA/UE users have full edit access (bug fix verification)\n";
+echo str_repeat("-", 60) . "\n";
+
+$userPhpFile = PUBLIC_HTML_DIR . '/User.php';
+$userPhpContents = file_get_contents($userPhpFile);
+
+// Check that sa users get wm=1 for full edit access
+if (assert_true(
+    strpos($userPhpContents, 'in_array("sa", $access)') !== false &&
+    strpos($userPhpContents, '$wm = 1') !== false,
+    "User.php gives sa users full edit access (wm=1)"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Check that ue users get wm=0 for full edit access
+if (assert_true(
+    strpos($userPhpContents, 'in_array("ue", $access)') !== false,
+    "User.php checks for ue permission for full edit access"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Check that sa, ue, AND wm users all get full edit access
+if (assert_true(
+    strpos($userPhpContents, 'if (in_array("sa", $access) || in_array("ue", $access) || in_array("wm", $access))') !== false,
+    "User.php gives sa, ue, and wm users full edit access"
+)) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+echo "\n";
+
+// ============================================================================
 // SUMMARY
 // ============================================================================
 

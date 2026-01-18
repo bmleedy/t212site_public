@@ -17,9 +17,10 @@ if ( array_key_exists("id", $_GET) ) {
 
 $showEdit = 0;
 
-// $wm = 1 only when webmaster is editing someone else's profile
-// When editing your own profile, $wm = 0 so fields are editable
-if (in_array("wm",$access) && ($id != intval($userID))) {
+// $wm = 1 means user has webmaster-like edit access (can edit name, email, phone, etc.)
+// $wm = 0 means user does NOT have webmaster-like access
+if (in_array("sa", $access) || in_array("ue", $access) || in_array("wm", $access)) {
+  // Super admins, user editors, and webmasters have full edit access
   $wm = 1;
 } else {
   $wm = 0;

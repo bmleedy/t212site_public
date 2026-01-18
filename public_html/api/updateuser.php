@@ -70,9 +70,10 @@ if (array_key_exists("wm", $_POST)) {
 } else {
   $wm = 0;  // Default to 0 when not provided
 }
-// $wm = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
+// $wm = 1 means user has webmaster-like edit access (can edit name, email, phone, etc.)
+// $wm = 0 means user does NOT have webmaster-like access
 
-if (!$wm) {
+if ($wm) {
   validateField($first , "First Name" , "user_first");
   validateField($last , "Last Name" , "user_last");
   validateField($email , "Email" , "user_email");
@@ -115,7 +116,7 @@ if ($user_type == "Scout") {
   if (!is_null($scout_3)) { writeRelationshipData($scout_3, $user_type, $id, $mysqli); }
   if (!is_null($scout_4)) { writeRelationshipData($scout_4, $user_type, $id, $mysqli); }
 }
-if ($wm) {
+if (!$wm) {
   $returnMsg = array(
     'status' => 'Success'
   );

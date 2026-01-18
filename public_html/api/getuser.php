@@ -21,7 +21,7 @@ require 'connect.php';
 // Validate inputs
 $id = validate_int_post('id', true);
 $edit = validate_bool_post('edit', false);
-$wm = validate_bool_post('wm', false);  // = 1 if scout is wm editing another scout. =0 for adults and if editing his own record
+$wm = validate_bool_post('wm', false);  // wm=1 means user has webmaster-like edit access, wm=0 means limited access
 $isAdmin = validate_bool_post('userAdmin', false);
 
 // Authorization check - user can only view their own data unless they have permission
@@ -44,7 +44,7 @@ $family_id = $row->family_id;
 $notif_preferences = $row->notif_preferences;
 $stmt->close();
 
-if ($edit && !$wm) {
+if ($edit && $wm) {
   $varFirst = '<input type="text" id="user_first" required value="'. escape_html($user_first) . '"/>';
   $varLast = '<input type="text" id="user_last" required value="'. escape_html($user_last) . '"/>';
   $varEmail = '<input type="text" id="user_email" required value="'. escape_html($user_email) . '"/>';
@@ -133,7 +133,7 @@ $varID = [];
 for ($i = 1; $i <= 3; $i++) {
   $row = $results->fetch_assoc();
   if (!$row) {
-    if ($edit && !$wm) {
+    if ($edit && $wm) {
       $varID[] = "";
       $varPhone[] = '<input type="text" id="user_phone_'.$i.'" value=""/>';
       $varType[] = '
@@ -153,7 +153,7 @@ for ($i = 1; $i <= 3; $i++) {
     $isWork = "";
     $isHome = "";
     $varID[] = $row["id"];
-    if ($edit && !$wm) {
+    if ($edit && $wm) {
       $varPhone[] = '<input type="text" id="user_phone_'.$i.'" value="'. escape_html($row["phone"]) . '"/>';
       if ($row["type"]=="My Cell") {
         $isCell =  "SELECTED" ;
@@ -241,7 +241,7 @@ foreach ($filtered_notification_types as $index => $notif) {
     $is_checked = 'checked';
   }
 
-  if ($edit && !$wm) {
+  if ($edit && $wm) {
     $varNotifPrefs .= '<label title="' . escape_html($tooltip) . '" style="margin-bottom:4px;display:block;">';
     $varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . escape_html($key) . '" id="notif_' . escape_html($key) . '" value="' . escape_html($key) . '" ' . $is_checked . ' />';
     $varNotifPrefs .= ' ' . escape_html($display_name);
