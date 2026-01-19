@@ -228,6 +228,12 @@ function writeRow(element) {
 }
 
 function loadActivityLog() {
+  // Debug: Check if meta tag exists and what token it contains
+  var metaTag = $('meta[name="csrf-token"]');
+  var csrfToken = metaTag.attr('content');
+  console.log('CSRF Debug - Meta tag found:', metaTag.length > 0);
+  console.log('CSRF Debug - Token from meta (first 16 chars):', csrfToken ? csrfToken.substring(0, 16) : 'UNDEFINED');
+
   // Get local datetime values
   var startDateLocal = document.getElementById('startDate').value;
   var endDateLocal = document.getElementById('endDate').value;

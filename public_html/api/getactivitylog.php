@@ -14,7 +14,16 @@ ini_set('display_errors', '0');
 
 header('Content-Type: application/json');
 
+// Use same session cookie settings as main pages
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
+
 require 'connect.php';
 require 'auth_helper.php';
 
@@ -23,15 +32,45 @@ require_ajax();
 require_authentication();
 require_permission(['wm', 'sa']);
 
-// Get JSON input - must read php://input before CSRF validation
+// Get JSON input
 $input = json_decode(file_get_contents('php://input'), true);
 
-// CSRF validation for state-changing operation
-// Note: Cannot use require_csrf() since php://input was already consumed above
+// CSRF validation
 $csrf_token = $input['csrf_token'] ?? '';
-if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+$session_token = $_SESSION['csrf_token'] ?? '';
+$session_id = session_id();
+
+// Debug: Log token comparison details
+error_log("CSRF Debug for getactivitylog.php:");
+error_log("  Session ID: " . $session_id);
+error_log("  Session token (first 16 chars): " . substr($session_token, 0, 16));
+error_log("  Received token (first 16 chars): " . substr($csrf_token, 0, 16));
+error_log("  Tokens match: " . ($session_token === $csrf_token ? 'YES' : 'NO'));
+error_log("  Session token length: " . strlen($session_token));
+error_log("  Received token length: " . strlen($csrf_token));
+
+if (empty($session_token)) {
     http_response_code(403);
-    echo json_encode(['error' => 'Invalid CSRF token']);
+    echo json_encode(['error' => 'No CSRF token in session', 'debug' => 'session_id: ' . $session_id]);
+    die();
+}
+
+if (empty($csrf_token)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'No CSRF token received', 'debug' => 'Check if meta tag exists and JS can read it']);
+    die();
+}
+
+if (!hash_equals($session_token, $csrf_token)) {
+    http_response_code(403);
+    echo json_encode([
+        'error' => 'CSRF token mismatch',
+        'debug' => [
+            'session_id' => $session_id,
+            'session_token_prefix' => substr($session_token, 0, 8),
+            'received_token_prefix' => substr($csrf_token, 0, 8)
+        ]
+    ]);
     die();
 }
 
