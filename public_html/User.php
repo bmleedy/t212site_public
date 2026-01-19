@@ -52,6 +52,17 @@ if (($id != $userID) && (!in_array("ue",$access)) && (!in_array("sa",$access)) &
 <!-- User ID is kept for form functionality but validated server-side with intval() -->
 <input type="hidden" id="user_id" value="<?php echo intval($id); ?>">
 
+<!-- Pass server-side values to JavaScript without using hidden form fields -->
+<script type="text/javascript">
+  // These values are injected by PHP - they are read-only and cannot be tampered with via form submission
+  var serverVars = {
+    edit: <?php echo json_encode($varEdit); ?>,
+    showEdit: <?php echo json_encode($showEdit); ?>,
+    webMaster: <?php echo json_encode($wm); ?>,
+    userAdmin: <?php echo json_encode($isUserAdmin); ?>
+  };
+</script>
+
 <br>
 <div class='row'>
   <?php 

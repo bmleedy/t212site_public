@@ -286,10 +286,11 @@
 
   $(document).ready(function () {
     strID = document.getElementById('user_id').value;
-    var varEdit = document.getElementById('edit').value;
-    var showEdit = document.getElementById('showEdit').value;
-    webMaster = document.getElementById('webMaster').value;  // Assign to global variable, not local
-    var userAdmin = document.getElementById('userAdmin').value;
+    // Use server-injected variables instead of hidden form fields (security improvement)
+    var varEdit = serverVars.edit;
+    var showEdit = serverVars.showEdit;
+    webMaster = serverVars.webMaster;  // Assign to global variable, not local
+    var userAdmin = serverVars.userAdmin;
 
     var fieldData = {
       "id": strID,
