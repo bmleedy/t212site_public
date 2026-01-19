@@ -31,3 +31,8 @@ AddDefaultCharset UTF-8
 <Files "CREDENTIALS.json">
   Require all denied
 </Files>
+
+# Block access to access log files (access_log*.txt)
+<FilesMatch "^access_log.*">
+  Require all denied
+</FilesMatch>
