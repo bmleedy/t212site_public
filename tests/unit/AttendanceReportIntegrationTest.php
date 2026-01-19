@@ -479,8 +479,8 @@ if (assert_true(
 
 // Check that both have same access control
 if (assert_true(
-    preg_match('/in_array\("wm".*in_array\("sa".*in_array\("pl".*AttendanceReport/s', $sidebarContents),
-    "Sidebar link has wm/sa/pl access control"
+    preg_match('/in_array\("wm".*in_array\("oe".*in_array\("sa".*AttendanceReport/s', $sidebarContents),
+    "Sidebar link has wm/oe/sa access control"
 )) {
     $passed++;
 } else {
@@ -488,8 +488,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/in_array\("wm".*in_array\("sa".*in_array\("pl".*AttendanceReport/s', $mobileMenuContents),
-    "Mobile menu link has wm/sa/pl access control"
+    preg_match('/in_array\("wm".*in_array\("oe".*in_array\("sa".*AttendanceReport/s', $mobileMenuContents),
+    "Mobile menu link has wm/oe/sa access control"
 )) {
     $passed++;
 } else {

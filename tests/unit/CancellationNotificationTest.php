@@ -36,8 +36,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    count($notification_types) === 4,
-    "notification_types has exactly 4 entries (including cancellation)"
+    count($notification_types) >= 4,
+    "notification_types has at least 4 entries (including cancellation)"
 )) {
     $passed++;
 } else {

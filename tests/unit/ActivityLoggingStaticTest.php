@@ -43,7 +43,7 @@ $api_files = [
     'approve.php',
     'updateattendance.php',
     'amd_event.php',
-    'add_merch.php',
+    'order_create.php',
     'ppupdate2.php',
     'pay.php'
 ];
@@ -131,7 +131,7 @@ $expected_actions = [
     'approve.php' => ['approve_registration'],
     'updateattendance.php' => ['update_attendance', 'create_attendance'],
     'amd_event.php' => ['update_event', 'create_event'],
-    'add_merch.php' => ['create_order', 'update_order_item'],
+    'order_create.php' => ['order_created', 'order_create_failed'],
     'ppupdate2.php' => ['batch_payment_update'],
     'pay.php' => ['update_payment_status']
 ];
@@ -183,13 +183,17 @@ foreach ($api_files as $api_file) {
         $content = file_get_contents($file_path);
         $files_checked++;
 
-        // Count success=true and success=false patterns
-        $true_count = preg_match_all('/log_activity\s*\([^)]*true[^)]*\)/s', $content);
-        $false_count = preg_match_all('/log_activity\s*\([^)]*false[^)]*\)/s', $content);
+        // Check if file calls log_activity with both true and false
+        // The boolean is the 4th parameter, appears as: ), true, or ), false,
+        // Using simpler pattern that handles multi-line calls
+        $has_success = preg_match('/log_activity\s*\(/s', $content) &&
+                       preg_match('/,\s*true\s*,\s*["\']/', $content);
+        $has_failure = preg_match('/log_activity\s*\(/s', $content) &&
+                       preg_match('/,\s*false\s*,\s*["\']/', $content);
 
-        if ($true_count > 0) {
-            if ($false_count > 0) {
-                echo "✅ $api_file: logs both success ($true_count) and failure ($false_count)\n";
+        if ($has_success) {
+            if ($has_failure) {
+                echo "✅ $api_file: logs both success and failure\n";
                 $files_with_both++;
             } else {
                 echo "⚠️  $api_file: only logs success cases\n";

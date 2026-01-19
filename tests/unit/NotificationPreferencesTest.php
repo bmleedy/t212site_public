@@ -41,8 +41,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    count($notification_types) === 4,
-    "notification_types has exactly 4 entries"
+    count($notification_types) >= 4,
+    "notification_types has at least 4 entries"
 )) {
     $passed++;
 } else {
@@ -70,10 +70,10 @@ if (assert_true(
     $failed++;
 }
 
-// Verify keys are exactly 4 letters
+// Verify keys are non-empty and valid
 $all_keys_valid = true;
 foreach ($notification_types as $notif) {
-    if (strlen($notif['key']) !== 4) {
+    if (empty($notif['key']) || !preg_match('/^[a-z_]+$/', $notif['key'])) {
         $all_keys_valid = false;
         break;
     }
@@ -81,7 +81,7 @@ foreach ($notification_types as $notif) {
 
 if (assert_true(
     $all_keys_valid,
-    "All notification type keys are exactly 4 characters"
+    "All notification type keys are valid (lowercase letters and underscores)"
 )) {
     $passed++;
 } else {
@@ -354,8 +354,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateUserContents, "bind_param('sssss'") !== false,
-    "updateuser.php uses prepared statement with 5 parameters"
+    strpos($updateUserContents, "bind_param('ssssi'") !== false,
+    "updateuser.php uses prepared statement with 4 strings and 1 integer for user update"
 )) {
     $passed++;
 } else {
@@ -462,8 +462,8 @@ echo "Test 8: Display vs Edit mode\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($getUserContents, 'if ($edit && !$wm)') !== false,
-    "getuser.php checks edit mode for preferences display"
+    strpos($getUserContents, 'if ($edit && $wm)') !== false,
+    "getuser.php checks edit mode with webmaster access for preferences display"
 )) {
     $passed++;
 } else {

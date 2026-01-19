@@ -299,7 +299,7 @@ $userContents = file_get_contents($userFile);
 
 // Webmaster access
 if (assert_true(
-    strpos($userContents, 'in_array("wm",$access)') !== false,
+    preg_match('/in_array\("wm",\s*\$access\)/', $userContents),
     "User.php checks for 'wm' (Webmaster) access"
 )) {
     $passed++;
@@ -309,7 +309,7 @@ if (assert_true(
 
 // User editor access
 if (assert_true(
-    strpos($userContents, 'in_array("ue",$access)') !== false,
+    preg_match('/in_array\("ue",\s*\$access\)/', $userContents),
     "User.php checks for 'ue' (User Editor) access"
 )) {
     $passed++;
@@ -336,7 +336,7 @@ if (assert_file_exists($delUserFile, "DELUser.php exists")) {
 $delUserContents = file_get_contents($delUserFile);
 
 if (assert_true(
-    strpos($delUserContents, 'in_array("ue",$access)') !== false,
+    preg_match('/in_array\("ue",\s*\$access\)/', $delUserContents),
     "DELUser.php checks for 'ue' access"
 )) {
     $passed++;

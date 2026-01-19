@@ -3,7 +3,7 @@
  * Attendance Report Access Control Test
  *
  * Tests the access control for the AttendanceReport page.
- * Validates that only webmasters, scoutmasters, and patrol leaders can access.
+ * Validates that only webmasters, outing editors, and super admins can access.
  */
 
 // Load bootstrap
@@ -74,8 +74,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($attendanceReportContents, 'in_array("pl", $access)') !== false,
-    "Patrol Leader (pl) access check is present"
+    strpos($attendanceReportContents, 'in_array("oe", $access)') !== false,
+    "Outing Editor (oe) access check is present"
 )) {
     $passed++;
 } else {
@@ -200,8 +200,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/\(in_array\("wm",\$access\)\).*\(in_array\("sa",\$access\)\).*\(in_array\("pl",\$access\)\).*AttendanceReport\.php/s', $sidebarContents),
-    "Sidebar link has proper access control (wm, sa, pl)"
+    preg_match('/\(in_array\("wm",\$access\)\).*\(in_array\("oe",\$access\)\).*\(in_array\("sa",\$access\)\).*AttendanceReport\.php/s', $sidebarContents),
+    "Sidebar link has proper access control (wm, oe, sa)"
 )) {
     $passed++;
 } else {
@@ -245,8 +245,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/\(in_array\("wm",\$access\)\).*\(in_array\("sa",\$access\)\).*\(in_array\("pl",\$access\)\).*AttendanceReport\.php/s', $mobileMenuContents),
-    "Mobile menu link has proper access control (wm, sa, pl)"
+    preg_match('/\(in_array\("wm",\$access\)\).*\(in_array\("oe",\$access\)\).*\(in_array\("sa",\$access\)\).*AttendanceReport\.php/s', $mobileMenuContents),
+    "Mobile menu link has proper access control (wm, oe, sa)"
 )) {
     $passed++;
 } else {
