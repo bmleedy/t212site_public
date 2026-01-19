@@ -33,7 +33,9 @@ if ( !array_key_exists("user_id", $_SESSION) ||
      !array_key_exists("user_access", $_SESSION) ||
      !array_key_exists("user_first", $_SESSION) ||
      !array_key_exists("user_type", $_SESSION)) {
+
   // be explicit and define variables if they're not provided from the session
+  // if ANY key session variable is not set, the are all invalid and should be NULL
   $userID = NULL;
   $user_first = NULL;
   $user_type = NULL;
@@ -45,6 +47,7 @@ if ( !array_key_exists("user_id", $_SESSION) ||
   $access = explode(".",$_SESSION['user_access']);
 }
 
+// Forces scouts to complete their profile if their profile is not entirely complete already
 $checkinfo = __ROOT__ .'/api/checkinfo.php' ;
 if ($user_type=='Scout') {
   require( $checkinfo );
