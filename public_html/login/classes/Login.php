@@ -77,19 +77,10 @@ class Login
      */
     public function __construct()
     {
-        // create/read session
-				//session_set_cookie_params(0, '/', '.t212.org');
-        //session_start();
-
-        // TODO: organize this stuff better and make the constructor very small
-        // TODO: unite Login and Registration classes ?
-
-        // check the possible login actions:
-        // 1. logout (happen when user clicks logout button)
-        // 2. login via session data (happens each time user opens a page on your php project AFTER he has successfully logged in via the login form)
-        // 3. login via cookie
-        // 4. login via post data, which means simply logging in via the login form. after the user has submit his login/password successfully, his
-        //    logged-in-status is written into his session data on the server. this is the typical behaviour of common login scripts.
+        // Check the possible login actions:
+        // 1. logout (when user clicks logout button)
+        // 2. login via session data (when user opens a page after successful login)
+        // 3. login via post data (submitting the login form)
 
         // if user tried to log out
         if (isset($_GET["logout"])) {
@@ -97,59 +88,47 @@ class Login
 
         // if user has an active session on the server
         } elseif (!empty($_SESSION['user_name']) && ($_SESSION['user_logged_in'] == 1)) {
-						$this->loginWithSessionData();
-                        //error_log('Login: User '.$_SESSION['user_name'].' is not logged in');
+            $this->loginWithSessionData();
             // checking for form submit from editing screen
-            // user try to change his username
             if (isset($_POST["user_edit_submit_name"])) {
-                // function below uses use $_SESSION['user_id'] et $_SESSION['user_email']
-                //error_log('Login: editing user name.');
                 $this->editUserName($_POST['user_name']);
-            // user try to change his email
             } elseif (isset($_POST["user_edit_submit_email"])) {
-                //error_log('Login: editing email.');
-                // function below uses use $_SESSION['user_id'] et $_SESSION['user_email']
                 $this->editUserEmail($_POST['user_email']);
-            // user try to change his password
             } elseif (isset($_POST["user_edit_submit_password"])) {
-                //error_log('Login: editing password.');
-                // function below uses $_SESSION['user_name'] and $_SESSION['user_id']
                 $this->editUserPassword($_POST['user_password_old'], $_POST['user_password_new'], $_POST['user_password_repeat']);
             }
 
-        // login with cookie  ************* DISABLE RememberMe **************
-        //} elseif (isset($_COOKIE['rememberme'])) {
-				//		$this->loginWithCookieData();
-
         // if user just submitted a login form
         } elseif (isset($_POST["login"])) {
-            //if (!isset($_POST['user_rememberme'])) {
+            // Validate CSRF token
+            if (!$this->validateCsrfToken()) {
+                $this->errors[] = "Invalid form submission. Please try again.";
+            } else {
                 $_POST['user_rememberme'] = null;
-            //}
-            $this->loginWithPostData($_POST['user_name'], $_POST['user_password'], $_POST['user_rememberme']);
+                $this->loginWithPostData($_POST['user_name'], $_POST['user_password'], $_POST['user_rememberme']);
+            }
         }
 
         // checking if user requested a password reset mail
         if (isset($_POST["request_password_reset"]) && isset($_POST['user_name'])) {
-            //error_log('Login: requesting password reset.');
-            $this->setPasswordResetDatabaseTokenAndSendMail($_POST['user_name']);
+            if (!$this->validateCsrfToken()) {
+                $this->errors[] = "Invalid form submission. Please try again.";
+            } else {
+                $this->setPasswordResetDatabaseTokenAndSendMail($_POST['user_name']);
+            }
         } elseif (isset($_GET["user_name"]) && isset($_GET["verification_code"])) {
-            //error_log('Login: doing email verification');
             $this->checkIfEmailVerificationCodeIsValid($_GET["user_name"], $_GET["verification_code"]);
         } elseif (isset($_POST["submit_new_password"])) {
-            //error_log('Login: editing new password.');
-            $this->editNewPassword($_POST['user_name'], $_POST['user_password_reset_hash'], $_POST['user_password_new'], $_POST['user_password_repeat']);
+            if (!$this->validateCsrfToken()) {
+                $this->errors[] = "Invalid form submission. Please try again.";
+            } else {
+                $this->editNewPassword($_POST['user_name'], $_POST['user_password_reset_hash'], $_POST['user_password_new'], $_POST['user_password_repeat']);
+            }
         }
 
         // get gravatar profile picture if user is logged in
         if ($this->isUserLoggedIn() == true) {
-            //error_log('Login: user is already logged in.');
             $this->getGravatarImageUrl($this->user_email);
-        }
-        else {
-            //print a message if we fell all the way through
-            error_log('Login: Login called, but did nothing. (msg from the constructor)');
-            
         }
     }
 
@@ -184,30 +163,24 @@ class Login
      * Search into database for the user data of user_name specified as parameter
      * @return user data as an object if existing user
      * @return false if user_name is not found in the database
-     * TODO: @devplanete This returns two different types. Maybe this is valid, but it feels bad. We should rework this.
-     * TODO: @devplanete After some resarch I'm VERY sure that this is not good coding style! Please fix this.
      */
     private function getUserData($user_name)
     {
-        // if database connection opened
         if ($this->databaseConnection()) {
-            // database query, getting all the info of the selected user
+            // First try to find by username
             $query_user = $this->db_connection->prepare('SELECT * FROM users WHERE user_name = :user_name');
-						//$query_user = $this->db_connection->prepare('SELECT * FROM users WHERE user_name = :user_name OR user_email = :user_email');
             $query_user->bindValue(':user_name', $user_name, PDO::PARAM_STR);
-						//$query_user->bindValue(':user_name' , $user_name, PDO::PARAM_STR);
-						//$query_user->bindValue(':user_email' , $user_name, PDO::PARAM_STR);
             $query_user->execute();
-            // get result row (as an object)
-						if ($query_user->rowCount() > 0) {
-							return $query_user->fetchObject(); 
-						} else {
-							
-							$query_user = $this->db_connection->prepare('SELECT * FROM users WHERE user_email = ?');
-							$query_user->bindValue(1, $user_name, PDO::PARAM_STR);
-							$query_user->execute();
-							return $query_user->fetchObject();
-						}
+
+            if ($query_user->rowCount() > 0) {
+                return $query_user->fetchObject();
+            } else {
+                // If not found by username, try by email
+                $query_user = $this->db_connection->prepare('SELECT * FROM users WHERE user_email = ?');
+                $query_user->bindValue(1, $user_name, PDO::PARAM_STR);
+                $query_user->execute();
+                return $query_user->fetchObject();
+            }
         } else {
             return false;
         }
@@ -242,8 +215,9 @@ class Login
         if (isset($_COOKIE['rememberme'])) {
             // extract data from the cookie
             list ($user_id, $token, $hash) = explode(':', $_COOKIE['rememberme']);
-            // check cookie hash validity
-            if ($hash == hash('sha256', $user_id . ':' . $token . COOKIE_SECRET_KEY) && !empty($token)) {
+            // check cookie hash validity using timing-safe comparison
+            $expected_hash = hash('sha256', $user_id . ':' . $token . COOKIE_SECRET_KEY);
+            if (!empty($token) && hash_equals($expected_hash, $hash)) {
                 // cookie looks good, try to select corresponding user
                 if ($this->databaseConnection()) {
                     // get real token from database (and all other data)
@@ -358,6 +332,9 @@ class Login
                 $this->user_type = $result_row->user_type;
                 $this->user_is_logged_in = true;
 
+                // Regenerate session ID to prevent session fixation attacks
+                session_regenerate_id(true);
+
                 // reset the failed login counter for that user
                 $sth = $this->db_connection->prepare('UPDATE users '
                         . 'SET user_failed_logins = 0, user_last_failed_login = NULL '
@@ -407,8 +384,8 @@ class Login
     {
         // if database connection opened
         if ($this->databaseConnection()) {
-            // generate 64 char random string and store it in current user data
-            $random_token_string = hash('sha256', mt_rand());
+            // generate 64 char random string using cryptographically secure random bytes
+            $random_token_string = bin2hex(random_bytes(32));
             $sth = $this->db_connection->prepare("UPDATE users SET user_rememberme_token = :user_rememberme_token WHERE user_id = :user_id");
             $sth->execute(array(':user_rememberme_token' => $random_token_string, ':user_id' => $_SESSION['user_id']));
 
@@ -417,8 +394,15 @@ class Login
             $cookie_string_hash = hash('sha256', $cookie_string_first_part . COOKIE_SECRET_KEY);
             $cookie_string = $cookie_string_first_part . ':' . $cookie_string_hash;
 
-            // set cookie
-            setcookie('rememberme', $cookie_string, time() + COOKIE_RUNTIME, "/", COOKIE_DOMAIN);
+            // set cookie with secure flags
+            setcookie('rememberme', $cookie_string, [
+                'expires' => time() + COOKIE_RUNTIME,
+                'path' => '/',
+                'domain' => COOKIE_DOMAIN,
+                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
         }
     }
 
@@ -434,10 +418,15 @@ class Login
             $sth->execute(array(':user_id' => $_SESSION['user_id']));
         }
 
-        // set the rememberme-cookie to ten years ago (3600sec * 365 days * 10).
-        // that's obivously the best practice to kill a cookie via php
-        // @see http://stackoverflow.com/a/686166/1114320
-        setcookie('rememberme', false, time() - (3600 * 3650), '/', COOKIE_DOMAIN);
+        // set the rememberme-cookie to ten years ago to delete it
+        setcookie('rememberme', '', [
+            'expires' => time() - (3600 * 3650),
+            'path' => '/',
+            'domain' => COOKIE_DOMAIN,
+            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
     }
 
     /**
@@ -472,6 +461,18 @@ class Login
     public function isUserLoggedIn()
     {
         return $this->user_is_logged_in;
+    }
+
+    /**
+     * Validate CSRF token from POST data
+     * @return bool true if token is valid
+     */
+    private function validateCsrfToken()
+    {
+        $token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+        return isset($_SESSION['csrf_token'])
+            && !empty($token)
+            && hash_equals($_SESSION['csrf_token'], $token);
     }
 
     /**
@@ -565,8 +566,8 @@ class Login
         // is the repeat password identical to password
         } elseif ($user_password_new !== $user_password_repeat) {
             $this->errors[] = MESSAGE_PASSWORD_BAD_CONFIRM;
-        // password need to have a minimum length of 6 characters
-        } elseif (strlen($user_password_new) < 6) {
+        // password must have a minimum length of 8 characters
+        } elseif (strlen($user_password_new) < 8) {
             $this->errors[] = MESSAGE_PASSWORD_TOO_SHORT;
 
         // all the above tests are ok
@@ -624,10 +625,9 @@ class Login
 
         } else {
             // generate timestamp (to see when exactly the user (or an attacker) requested the password reset mail)
-            // btw this is an integer ;)
             $temporary_timestamp = time();
-            // generate random hash for email password reset verification (40 char string)
-            $user_password_reset_hash = sha1(uniqid(mt_rand(), true));
+            // generate cryptographically secure random hash for email password reset verification (64 char string)
+            $user_password_reset_hash = bin2hex(random_bytes(32));
             // database query, getting all the info of the selected user
             $result_row = $this->getUserData($user_name);
 
@@ -664,6 +664,9 @@ class Login
      */
     public function sendPasswordResetMail($user_name, $user_email, $user_password_reset_hash)
     {
+        // Lazy load PHPMailer only when needed
+        require_once(dirname(__DIR__) . '/libraries/PHPMailer.php');
+
         $mail = new PHPMailer;
 
         // please look into the config/config.php for much more info on how to use this!
@@ -819,8 +822,8 @@ class Login
         // is the repeat password identical to password
         } else if ($user_password_new !== $user_password_repeat) {
             $this->errors[] = MESSAGE_PASSWORD_BAD_CONFIRM;
-        // password need to have a minimum length of 6 characters
-        } else if (strlen($user_password_new) < 6) {
+        // password must have a minimum length of 8 characters
+        } else if (strlen($user_password_new) < 8) {
             $this->errors[] = MESSAGE_PASSWORD_TOO_SHORT;
         // if database connection opened
         } else if ($this->databaseConnection()) {
@@ -901,12 +904,12 @@ class Login
      */
     public function getGravatarImageUrl($email, $s = 50, $d = 'mm', $r = 'g', $atts = array() )
     {
-        $url = 'http://www.gravatar.com/avatar/';
+        $url = 'https://www.gravatar.com/avatar/';
         $url .= md5(strtolower(trim($email)));
         $url .= "?s=$s&d=$d&r=$r&f=y";
 
-        // the image url (on gravatarr servers), will return in something like
-        // http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=80&d=mm&r=g
+        // the image url (on gravatar servers), will return something like
+        // https://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=80&d=mm&r=g
         // note: the url does NOT have something like .jpg
         $this->user_gravatar_image_url = $url;
 

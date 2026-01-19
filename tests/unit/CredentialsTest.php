@@ -167,102 +167,13 @@ if (assert_true(strlen($cookieSecret) >= 10, "Cookie secret key is at least 10 c
 echo "\n";
 
 // ============================================================================
-// TEST 7: PayPal production credentials
+// TEST 7: PayPal JavaScript SDK credentials
 // ============================================================================
 
-echo "Test 7: PayPal production credentials\n";
+echo "Test 7: PayPal JavaScript SDK credentials\n";
 echo str_repeat("-", 60) . "\n";
 
-$ppProdUser = $creds->getPayPalProductionUsername();
-$ppProdPass = $creds->getPayPalProductionPassword();
-$ppProdSig = $creds->getPayPalProductionSignature();
-$ppProdAppId = $creds->getPayPalProductionAppId();
-
-if (assert_true(!empty($ppProdUser), "PayPal production username is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppProdPass), "PayPal production password is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppProdSig), "PayPal production signature is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppProdAppId), "PayPal production App ID is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-// Validate App ID format (should start with APP-)
-if (assert_true(strpos($ppProdAppId, 'APP-') === 0, "PayPal production App ID has correct format")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-echo "\n";
-
-// ============================================================================
-// TEST 8: PayPal sandbox credentials
-// ============================================================================
-
-echo "Test 8: PayPal sandbox credentials\n";
-echo str_repeat("-", 60) . "\n";
-
-$ppSandUser = $creds->getPayPalSandboxUsername();
-$ppSandPass = $creds->getPayPalSandboxPassword();
-$ppSandSig = $creds->getPayPalSandboxSignature();
-$ppSandAppId = $creds->getPayPalSandboxAppId();
-
-if (assert_true(!empty($ppSandUser), "PayPal sandbox username is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppSandPass), "PayPal sandbox password is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppSandSig), "PayPal sandbox signature is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(!empty($ppSandAppId), "PayPal sandbox App ID is not empty")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-// Validate App ID format
-if (assert_true(strpos($ppSandAppId, 'APP-') === 0, "PayPal sandbox App ID has correct format")) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-echo "\n";
-
-// ============================================================================
-// TEST 9: PayPal Client ID
-// ============================================================================
-
-echo "Test 9: PayPal Client ID\n";
-echo str_repeat("-", 60) . "\n";
-
+// Test getPayPalClientId() - returns production or sandbox based on environment
 $ppClientId = $creds->getPayPalClientId();
 
 if (assert_true(!empty($ppClientId), "PayPal Client ID is not empty")) {
@@ -278,13 +189,70 @@ if (assert_true(strlen($ppClientId) >= 50, "PayPal Client ID has valid length"))
     $failed++;
 }
 
+// Test getPayPalProductionClientId()
+$ppProdClientId = $creds->getPayPalProductionClientId();
+
+if (assert_true(!empty($ppProdClientId), "PayPal production Client ID is not empty")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Test getPayPalSandboxClientId()
+$ppSandboxClientId = $creds->getPayPalSandboxClientId();
+
+if (assert_true(!empty($ppSandboxClientId), "PayPal sandbox Client ID is not empty")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Test getPayPalEnvironment() returns valid value
+$ppEnvironment = $creds->getPayPalEnvironment();
+
+if (assert_true(in_array($ppEnvironment, ['production', 'sandbox']), "PayPal environment is 'production' or 'sandbox'")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Test isPayPalSandbox() returns boolean
+$isSandbox = $creds->isPayPalSandbox();
+
+if (assert_true(is_bool($isSandbox), "isPayPalSandbox() returns boolean")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Verify isPayPalSandbox() matches environment
+$expectedSandbox = ($ppEnvironment === 'sandbox');
+if (assert_equals($expectedSandbox, $isSandbox, "isPayPalSandbox() matches environment setting")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Verify getPayPalClientId() returns correct ID based on environment
+if ($ppEnvironment === 'sandbox') {
+    $expectedClientId = $ppSandboxClientId;
+} else {
+    $expectedClientId = $ppProdClientId;
+}
+
+if (assert_equals($expectedClientId, $ppClientId, "getPayPalClientId() returns correct ID for environment")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
 echo "\n";
 
 // ============================================================================
-// TEST 10: Google credentials
+// TEST 8: Google credentials
 // ============================================================================
 
-echo "Test 10: Google credentials\n";
+echo "Test 8: Google credentials\n";
 echo str_repeat("-", 60) . "\n";
 
 $googleEmail = $creds->getGoogleEmail();
@@ -312,10 +280,10 @@ if (assert_true(strpos($googleEmail, '@') !== false, "Google email contains @ sy
 echo "\n";
 
 // ============================================================================
-// TEST 11: Singleton pattern (same instance returned)
+// TEST 9: Singleton pattern (same instance returned)
 // ============================================================================
 
-echo "Test 11: Singleton pattern\n";
+echo "Test 9: Singleton pattern\n";
 echo str_repeat("-", 60) . "\n";
 
 $creds2 = Credentials::getInstance();

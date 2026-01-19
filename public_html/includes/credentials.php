@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Credentials Utility Class
  *
@@ -16,7 +18,7 @@
  * - Never echo or print credential values in production
  */
 
-class Credentials {
+final class Credentials {
 
     /**
      * Singleton instance
@@ -49,11 +51,25 @@ class Credentials {
     }
 
     /**
+     * Prevent cloning of singleton instance
+     */
+    private function __clone() {}
+
+    /**
+     * Prevent unserialization of singleton instance
+     *
+     * @throws Exception
+     */
+    public function __wakeup(): void {
+        throw new Exception("Cannot unserialize singleton");
+    }
+
+    /**
      * Get singleton instance
      *
      * @return Credentials
      */
-    public static function getInstance() {
+    public static function getInstance(): self {
         if (self::$instance === null) {
             self::$instance = new Credentials();
         }
@@ -65,10 +81,10 @@ class Credentials {
      *
      * @throws Exception if file doesn't exist or JSON is invalid
      */
-    private function loadCredentials() {
+    private function loadCredentials(): void {
         if (!file_exists($this->credentialsFile)) {
             throw new Exception(
-                "CREDENTIALS.json file not found at: " . $this->credentialsFile . "\n" .
+                "CREDENTIALS.json file not found. " .
                 "Please ensure CREDENTIALS.json exists in the public_html directory."
             );
         }
@@ -76,7 +92,7 @@ class Credentials {
         $jsonContent = file_get_contents($this->credentialsFile);
 
         if ($jsonContent === false) {
-            throw new Exception("Unable to read CREDENTIALS.json file");
+            throw new Exception("Unable to read CREDENTIALS.json file.");
         }
 
         $this->credentials = json_decode($jsonContent, true);
@@ -90,12 +106,33 @@ class Credentials {
     }
 
     /**
+     * Extract username or password from a credential pair stored as associative array
+     *
+     * The JSON format stores credentials as {"username": "password"}.
+     * This helper extracts either the key (username) or value (password).
+     *
+     * @param string $key The credential key in the JSON (e.g., 'database_user', 'smtp_email')
+     * @param bool $returnKey True to return the key (username), false for value (password)
+     * @return string The extracted credential or empty string if not found
+     */
+    private function getCredentialPair(string $key, bool $returnKey = true): string {
+        if (!isset($this->credentials[$key]) || !is_array($this->credentials[$key])) {
+            return '';
+        }
+        $pairs = $this->credentials[$key];
+        return $returnKey ? (array_keys($pairs)[0] ?? '') : (reset($pairs) ?: '');
+    }
+
+    /**
      * Get all credentials (use with caution)
+     *
+     * WARNING: This exposes all credentials. Only use for debugging
+     * or migration purposes. Never expose to end users.
      *
      * @return array
      */
-    public function getAll() {
-        return $this->credentials;
+    public function getAll(): array {
+        return $this->credentials ?? [];
     }
 
     // ========================================================================
@@ -107,16 +144,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getDatabaseUser() {
-        if (isset($this->credentials['database_user'])) {
-            $users = $this->credentials['database_user'];
-            if (is_array($users)) {
-                // Return the first username key
-                $keys = array_keys($users);
-                return $keys[0] ?? '';
-            }
-        }
-        return '';
+    public function getDatabaseUser(): string {
+        return $this->getCredentialPair('database_user', true);
     }
 
     /**
@@ -124,15 +153,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getDatabasePassword() {
-        if (isset($this->credentials['database_user'])) {
-            $users = $this->credentials['database_user'];
-            if (is_array($users)) {
-                // Return the first password value
-                return reset($users) ?: '';
-            }
-        }
-        return '';
+    public function getDatabasePassword(): string {
+        return $this->getCredentialPair('database_user', false);
     }
 
     /**
@@ -140,16 +162,15 @@ class Credentials {
      *
      * @return string
      */
-    public function getDatabaseName() {
+    public function getDatabaseName(): string {
         // First check if database_name is explicitly defined
         if (isset($this->credentials['database_name'])) {
             return $this->credentials['database_name'];
         }
 
-        // Fallback: extract from username (legacy behavior)
-        $user = $this->getDatabaseUser();
-        // Database name is typically the username without the 'db' suffix
+        // Fallback: extract from username (legacy behavior for hostinger)
         // e.g., u321706752_t212db -> u321706752_t212
+        $user = $this->getDatabaseUser();
         return str_replace('db', '', $user);
     }
 
@@ -158,7 +179,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getDatabaseHost() {
+    public function getDatabaseHost(): string {
         return $this->credentials['database_host'] ?? '127.0.0.1';
     }
 
@@ -171,15 +192,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getSMTPUsername() {
-        if (isset($this->credentials['smtp_email'])) {
-            $emails = $this->credentials['smtp_email'];
-            if (is_array($emails)) {
-                $keys = array_keys($emails);
-                return $keys[0] ?? '';
-            }
-        }
-        return '';
+    public function getSMTPUsername(): string {
+        return $this->getCredentialPair('smtp_email', true);
     }
 
     /**
@@ -187,14 +201,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getSMTPPassword() {
-        if (isset($this->credentials['smtp_email'])) {
-            $emails = $this->credentials['smtp_email'];
-            if (is_array($emails)) {
-                return reset($emails) ?: '';
-            }
-        }
-        return '';
+    public function getSMTPPassword(): string {
+        return $this->getCredentialPair('smtp_email', false);
     }
 
     // ========================================================================
@@ -206,7 +214,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getCookieSecretKey() {
+    public function getCookieSecretKey(): string {
         return $this->credentials['cookie_secret_key'] ?? '';
     }
 
@@ -220,7 +228,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getPayPalClientId() {
+    public function getPayPalClientId(): string {
         $environment = $this->getPayPalEnvironment();
         if ($environment === 'sandbox') {
             return $this->credentials['paypal_sandbox_client_id'] ?? '';
@@ -233,7 +241,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getPayPalProductionClientId() {
+    public function getPayPalProductionClientId(): string {
         return $this->credentials['paypal_client_id'] ?? '';
     }
 
@@ -242,7 +250,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getPayPalSandboxClientId() {
+    public function getPayPalSandboxClientId(): string {
         return $this->credentials['paypal_sandbox_client_id'] ?? '';
     }
 
@@ -252,7 +260,7 @@ class Credentials {
      *
      * @return string
      */
-    public function getPayPalEnvironment() {
+    public function getPayPalEnvironment(): string {
         return $this->credentials['paypal_environment'] ?? 'production';
     }
 
@@ -261,7 +269,7 @@ class Credentials {
      *
      * @return bool
      */
-    public function isPayPalSandbox() {
+    public function isPayPalSandbox(): bool {
         return $this->getPayPalEnvironment() === 'sandbox';
     }
 
@@ -274,15 +282,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getGoogleEmail() {
-        if (isset($this->credentials['google'])) {
-            $accounts = $this->credentials['google'];
-            if (is_array($accounts)) {
-                $keys = array_keys($accounts);
-                return $keys[0] ?? '';
-            }
-        }
-        return '';
+    public function getGoogleEmail(): string {
+        return $this->getCredentialPair('google', true);
     }
 
     /**
@@ -290,14 +291,8 @@ class Credentials {
      *
      * @return string
      */
-    public function getGooglePassword() {
-        if (isset($this->credentials['google'])) {
-            $accounts = $this->credentials['google'];
-            if (is_array($accounts)) {
-                return reset($accounts) ?: '';
-            }
-        }
-        return '';
+    public function getGooglePassword(): string {
+        return $this->getCredentialPair('google', false);
     }
 
     // ========================================================================
@@ -309,16 +304,19 @@ class Credentials {
      *
      * @return bool
      */
-    public function credentialsFileExists() {
+    public function credentialsFileExists(): bool {
         return file_exists($this->credentialsFile);
     }
 
     /**
      * Get the path to the credentials file
      *
+     * WARNING: This exposes the file location. Only use for debugging
+     * or configuration validation. Never expose to end users.
+     *
      * @return string
      */
-    public function getCredentialsFilePath() {
+    public function getCredentialsFilePath(): string {
         return $this->credentialsFile;
     }
 }

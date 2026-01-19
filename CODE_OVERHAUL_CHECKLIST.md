@@ -18,26 +18,25 @@
 
 | File | Purpose | Review Status |
 |------|---------|---------------|
-| `includes/authHeader.php` | Session init, auth check | [ ] |
-| `includes/credentials.php` | Credentials management | [ ] |
-| `login/classes/Login.php` | Login logic | [ ] |
-| `login/classes/Registration.php` | User registration | [ ] |
-| `login/config/config.php` | Login configuration | [ ] |
-| `login/inc_login.php` | Login include | [ ] |
-| `login/index.php` | Login entry point | [ ] |
-| `login/index2.php` | Alternate login entry | [ ] |
-| `login/views/user_login.php` | Login form view | [ ] |
-| `login/views/logged_in.php` | Logged in view | [ ] |
-| `login/views/not_logged_in.php` | Not logged in view | [ ] |
-| `password_reset.php` | Password reset page | [ ] |
-| `login/views/password_reset.php` | Password reset view | [ ] |
+| `includes/authHeader.php` | Session init, auth check | [x] |
+| `includes/credentials.php` | Credentials management | [x] |
+| `login/classes/Login.php` | Login logic | [x] |
+| `login/classes/Registration.php` | User registration | [x] |
+| `login/config/config.php` | Login configuration | [x] |
+| `login/inc_login.php` | Login include | [x] |
+| `login/index.php` | Login entry point | [x] |
+| `login/views/user_login.php` | Login form view | [x] |
+| `login/views/logged_in.php` | Logged in view | [x] |
+| `login/views/not_logged_in.php` | Not logged in view | [x] |
+| `password_reset.php` | Password reset page | [x] |
+| `login/views/password_reset.php` | Password reset view | [x] |
 
 **Priority Issues to Check:**
-- [ ] Password hashing uses `password_hash()` with `PASSWORD_DEFAULT`
-- [ ] Session regeneration on login/logout
-- [ ] CSRF protection on forms
-- [ ] Rate limiting on login attempts
-- [ ] Secure cookie flags (HttpOnly, Secure, SameSite)
+- [x] Password hashing uses `password_hash()` with `PASSWORD_DEFAULT`
+- [x] Session regeneration on login/logout
+- [x] CSRF protection on forms
+- [ ] Rate limiting on login attempts (currently only per-user lockout: 3 attempts/30 sec)
+- [x] Secure cookie flags (HttpOnly, Secure, SameSite)
 
 ### 1.2 API Helpers & Utilities
 
@@ -410,7 +409,6 @@
 | `api/fixscouts.php` | One-time fix? | [ ] REVIEW |
 | `api/checkinfo.php` | Unknown purpose | [ ] REVIEW |
 | `info.php` | Exposes PHP info | [ ] REMOVE |
-| `login/index2.php` | Duplicate? | [ ] REVIEW |
 | `login/edit.php` | Unclear purpose | [ ] REVIEW |
 | `includes/Members.php` | Duplicate of root? | [ ] REVIEW |
 
@@ -578,4 +576,4 @@
 ---
 
 *Document Created: January 2026*
-*Last Updated: _____________*
+*Last Updated: January 18, 2026*
