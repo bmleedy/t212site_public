@@ -253,7 +253,8 @@ function loadActivityLog() {
     sourceFile: document.getElementById('filterSourceFile').value,
     user: document.getElementById('filterUser').value,
     success: document.getElementById('filterSuccess').value,
-    freetext: document.getElementById('filterFreetext').value
+    freetext: document.getElementById('filterFreetext').value,
+    csrf_token: $('meta[name="csrf-token"]').attr('content')
   };
 
   $.ajax({
