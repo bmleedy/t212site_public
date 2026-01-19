@@ -260,10 +260,16 @@ function loadActivityLog() {
     csrf_token: csrfToken  // Use PHP-injected variable
   };
 
+  // Debug: Log exactly what we're sending
+  var jsonPayload = JSON.stringify(filters);
+  console.log('CSRF Debug - Filters object:', filters);
+  console.log('CSRF Debug - JSON payload:', jsonPayload);
+  console.log('CSRF Debug - csrf_token in filters:', filters.csrf_token);
+
   $.ajax({
     url: "api/getactivitylog.php",
     type: "post",
-    data: JSON.stringify(filters),
+    data: jsonPayload,
     contentType: 'application/json',
     dataType: 'json',
     error: function(XMLHttpRequest, textStatus, errorThrown) {

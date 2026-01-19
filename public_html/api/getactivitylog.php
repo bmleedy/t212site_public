@@ -33,7 +33,12 @@ require_authentication();
 require_permission(['wm', 'sa']);
 
 // Get JSON input
-$input = json_decode(file_get_contents('php://input'), true);
+$raw_input = file_get_contents('php://input');
+$input = json_decode($raw_input, true);
+
+// Debug: Log raw input
+error_log("CSRF Debug - Raw input: " . $raw_input);
+error_log("CSRF Debug - Decoded input: " . print_r($input, true));
 
 // CSRF validation
 $csrf_token = $input['csrf_token'] ?? '';
@@ -57,7 +62,15 @@ if (empty($session_token)) {
 
 if (empty($csrf_token)) {
     http_response_code(403);
-    echo json_encode(['error' => 'No CSRF token received', 'debug' => 'Check if meta tag exists and JS can read it']);
+    echo json_encode([
+        'error' => 'No CSRF token received',
+        'debug' => [
+            'raw_input_length' => strlen($raw_input),
+            'raw_input_preview' => substr($raw_input, 0, 500),
+            'input_keys' => $input ? array_keys($input) : 'null',
+            'csrf_token_value' => $csrf_token
+        ]
+    ]);
     die();
 }
 
