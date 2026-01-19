@@ -14,7 +14,7 @@ var objEvents = [];
 var payItems=[];
 var reg_ids='';
 var strTable;
-var user_id;
+var strID;  // User ID for payment processing
 
 // Initialize PayPal Buttons when DOM is ready
 function initPayPalButtons() {
@@ -69,7 +69,7 @@ function initPayPalButtons() {
 
       // Build a description string with event names
       var eventNames = payItems.map(function(item) { return item.description; }).join(', ');
-      var userId = user_id || strID;
+      var userId = strID;
       var paymentDescription = "Scout Event: " + eventNames.substring(0, 127);
 
       return actions.order.create({
