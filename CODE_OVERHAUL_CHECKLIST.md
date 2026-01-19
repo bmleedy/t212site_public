@@ -404,13 +404,15 @@
 
 | File | Concern | Action |
 |------|---------|--------|
-| `api/updateattendance_debug.php` | Debug version | [ ] REMOVE |
-| `api/sendtest.php` | Test utility | [ ] REMOVE |
-| `api/fixscouts.php` | One-time fix? | [ ] REVIEW |
-| `api/checkinfo.php` | Unknown purpose | [ ] REVIEW |
-| `info.php` | Exposes PHP info | [ ] REMOVE |
-| `login/edit.php` | Unclear purpose | [ ] REVIEW |
-| `includes/Members.php` | Duplicate of root? | [ ] REVIEW |
+| `api/updateattendance_debug.php` | Debug version | [x] REMOVED - Fixed AttendanceReport.html to use production API |
+| `api/sendtest.php` | Test utility | [x] REMOVED |
+| `api/fixscouts.php` | One-time fix? | [x] REMOVED - Migration script, no references |
+| `api/checkinfo.php` | Unknown purpose | [x] KEEP - Actively used by authHeader.php for Scout profile |
+| `info.php` | Exposes PHP info | [x] REMOVED - Security risk |
+| `login/edit.php` | Unclear purpose | [x] REMOVED - Orphaned template |
+| `login/views/edit.php` | Part of edit.php | [x] REMOVED - Orphaned template |
+| `includes/Members.php` | Duplicate of root? | [x] REMOVED - Duplicate file |
+| `test_manual/` | Manual test directory | [x] REMOVED - Not needed |
 
 ---
 
