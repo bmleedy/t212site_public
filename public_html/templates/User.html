@@ -219,7 +219,7 @@
           if (data.emails && data.emails.length > 0) {
             var emailList = data.emails.join(',');
             var subject = encodeURIComponent('[' + patrolName + '] ');
-            var mailtoLink = 'mailto:' + emailList + '?subject=' + subject;
+            var mailtoLink = 'mailto:?bcc=' + encodeURIComponent(emailList) + '&subject=' + subject;
 
             btnHtml += '&nbsp;<a href="' + mailtoLink + '" class="round small button secondary">';
             btnHtml += '<i class="fi-mail" style="font-size:14px;"></i> Email ' + escapeHtml(patrolName) + '</a>';
