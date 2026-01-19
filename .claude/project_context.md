@@ -87,6 +87,20 @@ Credentials are stored in `CREDENTIALS.json` (git-ignored, .htaccess protected).
 
 ## Testing Standards
 
+### MANDATORY Testing Rules
+
+These rules MUST be followed for every code change:
+
+1. **After adding any feature:** Create corresponding tests to ensure the feature remains functional. Unit tests for isolated functionality, integration tests for database/API operations.
+
+2. **After fixing any bug:** Create a regression test that would catch the same bug if it were reintroduced in the future.
+
+3. **After any code change:** Run ALL tests (`php tests/test_runner.php`) to ensure no other features are broken. Do not consider a change complete until all tests pass.
+
+4. **After adding any feature:** Update the release testing checklist at `RELEASE_TESTING_CHECKLIST.md` with manual testing instructions for the new feature.
+
+---
+
 ### Test Requirements
 
 1. **Always create tests for new features:**
@@ -297,6 +311,8 @@ die();
 3. **Activity Logging:** Don't forget to log BOTH success and failure
 4. **Test Updates:** When modifying APIs, update test files too
 5. **Git Commits:** Only commit when user explicitly requests it
+6. **Testing Required:** ALWAYS run tests after changes and create new tests for new features/bug fixes
+7. **Release Checklist:** ALWAYS update `RELEASE_TESTING_CHECKLIST.md` when adding features
 
 ---
 
@@ -314,6 +330,7 @@ When identifying potential dead code:
 
 ## Documentation
 
+- **Release Testing Checklist:** `RELEASE_TESTING_CHECKLIST.md` - Manual testing steps for all features (MUST be updated when adding features)
 - Activity logging tests: `tests/ACTIVITY_LOGGING_TESTS.md`
 - Database schema: `db_copy/u104214272_t212.sql`
 - Stored procedures: `db_copy/create_procedures.sql`
