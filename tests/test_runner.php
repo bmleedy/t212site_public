@@ -10,10 +10,26 @@
 define('BOOTSTRAP_SILENT', true);
 require_once __DIR__ . '/bootstrap.php';
 
+// Check if mysqli extension is available
+$mysqliAvailable = extension_loaded('mysqli');
+
+// Tests that require mysqli - these will be skipped if mysqli is not available
+$mysqliRequiredTests = [
+    'ActivityLoggerTest.php',
+    'ActivityLoggingIntegrationTest.php',
+    'PositionPermissionSyncTest.php',
+    'StoreOrderFlowTest.php',
+];
+
 echo "\n";
 echo str_repeat("=", 70) . "\n";
 echo "                    T212 SITE TEST RUNNER                          \n";
 echo str_repeat("=", 70) . "\n";
+
+if (!$mysqliAvailable) {
+    echo "⚠️  mysqli extension not available - database tests will be skipped\n";
+}
+
 echo "Running all tests...\n\n";
 
 /**
@@ -72,6 +88,7 @@ $allTestsPassed = true;
 $totalTests = 0;
 $passedTests = 0;
 $failedTests = 0;
+$skippedTests = 0;
 
 if (file_exists($syntaxTestFile)) {
     echo "Running Syntax Tests...\n";
@@ -100,6 +117,14 @@ if (count($testFiles) > 0) {
 
     foreach ($testFiles as $testFile) {
         $testName = basename($testFile);
+
+        // Skip mysqli-required tests if mysqli is not available
+        if (!$mysqliAvailable && in_array($testName, $mysqliRequiredTests)) {
+            echo "\n⏭️  Skipping: " . $testName . " (requires mysqli)\n";
+            $skippedTests++;
+            continue;
+        }
+
         echo "\nRunning: " . $testName . "\n";
         echo str_repeat("-", 70) . "\n";
 
@@ -129,6 +154,9 @@ echo str_repeat("=", 70) . "\n";
 echo "Total Test Suites: " . $totalTests . "\n";
 echo "Passed: " . $passedTests . "\n";
 echo "Failed: " . $failedTests . "\n";
+if ($skippedTests > 0) {
+    echo "Skipped: " . $skippedTests . " (mysqli not available)\n";
+}
 echo "\n";
 
 if ($allTestsPassed) {
