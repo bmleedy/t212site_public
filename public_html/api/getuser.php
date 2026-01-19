@@ -119,6 +119,7 @@ if ($edit && $wm) {
     $varFamilyID='';
     } else {
         $varFamilyID = '<input type="hidden" id="family_id" value="'. escape_html($family_id) . '" />';
+    $varFamilyIDData = '';
     }
 }
 
