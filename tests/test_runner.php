@@ -3,8 +3,13 @@
  * Test Runner
  *
  * Executes all test files in the test suite and reports results.
- * Usage: php tests/test_runner.php
+ * Usage: php tests/test_runner.php [-V]
+ *   -V  Verbose mode: show output for all tests (default: only show failures)
  */
+
+// Parse command line options
+$options = getopt('V');
+$verbose = isset($options['V']);
 
 // Silence the bootstrap output for cleaner test runner output
 define('BOOTSTRAP_SILENT', true);
@@ -28,6 +33,10 @@ echo str_repeat("=", 70) . "\n";
 
 if (!$mysqliAvailable) {
     echo "⚠️  mysqli extension not available - database tests will be skipped\n";
+}
+
+if ($verbose) {
+    echo "Running in verbose mode...\n";
 }
 
 echo "Running all tests...\n\n";
@@ -91,19 +100,32 @@ $failedTests = 0;
 $skippedTests = 0;
 
 if (file_exists($syntaxTestFile)) {
-    echo "Running Syntax Tests...\n";
-    echo str_repeat("-", 70) . "\n";
+    if ($verbose) {
+        echo "Running Syntax Tests...\n";
+        echo str_repeat("-", 70) . "\n";
+    }
 
     $result = run_test_file($syntaxTestFile);
-    echo $result['output'] . "\n";
+
+    if ($verbose) {
+        echo $result['output'] . "\n";
+    }
 
     $totalTests++;
     if ($result['success']) {
         $passedTests++;
-        echo "\n✅ Syntax tests PASSED\n\n";
+        if ($verbose) {
+            echo "\n✅ Syntax tests PASSED\n\n";
+        }
     } else {
         $failedTests++;
         $allTestsPassed = false;
+        // Always show output for failed tests
+        if (!$verbose) {
+            echo "\nSyntax Tests:\n";
+            echo str_repeat("-", 70) . "\n";
+            echo $result['output'] . "\n";
+        }
         echo "\n❌ Syntax tests FAILED\n\n";
     }
 }
@@ -112,32 +134,49 @@ if (file_exists($syntaxTestFile)) {
 $testFiles = find_test_files(TEST_ROOT);
 
 if (count($testFiles) > 0) {
-    echo "Running Unit and Integration Tests...\n";
-    echo str_repeat("-", 70) . "\n";
+    if ($verbose) {
+        echo "Running Unit and Integration Tests...\n";
+        echo str_repeat("-", 70) . "\n";
+    }
 
     foreach ($testFiles as $testFile) {
         $testName = basename($testFile);
 
         // Skip mysqli-required tests if mysqli is not available
         if (!$mysqliAvailable && in_array($testName, $mysqliRequiredTests)) {
-            echo "\n⏭️  Skipping: " . $testName . " (requires mysqli)\n";
+            if ($verbose) {
+                echo "\n⏭️  Skipping: " . $testName . " (requires mysqli)\n";
+            }
             $skippedTests++;
             continue;
         }
 
-        echo "\nRunning: " . $testName . "\n";
-        echo str_repeat("-", 70) . "\n";
+        if ($verbose) {
+            echo "\nRunning: " . $testName . "\n";
+            echo str_repeat("-", 70) . "\n";
+        }
 
         $result = run_test_file($testFile);
-        echo $result['output'] . "\n";
+
+        if ($verbose) {
+            echo $result['output'] . "\n";
+        }
 
         $totalTests++;
         if ($result['success']) {
             $passedTests++;
-            echo "\n✅ " . $testName . " PASSED\n";
+            if ($verbose) {
+                echo "\n✅ " . $testName . " PASSED\n";
+            }
         } else {
             $failedTests++;
             $allTestsPassed = false;
+            // Always show output for failed tests
+            if (!$verbose) {
+                echo "\n" . $testName . ":\n";
+                echo str_repeat("-", 70) . "\n";
+                echo $result['output'] . "\n";
+            }
             echo "\n❌ " . $testName . " FAILED\n";
         }
     }
