@@ -36,6 +36,14 @@ $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
 $row = $result->fetch_object();
+
+if (!$row) {
+    http_response_code(404);
+    echo json_encode(['error' => 'User not found']);
+    $stmt->close();
+    die();
+}
+
 $user_first = $row->user_first;
 $user_last = $row->user_last;
 $user_email = $row->user_email;
@@ -194,7 +202,9 @@ $perm_stmt->bind_param('i', $id);
 $perm_stmt->execute();
 $perm_result = $perm_stmt->get_result();
 if ($perm_row = $perm_result->fetch_assoc()) {
-    $user_permissions = explode('.', $perm_row['user_access']);
+    if (!empty($perm_row['user_access'])) {
+        $user_permissions = explode('.', $perm_row['user_access']);
+    }
 }
 $perm_stmt->close();
 

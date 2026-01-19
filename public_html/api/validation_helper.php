@@ -173,11 +173,14 @@ function validate_datetime_post($key, $required = true) {
 /**
  * Escape HTML output to prevent XSS
  *
- * @param string $text The text to escape
+ * @param string|null $text The text to escape
  * @return string The escaped text
  */
 function escape_html($text) {
-    return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    if ($text === null) {
+        return '';
+    }
+    return htmlspecialchars((string)$text, ENT_QUOTES, 'UTF-8');
 }
 
 /**
