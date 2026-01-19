@@ -1,6 +1,29 @@
 <?php
-error_reporting(0);
+// Disable error display to users but log errors
 ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
+
+// US State abbreviations and names for address dropdown
+define('STATE_ABBREVIATIONS', [
+    "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL",
+    "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME",
+    "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH",
+    "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI",
+    "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+]);
+
+define('STATE_NAMES', [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado',
+    'Connecticut', 'Delaware', 'District Of Columbia', 'Florida', 'Georgia',
+    'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+    'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota',
+    'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota',
+    'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina',
+    'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia',
+    'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+]);
 
 if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
@@ -192,9 +215,16 @@ if ($user_type == 'Scout') {
     $stmt->close();
 
     $query = "SELECT * FROM mb_list ORDER BY mb_name";
-    $results = $mysqli->query($query);
-    if ($results == false) {
-        error_log("problem reading from the mb_list DB. Does the DB exist?\n", 0);
+    $stmt = $mysqli->prepare($query);
+    if (!$stmt) {
+        error_log("Problem preparing mb_list query: " . $mysqli->error);
+        $results = false;
+    } else {
+        $stmt->execute();
+        $results = $stmt->get_result();
+        if ($results === false) {
+            error_log("Problem reading from the mb_list DB. Does the DB exist?");
+        }
     }
     $mbData = '';
     if ($edit && !$wm) {
@@ -202,20 +232,23 @@ if ($user_type == 'Scout') {
     } else {
         $mbData = $mbData . '<p>Counselor for the following Merit Badges:</p>';
     }
-    while ($row = $results->fetch_assoc()) {
-        if (in_array($row['id'], $mb_list)) {
-            $isChecked = "CHECKED";
-            $temp = escape_html($row['mb_name']) . "<br>";
-        } else {
-            $isChecked = "";
-            $temp = "";
+    if ($results !== false) {
+        while ($row = $results->fetch_assoc()) {
+            if (in_array($row['id'], $mb_list)) {
+                $isChecked = "CHECKED";
+                $temp = escape_html($row['mb_name']) . "<br>";
+            } else {
+                $isChecked = "";
+                $temp = "";
+            }
+            if ($edit && !$wm) {
+                $mbData = $mbData . "<div class='large-4 columns'><input " . $isChecked . " type='checkbox' name='mb' class='mbCheckbox' value='" .
+                    (int)$row['id'] . "'/> " . escape_html($row['mb_name']) . "</div>";
+            } else {
+                $mbData = $mbData . $temp;
+            }
         }
-        if ($edit && !$wm) {
-            $mbData = $mbData . "<div class='large-4 columns'><input " . $isChecked . " type='checkbox' name='mb' class='mbCheckbox' value='" .
-                (int)$row['id'] . "'/> " . escape_html($row['mb_name']) . "</div>";
-        } else {
-            $mbData = $mbData . $temp;
-        }
+        $stmt->close();
     }
     if ($edit) {
         $mbData = $mbData . '<div class="clearfix"></div>';
@@ -240,9 +273,8 @@ function getStateDDL($strState)
 {
     $strDDL = '<select id="state" name="state">';
 
-    $abbrevs = array("AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY");
-
-    $states = array('Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'District Of Columbia', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming');
+    $abbrevs = STATE_ABBREVIATIONS;
+    $states = STATE_NAMES;
 
     for ($i = 0; $i <= 50; $i++) {
         if ($abbrevs[$i] == $strState) {
@@ -289,10 +321,18 @@ function getDDL($strTable, $strSelect, $strDefault, $mysqli)
         return "";
     }
 
+    // Table name is validated via whitelist, so safe for query
     $query = "SELECT * FROM $strTable ORDER BY sort";
-    $results = $mysqli->query($query);
-    if ($results == false) {
-        error_log("problem reading from the $strTable DB. Does the DB exist?\n", 0);
+    $stmt = $mysqli->prepare($query);
+    if (!$stmt) {
+        error_log("Problem preparing query for $strTable table: " . $mysqli->error);
+        return "";
+    }
+    $stmt->execute();
+    $results = $stmt->get_result();
+    if ($results === false) {
+        error_log("Problem reading from the $strTable DB. Does the DB exist?");
+        $stmt->close();
         return "";
     }
     $returnDDL = '<select id="' . escape_html($strSelect) . '"><option value="">-Select-</option>';
@@ -306,24 +346,6 @@ function getDDL($strTable, $strSelect, $strDefault, $mysqli)
             $sel = "";
         }
         $returnDDL = $returnDDL . '<option value="' . (int)$id . '" ' . $sel . '>' . escape_html($label) . '</option>';
-    }
-    $returnDDL = $returnDDL . '</select>';
-    return $returnDDL;
-}
-
-function getScoutDDL($mysqli, $user_last)
-{
-    $query = "SELECT user_first, user_last, user_id FROM users WHERE user_type='Scout' AND user_last=? ORDER BY user_last, user_first";
-    $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('s', $user_last);
-    $stmt->execute();
-    $results = $stmt->get_result();
-    $returnDDL = "";
-
-    while ($row = $results->fetch_assoc()) {
-        $label = escape_html($row['user_last']) . ", " . escape_html($row['user_first']);
-        $scout_id = (int)$row['user_id'];
-        $returnDDL = $returnDDL . '<option value="' . $scout_id . '">' . $label . '</option>';
     }
     $stmt->close();
     $returnDDL = $returnDDL . '</select>';

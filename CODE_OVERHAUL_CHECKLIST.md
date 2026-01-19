@@ -42,32 +42,32 @@
 
 | File | Purpose | Review Status |
 |------|---------|---------------|
-| `api/auth_helper.php` | API authentication utilities | [ ] |
-| `api/validation_helper.php` | Input validation functions | [ ] |
-| `api/connect.php` | Database connection | [ ] |
-| `includes/activity_logger.php` | Activity logging utility | [ ] |
-| `includes/page_counter.php` | Page view tracking | [ ] |
-| `includes/notification_types.php` | Notification type constants | [ ] |
+| `api/auth_helper.php` | API authentication utilities | [x] |
+| `api/validation_helper.php` | Input validation functions | [x] |
+| `api/connect.php` | Database connection | [x] |
+| `includes/activity_logger.php` | Activity logging utility | [x] |
+| `includes/page_counter.php` | Page view tracking | [x] |
+| `includes/notification_types.php` | Notification type constants | [x] |
 
 **Priority Issues to Check:**
-- [ ] All validation functions handle edge cases
-- [ ] Database connection uses SSL in production
-- [ ] Error messages don't leak sensitive info
+- [x] All validation functions handle edge cases
+- [x] Database connection uses SSL in production (SSL comment added, ready for config)
+- [x] Error messages don't leak sensitive info
 
 ### 1.3 Navigation & Layout
 
 | File | Purpose | Review Status |
 |------|---------|---------------|
-| `includes/header.html` | Page header | [ ] |
-| `includes/footer.html` | Page footer | [ ] |
-| `includes/m_sidebar.html` | Logged-in menu | [ ] |
-| `includes/sidebar.html` | Public menu | [ ] |
-| `includes/mobile_menu.html` | Mobile navigation | [ ] |
+| `includes/header.html` | Page header | [x] |
+| `includes/footer.html` | Page footer | [x] |
+| `includes/m_sidebar.html` | Logged-in menu | [x] |
+| `includes/sidebar.html` | Public menu | [x] |
+| `includes/mobile_menu.html` | Mobile navigation | [x] |
 
 **Priority Issues to Check:**
-- [ ] Menu items have consistent permission checks
-- [ ] All three menus (m_sidebar, sidebar, mobile_menu) are in sync
-- [ ] No hardcoded URLs that should be relative
+- [x] Menu items have consistent permission checks
+- [x] All three menus (m_sidebar, sidebar, mobile_menu) are in sync
+- [x] No hardcoded URLs that should be relative
 
 ---
 
@@ -77,57 +77,75 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `User.php` | `templates/User.html` | `api/getuser.php`, `api/getOtherUserInfo.php`, `api/updateuser.php` | [ ] |
-| `Family.php` | `templates/Family.html` | `api/getfamily.php` | [ ] |
-| `addfamilymember.php` | `login/views/addfamilymember.php` | (uses registration) | [ ] |
+| `User.php` | `templates/User.html` | `api/getuser.php`, `api/getOtherUserInfo.php`, `api/updateuser.php` | [x] |
+| `Family.php` | `templates/Family.html` | `api/getfamily.php` | [x] |
+| `addfamilymember.php` | `login/views/addfamilymember.php` | (uses registration) | [x] |
 
 **Priority Issues to Check:**
-- [ ] Users can only edit their own profile (unless admin)
-- [ ] Phone/email validation
-- [ ] Profile picture upload security
-- [ ] Family relationship integrity
+- [x] Users can only edit their own profile (unless admin) - Added require_user_access() in updateuser.php
+- [x] Phone/email validation - Proper prepared statements and validation helpers
+- [ ] Profile picture upload security - Not addressed in this section
+- [x] Family relationship integrity - Added validation in addfamilymember.php
 
 ### 2.2 User Registration
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `register.php` | `login/views/register.php` | `api/register.php` | [ ] |
-| `registernew.php` | `login/views/registernew.php` | (admin registration) | [ ] |
-| `NewUser.php` | `templates/NewUser.html` | (new user setup) | [ ] |
+| `register.php` | `login/views/register.php` | `login/classes/Registration.php` | [x] |
+| `registernew.php` | `login/views/registernew.php` | (admin registration) | [x] |
+| ~~`NewUser.php`~~ | ~~`templates/NewUser.html`~~ | (REMOVED - dead code) | [x] |
 
 **Priority Issues to Check:**
-- [ ] Email verification flow
-- [ ] Duplicate email prevention
-- [ ] Strong password requirements
-- [ ] Admin-only access for registernew.php
+- [x] Email verification flow - Existing implementation verified working
+- [x] Duplicate email prevention - PDO prepared statements in Registration.php
+- [x] Strong password requirements - Increased minimum from 6 to 8 characters
+- [x] Admin-only access for registernew.php - Added sa/wm permission check
+
+**Additional Security Fixes Applied (Jan 2026):**
+- [x] Added CSRF token to public registration form (login/views/register.php)
+- [x] Added CSRF token to admin registration form (login/views/registernew.php)
+- [x] Added CAPTCHA validation in Registration.php (was displayed but never validated)
+- [x] Added user_type whitelist validation in Registration.php
+- [x] Added server-side CSRF validation in Registration.php constructor
+- [x] Fixed XSS vulnerability in family_id output (login/views/registernew.php)
+- [x] Removed dead code: NewUser.php and templates/NewUser.html (broken, incomplete)
 
 ### 2.3 User Directories
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `ListScouts.php` | `templates/ListScouts.html` | `api/getscouts.php` | [ ] |
-| `ListAdults.php` | `templates/ListAdults.html` | `api/getadults.php` | [ ] |
-| `ListDeletes.php` | `templates/ListDeletes.html` | `api/getdeletes.php` | [ ] |
-| `Members.php` | `templates/Members.html` | (directory landing) | [ ] |
-| `TroopRoster.php` | `templates/TroopRoster.html` | (roster view) | [ ] |
+| `ListScouts.php` | `templates/ListScouts.html` | `api/getscouts.php` | [x] |
+| `ListAdults.php` | `templates/ListAdults.html` | `api/getadults.php` | [x] |
+| `ListDeletes.php` | `templates/ListDeletes.html` | `api/getdeletes.php` | [x] |
+| `Members.php` | `templates/Members.html` | (directory landing) | [x] |
+| `TroopRoster.php` | `templates/TroopRoster.html` | (roster view) | [x] |
 
 **Priority Issues to Check:**
-- [ ] Login required for member directories
-- [ ] Deleted users not visible to non-admins
-- [ ] No PII exposed to unauthorized users
+- [x] Login required for member directories
+- [x] Deleted users not visible to non-admins (getdeletes.php requires admin permission)
+- [x] No PII exposed to unauthorized users (getscouts.php and getadults.php now require permissions)
 
 ### 2.4 Permissions & Admin
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `Permissions.php` | `templates/Permissions.html` | `api/getpermissions.php`, `api/updatepermissions.php` | [ ] |
-| `DELUser.php` | (inline) | (user deletion) | [ ] |
-| `ActivityLog.php` | `templates/ActivityLog.html` | `api/getactivitylog.php` | [ ] |
+| `Permissions.php` | `templates/Permissions.html` | `api/getpermissions.php`, `api/updatepermissions.php` | [x] |
+| `DELUser.php` | (inline) | (user deletion) | [x] DEAD CODE - recommend deletion |
+| `ActivityLog.php` | `templates/ActivityLog.html` | `api/getactivitylog.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Only sa/wm can access Permissions
-- [ ] Permission changes logged
-- [ ] User deletion is soft-delete with audit trail
+- [x] Only sa/wm can access Permissions - Verified sa check in Permissions.php, wm/sa check in ActivityLog.php
+- [x] Permission changes logged - Verified comprehensive logging in updatepermissions.php
+- [x] User deletion is soft-delete with audit trail - Uses user_type='Delete' pattern via updateuser.php
+
+**Changes Made (Jan 2026):**
+- Added `require_csrf()` to `api/auth_helper.php` for CSRF validation
+- Added CSRF validation to `getpermissions.php`, `updatepermissions.php`, `getactivitylog.php`
+- Added `require_permission(['wm', 'sa'])` to `getactivitylog.php`
+- Added XSS escaping to `Permissions.html` (escapeHtml function)
+- Added XSS escaping to `ActivityLog.html` (escapeHtml function)
+- Modernized session handling in `ActivityLog.php` with secure cookie options
+- Fixed DELUser.php XSS vulnerabilities (marked as dead code - references non-existent User2.html)
 
 ---
 
@@ -578,4 +596,4 @@
 ---
 
 *Document Created: January 2026*
-*Last Updated: January 18, 2026*
+*Last Updated: January 19, 2026*

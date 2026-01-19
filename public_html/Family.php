@@ -3,12 +3,12 @@ session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require "includes/authHeader.php";
 $user_id = $_SESSION['user_id'];
-$ref = $_SERVER['HTTP_REFERER'];
-$varEdit = $_GET["edit"];
+$ref = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+$varEdit = isset($_GET["edit"]) ? (bool)$_GET["edit"] : false;
 ?>
-<input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
-<input type="hidden" id="ref" value="<?php echo $ref; ?>">
-<input type="text" id="edit" value="<?php echo $varEdit; ?>">
+<input type="hidden" id="user_id" value="<?php echo htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8'); ?>">
+<input type="hidden" id="ref" value="<?php echo htmlspecialchars($ref, ENT_QUOTES, 'UTF-8'); ?>">
+<input type="text" id="edit" value="<?php echo htmlspecialchars($varEdit, ENT_QUOTES, 'UTF-8'); ?>">
 <br>
 <div class='row'>
   <?php 

@@ -29,7 +29,7 @@ define("MESSAGE_PASSWORD_CHANGED_SUCCESSFULLY", "Password successfully changed!"
 define("MESSAGE_PASSWORD_EMPTY", "Password field was empty");
 define("MESSAGE_PASSWORD_RESET_MAIL_FAILED", "Password reset mail NOT successfully sent! Error: ");
 define("MESSAGE_PASSWORD_RESET_MAIL_SUCCESSFULLY_SENT", "Password reset mail successfully sent!");
-define("MESSAGE_PASSWORD_TOO_SHORT", "Password has a minimum length of 6 characters");
+define("MESSAGE_PASSWORD_TOO_SHORT", "Password has a minimum length of 8 characters");
 define("MESSAGE_PASSWORD_WRONG", "Wrong password. Try again.");
 define("MESSAGE_PASSWORD_WRONG_3_TIMES", "You have entered an incorrect password 3 or more times already. Please wait 30 seconds to try again.");
 define("MESSAGE_REGISTRATION_ACTIVATION_NOT_SUCCESSFUL", "Sorry, no such id/verification code combination here...");
@@ -41,6 +41,7 @@ define("MESSAGE_VERIFICATION_MAIL_NOT_SENT", "Verification Mail NOT successfully
 //define("MESSAGE_VERIFICATION_MAIL_SENT", "Your account has been created successfully and we have sent you an email. Please click the VERIFICATION LINK within that mail.");
 define("MESSAGE_VERIFICATION_MAIL_SENT", "Your account has been created successfully and we have sent an email to the site Administrators. Once your accout is activated, you will be notified via email. Thanks!");
 define("MESSAGE_USER_DOES_NOT_EXIST", "This user does not exist");
+define("MESSAGE_USER_TYPE_INVALID", "Invalid user type selected");
 define("MESSAGE_USERNAME_BAD_LENGTH", "Username cannot be shorter than 2 or longer than 64 characters");
 define("MESSAGE_USERNAME_CHANGE_FAILED", "Sorry, your chosen username renaming failed");
 define("MESSAGE_USERNAME_CHANGED_SUCCESSFULLY", "Your username has been changed successfully. New username is ");
@@ -71,7 +72,7 @@ define("WORDING_REGISTER", "Register");
 define("WORDING_REGISTER_NEW_ACCOUNT", "Register new account");
 define("WORDING_REGISTRATION_CAPTCHA", "Please enter these characters");
 define("WORDING_REGISTRATION_EMAIL", "User's email (please provide a real email address, you'll get a verification mail with an activation link)");
-define("WORDING_REGISTRATION_PASSWORD", "Password (min. 6 characters!)");
+define("WORDING_REGISTRATION_PASSWORD", "Password (min. 8 characters!)");
 define("WORDING_REGISTRATION_PASSWORD_REPEAT", "Password repeat");
 define("WORDING_REGISTRATION_USERNAME", "Username (only letters and numbers, 2 to 64 characters)");
 define("WORDING_REMEMBER_ME", "Keep me logged in (for 2 weeks)");

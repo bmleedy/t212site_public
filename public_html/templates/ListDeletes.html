@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  var strTable;
+  let strTable;
   function writeCell(strData, strWidth, strLink) {
     if (strLink == null) {
       return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
@@ -9,12 +9,12 @@
   }
   
   function writeRow(element, index, array) {
-    var phones = element["phone"];
-    var strPhones="";
-    for (x in phones) {
+    let phones = element["phone"];
+    let strPhones = "";
+    for (let x in phones) {
       strPhones = strPhones + phones[x] + "<br>";
     }
-    strEmail = element["email"];
+    let strEmail = element["email"];
     strTable = strTable + "<tr>";
     strTable = strTable + writeCell(element["last"] + ", " + element["first"], "175px" , "User.php?id=" + element["id"] );
     strTable = strTable + writeCell(strPhones, "200px" );

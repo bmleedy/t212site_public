@@ -7,6 +7,7 @@ require_ajax();
 $current_user_id = require_authentication();
 // Only super admins can view permissions
 require_permission(['sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -14,11 +15,11 @@ require 'connect.php';
 // Get filter parameters
 $input = json_decode(file_get_contents('php://input'), true);
 
-$userType = isset($input['userType']) ? $input['userType'] : '';
-$name = isset($input['name']) ? $input['name'] : '';
-$permission = isset($input['permission']) ? $input['permission'] : '';
-$showDeleted = isset($input['showDeleted']) ? $input['showDeleted'] : false;
-$showAlumni = isset($input['showAlumni']) ? $input['showAlumni'] : false;
+$userType = $input['userType'] ?? '';
+$name = $input['name'] ?? '';
+$permission = $input['permission'] ?? '';
+$showDeleted = $input['showDeleted'] ?? false;
+$showAlumni = $input['showAlumni'] ?? false;
 
 // Build query with filters
 $query = "SELECT user_id, user_first, user_last, user_type, user_access
@@ -89,7 +90,7 @@ while ($row = $result->fetch_assoc()) {
     'user_first' => escape_html($row['user_first']),
     'user_last' => escape_html($row['user_last']),
     'user_type' => escape_html($row['user_type']),
-    'user_access' => $row['user_access'] ? $row['user_access'] : ''
+    'user_access' => escape_html($row['user_access'] ?? '')
   ];
 }
 
@@ -97,5 +98,5 @@ $statement->close();
 $mysqli->close();
 
 echo json_encode($users);
-die();
+exit;
 ?>

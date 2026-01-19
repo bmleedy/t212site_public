@@ -2,6 +2,7 @@
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 require_ajax();
 $current_user_id = require_authentication();
@@ -10,6 +11,9 @@ require_permission(['ue', 'sa', 'wm']);
 
 header('Content-Type: application/json');
 require 'connect.php';
+
+// Log this access
+log_activity($mysqli, 'view_deleted_users', array(), true, 'Viewed deleted users list', $current_user_id);
 
 $query = "SELECT * FROM users WHERE user_type = 'Delete' ORDER BY user_last asc, user_first asc";
 $results = $mysqli->query($query);

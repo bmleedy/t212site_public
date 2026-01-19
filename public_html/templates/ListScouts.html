@@ -38,7 +38,7 @@
     var strEmail = element["email"];
     var phones = element["phone"];
     var strPhones = "";
-    for (x in phones) {
+    for (let x in phones) {
       strPhones = strPhones + formatPhoneNumber(phones[x]) + "<br>";
     }
     var thisPatrol = element["patrol"];

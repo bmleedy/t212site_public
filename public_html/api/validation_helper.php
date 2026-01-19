@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Input Validation Helper for API Files
  *
@@ -61,7 +63,7 @@ function validate_int_get($key, $required = true, $default = null) {
  * @return string|null The sanitized string or null if not required and not provided
  */
 function validate_string_post($key, $required = true, $default = null, $max_length = 0) {
-    $value = filter_input(INPUT_POST, $key, FILTER_SANITIZE_STRING);
+    $value = isset($_POST[$key]) ? trim($_POST[$key]) : null;
 
     if ($value === false || $value === null || $value === '') {
         if ($required) {
@@ -91,7 +93,7 @@ function validate_string_post($key, $required = true, $default = null, $max_leng
 function validate_email_post($key, $required = true) {
     $value = filter_input(INPUT_POST, $key, FILTER_VALIDATE_EMAIL);
 
-    if ($value === false || $value === null) {
+    if ($value === false || $value === null || $value === '') {
         if ($required) {
             http_response_code(400);
             echo json_encode(['error' => "Invalid or missing email: {$key}"]);
@@ -203,6 +205,10 @@ function validate_bool_post($key, $default = false) {
 /**
  * Sanitize a value for safe database storage using mysqli
  *
+ * @deprecated Use prepared statements with parameter binding instead.
+ *             This function is maintained for legacy compatibility only.
+ *             Prepared statements provide better SQL injection protection.
+ *
  * @param mysqli $mysqli The database connection
  * @param mixed $value The value to sanitize
  * @return string The sanitized value
@@ -210,4 +216,3 @@ function validate_bool_post($key, $default = false) {
 function sanitize_for_db($mysqli, $value) {
     return $mysqli->real_escape_string($value);
 }
-?>

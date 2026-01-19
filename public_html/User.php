@@ -3,7 +3,7 @@ session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require "includes/authHeader.php";
 if ( array_key_exists("edit", $_GET) ) {
-  $varEdit = $_GET["edit"];
+  $varEdit = intval($_GET["edit"]);
 } else {
   $varEdit = 0;
 }
@@ -32,25 +32,25 @@ if ((!in_array("ue",$access)) && (!in_array("sa",$access))) {
   $isUserAdmin = 1;
 }
 // TODO: This logic is Fucked - fix these variables.
-if (($id <> $userID) && (!in_array("ue",$access)) && (!in_array("sa",$access)) && ($wm==0)) {
+if (($id != $userID) && (!in_array("ue",$access)) && (!in_array("sa",$access)) && ($wm==0)) {
   $varEdit=0;
-} else if($varEdit <> 1) {
+} else if($varEdit != 1) {
   $showEdit = 1;
 }
 ?>
 
 <?php
-// So, based on this logic above, we're setting stuff that we submit to the form, which gets submitted
-//   back to this page.  This is really insecure because what you have is a bunch of plaintext 
-//   stuff here that affects permissions to take action on the page.
-// TODO: get rid of hidden permission parameters from the form and base access entirely on the 
-//       currently-logged-in session.
+// SECURITY NOTE: The hidden permission fields below were removed as part of a security overhaul.
+// Passing permission values (webMaster, userAdmin, showEdit, etc.) via client-side hidden fields
+// is a security risk because users can modify these values in the browser.
+// All permission checks should be done server-side using $_SESSION['user_access'] instead.
+//
+// TODO: get rid of hidden permission parameters from the form and base access entirely on the
+//       currently-logged-in session. This refactoring requires updating any JavaScript or
+//       backend handlers that currently rely on these hidden field values.
 ?>
-<input type="hidden" id="webMaster" value="<?php echo $wm; ?>">
-<input type="hidden" id="user_id" value="<?php echo $id; ?>">
-<input type="hidden" id="edit" value="<?php echo $varEdit; ?>">
-<input type="hidden" id="showEdit" value="<?php echo $showEdit; ?>">
-<input type="hidden" id="userAdmin" value="<?php echo $isUserAdmin; ?>">
+<!-- User ID is kept for form functionality but validated server-side with intval() -->
+<input type="hidden" id="user_id" value="<?php echo intval($id); ?>">
 
 <br>
 <div class='row'>

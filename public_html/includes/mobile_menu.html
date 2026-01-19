@@ -1,12 +1,12 @@
 <div class="large-3 panel columns">
-  <img src="/images/Gig-Harbor.jpg" style ="height:100px; width:275px; margin:0px 0 0 0;">
+  <img src="/images/Gig-Harbor.jpg" style="height:100px; width:275px; margin:0;">
   <hr>
 
   <?php if ($user_type != "Scout") {
     echo '<a href="EventPay.php"><p><i class="fi-dollar" style="font-size:20px"></i> Pay or Approve Outings</p></a><hr>';
   } ?>
 
-  <a href="User.php?id=<?php echo $userID;?>">
+  <a href="User.php?id=<?php echo (int)$userID;?>">
   <p><i class="fi-widget" style="font-size:20px"></i>
   My Profile</p>
   </a>
@@ -18,7 +18,7 @@
   if ($hasLeaderAccessMobile) {
   ?>
   <div class="leader-menu-mobile">
-    <a href="javascript:void(0);" onclick="toggleLeaderMenuMobile()" style="display:block;">
+    <a href="#" onclick="toggleMenuMobile('leaderMenuItemsMobile', 'leaderMenuArrowMobile'); return false;" style="display:block;">
       <p><i class="fi-torso-business" style="font-size:20px"></i> Leader Tools <i id="leaderMenuArrowMobile" class="fi-arrow-down" style="font-size:12px; float:right; margin-top:5px;"></i></p>
     </a>
     <div id="leaderMenuItemsMobile" style="display:none; padding-left:15px; border-left:2px solid #ddd; margin-left:10px;">
@@ -39,9 +39,9 @@
   </div>
   <hr>
   <script>
-  function toggleLeaderMenuMobile() {
-    var menu = document.getElementById('leaderMenuItemsMobile');
-    var arrow = document.getElementById('leaderMenuArrowMobile');
+  function toggleMenuMobile(menuId, arrowId) {
+    var menu = document.getElementById(menuId);
+    var arrow = document.getElementById(arrowId);
     if (menu.style.display === 'none') {
       menu.style.display = 'block';
       arrow.className = 'fi-arrow-up';
@@ -70,7 +70,7 @@
   </a>
   <hr>
 
-  <a href="https://www.facebook.com/Troop212/photos" target="_blank">
+  <a href="https://www.facebook.com/Troop212/photos" target="_blank" rel="noopener noreferrer">
   <p><i class="fi-social-facebook" style="font-size:20px"></i>
   Troop Photos - Facebook</p>
   </a>
@@ -100,7 +100,7 @@
   if ($hasTreasurerAccessMobile) {
   ?>
   <div class="treasurer-menu-mobile">
-    <a href="javascript:void(0);" onclick="toggleTreasurerMenuMobile()" style="display:block;">
+    <a href="#" onclick="toggleMenuMobile('treasurerMenuItemsMobile', 'treasurerMenuArrowMobile'); return false;" style="display:block;">
       <p><i class="fi-dollar" style="font-size:20px"></i> Treasurer <i id="treasurerMenuArrowMobile" class="fi-arrow-down" style="font-size:12px; float:right; margin-top:5px;"></i></p>
     </a>
     <div id="treasurerMenuItemsMobile" style="display:none; padding-left:15px; border-left:2px solid #ddd; margin-left:10px;">
@@ -110,19 +110,6 @@
     </div>
   </div>
   <hr>
-  <script>
-  function toggleTreasurerMenuMobile() {
-    var menu = document.getElementById('treasurerMenuItemsMobile');
-    var arrow = document.getElementById('treasurerMenuArrowMobile');
-    if (menu.style.display === 'none') {
-      menu.style.display = 'block';
-      arrow.className = 'fi-arrow-up';
-    } else {
-      menu.style.display = 'none';
-      arrow.className = 'fi-arrow-down';
-    }
-  }
-  </script>
   <?php } ?>
 
   <?php
@@ -131,33 +118,20 @@
   if ($hasAdminAccessMobile) {
   ?>
   <div class="admin-menu-mobile">
-    <a href="javascript:void(0);" onclick="toggleAdminMenuMobile()" style="display:block;">
+    <a href="#" onclick="toggleMenuMobile('adminMenuItemsMobile', 'adminMenuArrowMobile'); return false;" style="display:block;">
       <p><i class="fi-wrench" style="font-size:20px"></i> Admin <i id="adminMenuArrowMobile" class="fi-arrow-down" style="font-size:12px; float:right; margin-top:5px;"></i></p>
     </a>
     <div id="adminMenuItemsMobile" style="display:none; padding-left:15px; border-left:2px solid #ddd; margin-left:10px;">
-      <?php if ((in_array("wm",$access)) || (in_array("sa",$access))) {
+      <?php
         echo '<a href="Patrols.php"><p><i class="fi-flag" style="font-size:16px"></i> Manage Patrols</p></a>';
         echo '<a href="ActivityLog.php"><p><i class="fi-list" style="font-size:16px"></i> Activity Log</p></a>';
-      } ?>
+      ?>
       <?php if (in_array("sa",$access)) {
         echo '<a href="Permissions.php"><p><i class="fi-key" style="font-size:16px"></i> Permissions</p></a>';
       } ?>
     </div>
   </div>
   <hr>
-  <script>
-  function toggleAdminMenuMobile() {
-    var menu = document.getElementById('adminMenuItemsMobile');
-    var arrow = document.getElementById('adminMenuArrowMobile');
-    if (menu.style.display === 'none') {
-      menu.style.display = 'block';
-      arrow.className = 'fi-arrow-up';
-    } else {
-      menu.style.display = 'none';
-      arrow.className = 'fi-arrow-down';
-    }
-  }
-  </script>
   <?php } ?>
 
   <a href="login/index.php?logout">

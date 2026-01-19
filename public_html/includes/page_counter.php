@@ -1,61 +1,80 @@
 <?php
-// This file handles asynchronous page view counting
-// It should be called via AJAX after the main page has loaded
+/**
+ * Page Counter Utility
+ *
+ * Handles asynchronous page view counting via AJAX.
+ * Should be called via AJAX after the main page has loaded.
+ */
 
-// Include database configuration
-require_once(dirname(__DIR__) . '/login/config/config.php');
+// Start session if needed for error logging context
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Get the page URL from the request
-$pageUrl = isset($_POST['page_url']) ? $_POST['page_url'] : '';
+$pageUrl = isset($_POST['page_url']) ? trim($_POST['page_url']) : '';
 
-// Validate the page URL (basic validation)
+// Validate the page URL
 if (empty($pageUrl)) {
-    header('HTTP/1.1 400 Bad Request');
+    header('Content-Type: application/json');
+    http_response_code(400);
     echo json_encode(['error' => 'Missing page_url parameter']);
     exit;
 }
 
-// Connect to the database and update the counter
-try {
-    $db = new PDO('mysql:host='. DB_HOST .';dbname='. DB_NAME . ';charset=utf8', DB_USER, DB_PASS);
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+// Limit URL length to prevent abuse
+if (strlen($pageUrl) > 255) {
+    $pageUrl = substr($pageUrl, 0, 255);
+}
 
-    // First, check if the page_counters table exists, if not create it
-    $tableCheck = $db->query("SHOW TABLES LIKE 'page_counters'");
-    if ($tableCheck->rowCount() == 0) {
-        // Table doesn't exist, create it
-        $createTable = $db->prepare("
-            CREATE TABLE page_counters (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                page_url VARCHAR(255) NOT NULL UNIQUE,
-                count INT NOT NULL DEFAULT 1,
-                first_visit DATETIME NOT NULL,
-                last_visit DATETIME NOT NULL
-            )
-        ");
-        $createTable->execute();
+// Load credentials and connect using mysqli (consistent with rest of codebase)
+try {
+    require_once(__DIR__ . '/credentials.php');
+    $creds = Credentials::getInstance();
+
+    $mysqli = new mysqli(
+        $creds->getDatabaseHost(),
+        $creds->getDatabaseUser(),
+        $creds->getDatabasePassword(),
+        $creds->getDatabaseName()
+    );
+
+    if ($mysqli->connect_error) {
+        throw new Exception('Connection failed');
     }
 
-    // Try to update the counter for this page
-    $updateCounter = $db->prepare("
-        INSERT INTO page_counters (page_url, count, first_visit, last_visit)
-        VALUES (:page_url, 1, NOW(), NOW())
-        ON DUPLICATE KEY UPDATE
-            count = count + 1,
-            last_visit = NOW()
-    ");
-    $updateCounter->bindParam(':page_url', $pageUrl, PDO::PARAM_STR);
-    $updateCounter->execute();
+    // Update the counter using INSERT ... ON DUPLICATE KEY UPDATE
+    // Assumes page_counters table exists (created during setup, not on every request)
+    $query = "INSERT INTO page_counters (page_url, count, first_visit, last_visit)
+              VALUES (?, 1, NOW(), NOW())
+              ON DUPLICATE KEY UPDATE
+                  count = count + 1,
+                  last_visit = NOW()";
+
+    $stmt = $mysqli->prepare($query);
+    if ($stmt === false) {
+        throw new Exception('Prepare failed');
+    }
+
+    $stmt->bind_param('s', $pageUrl);
+
+    if (!$stmt->execute()) {
+        throw new Exception('Execute failed');
+    }
+
+    $stmt->close();
+    $mysqli->close();
 
     // Return success
     header('Content-Type: application/json');
     echo json_encode(['success' => true]);
 
-} catch (PDOException $e) {
-    // Return error
-    header('HTTP/1.1 500 Internal Server Error');
-    echo json_encode(['error' => 'Database error on page counter: ' . $e->getMessage()]);
-
-    // Log the error (optional)
+} catch (Exception $e) {
+    // Log the actual error for debugging
     error_log('Page counter error: ' . $e->getMessage());
+
+    // Return generic error to client (don't leak details)
+    header('Content-Type: application/json');
+    http_response_code(500);
+    echo json_encode(['error' => 'Failed to update page counter']);
 }

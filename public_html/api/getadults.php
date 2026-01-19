@@ -5,8 +5,10 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_permission(['ue', 'sa', 'wm']);
 
 header('Content-Type: application/json');
+require_once(__DIR__ . '/../includes/activity_logger.php');
 require 'connect.php';
 
 $query = "SELECT user_id, user_first, user_last, user_email, user_type, notif_preferences
@@ -54,6 +56,8 @@ while ($row = $results->fetch_object()) {
     'user_type' => escape_html($row->user_type)
   ];
 }
+
+log_activity($mysqli, 'view_adults', array(), true, 'Viewed adult roster', $current_user_id);
 
 echo json_encode($adults);
 die();

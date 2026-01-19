@@ -1,39 +1,41 @@
-<?php 
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
+<?php
+// Session handling is done in authHeader.php with secure settings
 require "includes/authHeader.php";
-$user_id = $_SESSION['user_id'];
-$user_first = $_SESSION['user_first'];
-//$ref = $_SERVER['HTTP_REFERER'];
 ?>
 
-<br />
-
+<br>
 <div class='row'>
-  <?php require "includes/m_sidebar.html"; ?>
+  <?php
+    if ($login->isUserLoggedIn()) {
+      require "includes/m_sidebar.html";
+    } else {
+      require "includes/sidebar.html";
+    }
+  ?>
   <div class="large-9 columns">
     <div class="panel">
-<?php
+      <?php
+      if ($login->isUserLoggedIn()) {
+        // Only super admins (sa) or webmasters (wm) can register new users
+        if (in_array('sa', $access, true) || in_array('wm', $access, true)) {
+          // Include required registration dependencies
+          require_once('login/config/config.php');
+          require_once('login/translations/en.php');
+          require_once('login/libraries/PHPMailer.php');
+          require_once('login/classes/Registration.php');
 
-// include the config
-require_once('login/config/config.php');
-
-// include the to-be-used language, english by default. feel free to translate your project and include something else
-require_once('login/translations/en.php');
-
-// include the PHPMailer library
-require_once('login/libraries/PHPMailer.php');
-
-// load the registration class
-require_once('login/classes/Registration.php');
-
-// create the registration object. when this object is created, it will do all registration stuff automatically
-// so this single line handles the entire registration process.
-$registration = new Registration();
-// showing the register view (with the registration form, and messages/errors)
-include("login/views/registernew.php");
-?>
-
+          // Create registration object - handles entire registration process
+          $registration = new Registration();
+          // Show registration form with messages/errors
+          include("login/views/registernew.php");
+        } else {
+          echo "<h2>Access Denied</h2>";
+          echo "<p>You do not have permission to register new users. This function is restricted to administrators.</p>";
+        }
+      } else {
+        include "login/views/user_login.php";
+      }
+      ?>
     </div>
   </div>
 </div>

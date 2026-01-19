@@ -44,6 +44,13 @@ class Registration
 
 		// if we have such a POST request, call the registerNewUser() method
 		if (isset($_POST["register"])) {
+			// Validate CSRF token first
+			$submitted_token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+			if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $submitted_token)) {
+				$this->errors[] = "Security validation failed. Please try again.";
+				return;
+			}
+
 			$this->registerNewUser(
 				$_POST['user_name'],
 				$_POST['user_email'],
@@ -160,6 +167,20 @@ class Registration
 			$family_id = 0;
 		}
 
+		// Validate CAPTCHA first (prevents automated registration attempts)
+		if (!isset($_POST['captcha']) || !isset($_SESSION['captcha']) ||
+			strtoupper(trim($_POST['captcha'])) !== strtoupper($_SESSION['captcha'])) {
+			$this->errors[] = MESSAGE_CAPTCHA_WRONG;
+			return;
+		}
+
+		// Validate user_type against whitelist
+		$valid_user_types = ['Scout', 'Dad', 'Mom', 'Other'];
+		if (!in_array($user_type, $valid_user_types, true)) {
+			$this->errors[] = MESSAGE_USER_TYPE_INVALID;
+			return;
+		}
+
 		// Validation with early returns
 		if (empty($user_name)) {
 			$this->errors[] = MESSAGE_USERNAME_EMPTY;
@@ -176,7 +197,7 @@ class Registration
 			return;
 		}
 
-		if (strlen($user_password) < 6) {
+		if (strlen($user_password) < 8) {
 			$this->errors[] = MESSAGE_PASSWORD_TOO_SHORT;
 			return;
 		}

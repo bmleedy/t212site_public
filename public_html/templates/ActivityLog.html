@@ -146,6 +146,17 @@
 </div>
 
 <script type="text/javascript">
+/**
+ * Escapes HTML entities to prevent XSS attacks
+ * Uses DOM text node creation for safe encoding
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(text));
+  return div.innerHTML;
+}
+
 // Set default date range to today
 function setDefaultDates() {
   var now = new Date();
@@ -184,6 +195,10 @@ function formatValues(valuesJson) {
   }
 }
 
+/**
+ * Builds a table row for a single activity log entry
+ * All user data is escaped to prevent XSS
+ */
 function writeRow(element) {
   var successClass = element.success == 1 ? 'success-true' : 'success-false';
   var successText = element.success == 1 ? '✅ Yes' : '❌ No';
@@ -192,20 +207,20 @@ function writeRow(element) {
   var userColumn = 'N/A';
   if (element.user) {
     if (element.user_first && element.user_last) {
-      var userName = element.user_first + ' ' + element.user_last;
-      userColumn = '<a href="User.php?id=' + element.user + '">' + userName + '</a>';
+      var userName = escapeHtml(element.user_first) + ' ' + escapeHtml(element.user_last);
+      userColumn = '<a href="User.php?id=' + encodeURIComponent(element.user) + '">' + userName + '</a>';
     } else {
-      userColumn = 'User ID: ' + element.user;
+      userColumn = 'User ID: ' + escapeHtml(String(element.user));
     }
   }
 
   var row = '<tr class="' + successClass + '">';
-  row += '<td class="log-timestamp">' + formatDateTime(element.timestamp) + '</td>';
-  row += '<td>' + element.source_file + '</td>';
-  row += '<td><strong>' + element.action + '</strong></td>';
-  row += '<td class="log-values"><pre>' + formatValues(element.values_json) + '</pre></td>';
+  row += '<td class="log-timestamp">' + escapeHtml(formatDateTime(element.timestamp)) + '</td>';
+  row += '<td>' + escapeHtml(element.source_file) + '</td>';
+  row += '<td><strong>' + escapeHtml(element.action) + '</strong></td>';
+  row += '<td class="log-values"><pre>' + escapeHtml(formatValues(element.values_json)) + '</pre></td>';
   row += '<td>' + successText + '</td>';
-  row += '<td>' + (element.freetext || '') + '</td>';
+  row += '<td>' + escapeHtml(element.freetext || '') + '</td>';
   row += '<td>' + userColumn + '</td>';
   row += '</tr>';
 
@@ -246,7 +261,7 @@ function loadActivityLog() {
     type: "post",
     data: JSON.stringify(filters),
     contentType: 'application/json',
-    datatype: 'json',
+    dataType: 'json',
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       console.log('Error:', errorThrown);
       console.log('Status:', textStatus);

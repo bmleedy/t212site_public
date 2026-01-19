@@ -1,10 +1,53 @@
-<?php session_set_cookie_params(0, '/', '.t212.org');
+<?php
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => $_SERVER['SERVER_NAME'],
+    'secure' => true,
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 require "includes/authHeader.php";
 $user_id = $_SESSION['user_id'];
-$family_id = isset($_GET['familyID']) ? $_GET['familyID'] : null;
+$family_id = isset($_GET['familyID']) ? (int)$_GET['familyID'] : null;
 $user_first = $_SESSION['user_first'];
-$ref = $_SERVER['HTTP_REFERER'];
+
+// Validate CSRF token for POST requests
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!validate_csrf_token()) {
+        die('Invalid CSRF token. Please refresh the page and try again.');
+    }
+}
+
+// Validate family relationship - user can only add members to their own family
+if ($family_id !== null) {
+    require_once('includes/credentials.php');
+    $creds = Credentials::getInstance();
+    $mysqli = new mysqli(
+        $creds->getDatabaseHost(),
+        $creds->getDatabaseUser(),
+        $creds->getDatabasePassword(),
+        $creds->getDatabaseName()
+    );
+
+    if ($mysqli->connect_error) {
+        die('Database connection failed');
+    }
+
+    // Check if the logged-in user belongs to the specified family
+    $stmt = $mysqli->prepare("SELECT family_id FROM users WHERE user_id = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user_family = $result->fetch_assoc();
+    $stmt->close();
+    $mysqli->close();
+
+    if (!$user_family || (int)$user_family['family_id'] !== $family_id) {
+        die('You do not have permission to add members to this family.');
+    }
+}
 ?>
 
 <br />
@@ -14,15 +57,6 @@ $ref = $_SERVER['HTTP_REFERER'];
   <div class="large-9 columns">
     <div class="panel">
 <?php
-
-// check for minimum PHP version
-if (version_compare(PHP_VERSION, '5.3.7', '<')) {
-    exit('Sorry, this script does not run on a PHP version smaller than 5.3.7 !');
-} else if (version_compare(PHP_VERSION, '5.5.0', '<')) {
-    // if you are using PHP 5.3 or PHP 5.4 you have to include the password_api_compatibility_library.php
-    // (this library adds the PHP 5.5 password hashing functions to older versions of PHP)
-    require_once('login/libraries/password_compatibility_library.php');
-}
 
 // include the config
 require_once('login/config/config.php');

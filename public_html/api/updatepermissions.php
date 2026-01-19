@@ -8,12 +8,21 @@ $current_user_id = require_authentication();
 // Only super admins can update permissions
 require_permission(['sa']);
 
+// Get update data - must read php://input before CSRF validation
+$input = json_decode(file_get_contents('php://input'), true);
+
+// CSRF validation for state-changing operation
+// Note: Cannot use require_csrf() since php://input was already consumed above
+$csrf_token = $input['csrf_token'] ?? '';
+if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Invalid CSRF token']);
+    die();
+}
+
 header('Content-Type: application/json');
 require 'connect.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
-
-// Get update data
-$input = json_decode(file_get_contents('php://input'), true);
 
 if (!isset($input['updates']) || !is_array($input['updates'])) {
   echo json_encode(['status' => 'Error', 'message' => 'Invalid request format']);
@@ -26,9 +35,9 @@ $errors = [];
 
 // Process each update
 foreach ($updates as $update) {
-  $user_id = isset($update['user_id']) ? intval($update['user_id']) : 0;
-  $new_access = isset($update['user_access']) ? $update['user_access'] : '';
-  $old_access = isset($update['old_access']) ? $update['old_access'] : '';
+  $user_id = (int)($update['user_id'] ?? 0);
+  $new_access = $update['user_access'] ?? '';
+  $old_access = $update['old_access'] ?? '';
 
   if ($user_id <= 0) {
     $errors[] = "Invalid user ID";
@@ -58,12 +67,12 @@ foreach ($updates as $update) {
     log_activity(
       $mysqli,
       'update_permissions',
-      array(
+      [
         'user_id' => $user_id,
         'old_access' => $old_access,
         'new_access' => $new_access,
         'changed_by' => $current_user_id
-      ),
+      ],
       true,
       "Permissions updated for user $user_id: '$old_access' → '$new_access'",
       $current_user_id
@@ -75,10 +84,10 @@ foreach ($updates as $update) {
     log_activity(
       $mysqli,
       'update_permissions',
-      array(
+      [
         'user_id' => $user_id,
         'error' => $mysqli->error
-      ),
+      ],
       false,
       "Failed to update permissions for user $user_id",
       $current_user_id

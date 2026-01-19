@@ -25,10 +25,20 @@ if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'
 }
 
 header('Content-Type: application/json');
-//there should be a permission check here before we allow you to connect and blindly accept
-//  whatever data was thrown at us.  TODO security improvement.
+
+// Security: Include helper files for authentication and validation
 require 'connect.php';
+require_once 'auth_helper.php';
+require_once 'validation_helper.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
+
+// Start session if not already started (needed for auth checks)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Authentication: Verify user is logged in
+$current_user_id = require_authentication();
 
 // Debug: Log what we received (remove after debugging)
 error_log("POST data received: " . print_r($_POST, true));
@@ -78,15 +88,16 @@ if ($user_type == "Scout") {
 }
 $id = $_POST['id'];
 
-if (array_key_exists("wm", $_POST)) {
-  $wm = $_POST['wm'];
-} else {
-  $wm = 0;  // Default to 0 when not provided
-}
-// $wm = 1 means user has webmaster-like edit access (can edit name, email, phone, etc.)
-// $wm = 0 means user does NOT have webmaster-like access
+// Authorization: Verify user can access this user's data
+// Cast to int for security - this is a user ID
+$id = (int)$id;
+require_user_access($id, $current_user_id);
 
-if ($wm) {
+// Security: Check permissions server-side instead of trusting client-side $wm parameter
+// Users with admin-like permissions (ue=user editor, sa=scoutmaster, wm=webmaster) can edit name/email/phone
+$has_edit_permission = has_permission('ue') || has_permission('sa') || has_permission('wm');
+
+if ($has_edit_permission) {
   validateField($first , "First Name" , "user_first");
   validateField($last , "Last Name" , "user_last");
   validateField($email , "Email" , "user_email");
@@ -133,7 +144,7 @@ if ($user_type == "Scout") {
   if (!is_null($scout_3)) { writeRelationshipData($scout_3, $user_type, $id, $mysqli); }
   if (!is_null($scout_4)) { writeRelationshipData($scout_4, $user_type, $id, $mysqli); }
 }
-if (!$wm) {
+if (!$has_edit_permission) {
   $returnMsg = array(
     'status' => 'Success'
   );
@@ -228,7 +239,7 @@ if ($statement === false) {
   echo json_encode($mysqli->error);
   die;
 }
-$rs = $statement->bind_param('sssss', $first, $last, $email, $notif_prefs_json, $id);
+$rs = $statement->bind_param('ssssi', $first, $last, $email, $notif_prefs_json, $id);
 if($rs == false) {
     echo json_encode($statement->error);
     die;
@@ -278,7 +289,6 @@ function validateUnique( $arrayList ) {
     $returnMsg = array(
       'status' => 'validation',
       'message' => 'Please do not choose the same scout twice!',
-      'varDiff' => $test,
       'field' => 'scout_l'
     );
     echo json_encode($returnMsg);
@@ -301,10 +311,16 @@ function validateField( $strValue, $strLabel, $strFieldName) {
 }
 
 function writeScoutData($user_id, $rank, $patrol, $position, $mysqli) {
+  // Cast to integers for security
+  $user_id = (int)$user_id;
+  $rank = (int)$rank;
+  $patrol = (int)$patrol;
+  $position = (int)$position;
+
   // Get the current position before updating
   $query="SELECT position_id FROM scout_info WHERE user_id=?";
   $statement = $mysqli->prepare($query);
-  $statement->bind_param('s', $user_id);
+  $statement->bind_param('i', $user_id);
   $statement->execute();
   $result = $statement->get_result();
   $old_position = null;
@@ -313,18 +329,23 @@ function writeScoutData($user_id, $rank, $patrol, $position, $mysqli) {
   }
   $statement->close();
 
-  // Update or insert scout info
-  $query="SELECT user_id FROM scout_info WHERE user_id=".$user_id;
-  $results = $mysqli->query($query);
+  // Update or insert scout info - use prepared statement instead of string concatenation
+  $query="SELECT user_id FROM scout_info WHERE user_id=?";
+  $check_stmt = $mysqli->prepare($query);
+  $check_stmt->bind_param('i', $user_id);
+  $check_stmt->execute();
+  $results = $check_stmt->get_result();
   if ($results->fetch_assoc()) {
+    $check_stmt->close();
     $query = "UPDATE scout_info SET rank_id=?, patrol_id=?, position_id=? WHERE user_id=?";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('ssss', $rank, $patrol, $position, $user_id);
+    $statement->bind_param('iiii', $rank, $patrol, $position, $user_id);
     $statement->execute();
   } else {
+    $check_stmt->close();
     $query = "INSERT INTO scout_info (user_id, rank_id, patrol_id, position_id) VALUES(?, ?, ?, ?)";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('ssss', $user_id, $rank, $patrol, $position);
+    $statement->bind_param('iiii', $user_id, $rank, $patrol, $position);
     $statement->execute();
   }
 
@@ -340,10 +361,17 @@ function writeMeritBadgeData($user_id, $mb_list, $mysqli) {
   if entry not in mb_list, delete from table
   if after verification there are remaining items in mb_list, add those to table
   */
+  // Cast to integer for security
+  $user_id = (int)$user_id;
+
   $mb_del_list = array();
 
-  $query="SELECT * FROM mb_counselors WHERE user_id=".$user_id;
-  $results = $mysqli->query($query);
+  // Use prepared statement instead of string concatenation
+  $query="SELECT * FROM mb_counselors WHERE user_id=?";
+  $stmt = $mysqli->prepare($query);
+  $stmt->bind_param('i', $user_id);
+  $stmt->execute();
+  $results = $stmt->get_result();
   while ($row = $results->fetch_assoc()) {
     $mb_id = $row['mb_id'];
     if(($key = array_search($mb_id, $mb_list)) !== false) {
@@ -352,53 +380,76 @@ function writeMeritBadgeData($user_id, $mb_list, $mysqli) {
       array_push($mb_del_list , $mb_id);
     }
   };
+  $stmt->close();
+
   if ($mb_list) {
     $query = "INSERT INTO mb_counselors (mb_id, user_id) VALUES(?, ?)";
     $statement = $mysqli->prepare($query);
     foreach($mb_list as $val) {
-      $statement->bind_param('ss', $val, $user_id);
+      $mb_id_int = (int)$val;
+      $statement->bind_param('ii', $mb_id_int, $user_id);
       $statement->execute();
     }
+    $statement->close();
   }
   if ($mb_del_list) {
     $query = "DELETE FROM mb_counselors WHERE mb_id=? AND user_id=?";
     $statement = $mysqli->prepare($query);
     foreach($mb_del_list as $val) {
-      $statement->bind_param('ss', $val, $user_id);
+      $mb_id_int = (int)$val;
+      $statement->bind_param('ii', $mb_id_int, $user_id);
       $statement->execute();
     }
+    $statement->close();
   }
 }
 
 function checkRelationshipsForDeletes($scoutList, $id, $mysqli){
-  $query = "SELECT scout_id FROM relationships WHERE adult_id=".$id;
-  $results = $mysqli->query($query);
+  // Cast to integer for security
+  $id = (int)$id;
+
+  // Use prepared statement instead of string concatenation
+  $query = "SELECT scout_id FROM relationships WHERE adult_id=?";
+  $stmt = $mysqli->prepare($query);
+  $stmt->bind_param('i', $id);
+  $stmt->execute();
+  $results = $stmt->get_result();
   while ($row = $results->fetch_assoc()) {
-    $scoutID = $row['scout_id'];
+    $scoutID = (int)$row['scout_id'];
     if (!in_array($scoutID, $scoutList)) {
       $query2 = "DELETE FROM relationships WHERE adult_id=? AND scout_id=?" ;
       $statement = $mysqli->prepare($query2);
-      $statement->bind_param('ss', $id, $scoutID);
+      $statement->bind_param('ii', $id, $scoutID);
       $statement->execute();
       $statement->close();
     }
   }
+  $stmt->close();
 }
 
 function writeRelationshipData($scout_id, $type, $adult_id, $mysqli) {
   if ($scout_id == "0") {
     return;
   }
-  $query = "SELECT type FROM relationships WHERE adult_id='" . $adult_id . "' AND scout_id='" . $scout_id . "'" ;
-  $results = $mysqli->query($query);
+  // Cast to integers for security
+  $scout_id = (int)$scout_id;
+  $adult_id = (int)$adult_id;
+
+  // Use prepared statement instead of string concatenation
+  $query = "SELECT type FROM relationships WHERE adult_id=? AND scout_id=?";
+  $check_stmt = $mysqli->prepare($query);
+  $check_stmt->bind_param('ii', $adult_id, $scout_id);
+  $check_stmt->execute();
+  $results = $check_stmt->get_result();
   $row = $results->fetch_assoc();
+  $check_stmt->close();
 
   if ($row) {
     if ($row['type'] <> $type) {
       // Update
       $query = "UPDATE relationships SET type=? WHERE adult_id=? AND scout_id=?";
       $statement = $mysqli->prepare($query);
-      $statement->bind_param('sss', $type, $scout_id, $adult_id);
+      $statement->bind_param('sii', $type, $adult_id, $scout_id);
       if ($statement->execute()){
         //success
       }else{
@@ -411,7 +462,7 @@ function writeRelationshipData($scout_id, $type, $adult_id, $mysqli) {
     // Add
     $query = "INSERT INTO relationships (scout_id, adult_id, type) VALUES(?, ?, ?)";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('sss', $scout_id, $adult_id, $type);
+    $statement->bind_param('iis', $scout_id, $adult_id, $type);
     if ($statement->execute()){
       //success
     }else{
@@ -431,6 +482,9 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
   */
   if (($id==="") && ($phone==="")) { return true;}
 
+  // Cast user_id to integer for security
+  $user_id = (int)$user_id;
+
   $action = '';
   $phone_details = array(
     'phone_id' => $id,
@@ -441,19 +495,21 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
 
   if ($phone==="") {
     $action = 'delete';
+    $phone_id = (int)$id;
     $query = "DELETE FROM phone WHERE id=?";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('s', $id);
+    $statement->bind_param('i', $phone_id);
   } else if ($id==="") {
     $action = 'create';
     $query = "INSERT INTO phone (phone , type , user_id) VALUES(?, ?, ?)";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('sss', $phone, $type, $user_id);
+    $statement->bind_param('ssi', $phone, $type, $user_id);
   } else {
     $action = 'update';
+    $phone_id = (int)$id;
     $query = "UPDATE phone SET phone=?, type=? WHERE id=?";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('sss', $phone, $type, $id);
+    $statement->bind_param('ssi', $phone, $type, $phone_id);
   }
   if ($statement->execute()){
     // Log successful phone data change
@@ -486,6 +542,9 @@ function writePhoneData($id, $phone, $type, $user_id, $mysqli) {
  * Position ID 1 = Patrol Leader (gets 'pl' permission)
  */
 function syncPositionPermissions($user_id, $old_position, $new_position, $mysqli) {
+  // Cast to integer for security
+  $user_id = (int)$user_id;
+
   // Position ID 1 = Patrol Leader
   $PATROL_LEADER_ID = 1;
 
@@ -497,7 +556,7 @@ function syncPositionPermissions($user_id, $old_position, $new_position, $mysqli
   // Get current user_access
   $query = "SELECT user_access FROM users WHERE user_id=?";
   $statement = $mysqli->prepare($query);
-  $statement->bind_param('s', $user_id);
+  $statement->bind_param('i', $user_id);
   $statement->execute();
   $result = $statement->get_result();
   $row = $result->fetch_assoc();
@@ -528,7 +587,7 @@ function syncPositionPermissions($user_id, $old_position, $new_position, $mysqli
 
     $query = "UPDATE users SET user_access=? WHERE user_id=?";
     $statement = $mysqli->prepare($query);
-    $statement->bind_param('ss', $new_access, $user_id);
+    $statement->bind_param('si', $new_access, $user_id);
 
     if ($statement->execute()) {
       // Log successful permission sync

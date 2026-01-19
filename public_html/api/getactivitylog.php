@@ -1,28 +1,38 @@
 <?php
+declare(strict_types=1);
+
 /**
  * Get Activity Log API
  *
  * Returns activity log entries with optional filters.
- * Only accessible via AJAX.
+ * Restricted to webmasters (wm) and super admins (sa) only.
  */
 
 // Prevent any output before JSON header
 error_reporting(0);
 ini_set('display_errors', '0');
 
-if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-  header('Content-Type: application/json');
-  echo json_encode(['error' => 'Not an AJAX request']);
-  die();
-}
-
 header('Content-Type: application/json');
-require 'connect.php';
 
-// Get JSON input
+require 'connect.php';
+require 'auth_helper.php';
+
+// Security checks
+require_ajax();
+require_authentication();
+require_permission(['wm', 'sa']);
+
+// Get JSON input - must read php://input before CSRF validation
 $input = json_decode(file_get_contents('php://input'), true);
+
+// CSRF validation for state-changing operation
+// Note: Cannot use require_csrf() since php://input was already consumed above
+$csrf_token = $input['csrf_token'] ?? '';
+if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Invalid CSRF token']);
+    die();
+}
 
 // Build query with filters - join with users table to get names
 $query = "SELECT
@@ -104,7 +114,8 @@ if (!empty($params)) {
   $statement = $mysqli->prepare($query);
   if ($statement === false) {
     http_response_code(500);
-    echo json_encode(['error' => 'Failed to prepare query: ' . $mysqli->error]);
+    error_log('getactivitylog.php prepare error: ' . $mysqli->error);
+    echo json_encode(['error' => 'Database error occurred']);
     die();
   }
 
@@ -125,7 +136,8 @@ if (!empty($params)) {
 
 if (!$result) {
   http_response_code(500);
-  echo json_encode(['error' => 'Query failed: ' . $mysqli->error]);
+  error_log('getactivitylog.php query error: ' . $mysqli->error);
+  echo json_encode(['error' => 'Database error occurred']);
   die();
 }
 

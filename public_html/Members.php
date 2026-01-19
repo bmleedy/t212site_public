@@ -6,18 +6,17 @@ require "includes/authHeader.php";
 
 <br>
 <div class='row'>
-  <?php 
-    if ($login->isUserLoggedIn() == true) {
-      error_log('Members: is user logged in? '.$login->isUserLoggedIn());
-      require "includes/m_sidebar.html"; 
+  <?php
+    if ($login->isUserLoggedIn()) {
+      require "includes/m_sidebar.html";
     } else {
-      require "includes/sidebar.html"; 
-    } 
+      require "includes/sidebar.html";
+    }
   ?>
   <div class="large-9 columns">
     <div class="panel">
     <?php
-    if ($login->isUserLoggedIn() == true) {
+    if ($login->isUserLoggedIn()) {
         include("templates/Members.html");
     } else {
         include("login/views/user_login.php");

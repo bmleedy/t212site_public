@@ -1,6 +1,8 @@
 <?php
-error_reporting(0);
+// Proper error handling: log errors but don't display to users
+error_reporting(E_ALL);
 ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 
 if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
@@ -120,12 +122,15 @@ if ($edit && $wm) {
     }
 }
 
-$stmt = $mysqli->prepare("SELECT * FROM phone WHERE user_id=?");
+$stmt = $mysqli->prepare("SELECT * FROM phone WHERE user_id=? LIMIT 3");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $results = $stmt->get_result();
-if ($results == false) {
-    die("ERROR in ".__FILE__."could not query MySQL");
+if ($results === false) {
+    error_log("Database query error in getuser.php: could not query phone table");
+    http_response_code(500);
+    echo json_encode(['error' => 'Database error']);
+    die();
 }
 $varPhone = [];
 $varType = [];

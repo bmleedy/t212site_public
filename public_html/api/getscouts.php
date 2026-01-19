@@ -2,14 +2,22 @@
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 require_ajax();
 $current_user_id = require_authentication();
+require_permission(['ue', 'sa', 'wm', 'pl', 'oe']);
 
 header('Content-Type: application/json');
 require 'connect.php';
 
 $sort = validate_string_post('sort', false, 'name');
+
+// Whitelist validation for sort parameter
+$allowed_sorts = ['patrol', 'rank', 'lastname'];
+if (!in_array($sort, $allowed_sorts)) {
+    $sort = 'lastname';
+}
 $scouts = null;
 
 if ($sort == 'patrol') {
@@ -126,6 +134,9 @@ while ($row = $results->fetch_object()) {
     'phone' => $phones
   ];
 }
+
+// Log the scout roster access
+log_activity($mysqli, 'view_scouts', array('sort' => $sort), true, 'Viewed scout roster', $current_user_id);
 
 echo json_encode($scouts);
 die();

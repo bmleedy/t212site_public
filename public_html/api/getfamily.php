@@ -30,27 +30,24 @@ $stmt->execute();
 $result = $stmt->get_result();
 if ($row = $result->fetch_assoc()) {
   $family_id = $row["family_id"];
-  if ($family_id == null) {
-    //skip
-  } else {
-    $stmt2 = $mysqli->prepare("SELECT * FROM families WHERE family_id=?");
+  if ($family_id !== null) {
+    $stmt2 = $mysqli->prepare("SELECT address1, address2, city, state, zip FROM families WHERE family_id=?");
     $stmt2->bind_param("i", $family_id);
     $stmt2->execute();
     $result2 = $stmt2->get_result();
-    if ($result2->num_rows) {
-      if ($row2 = $result2->fetch_assoc()) {
-        $address1 = $row2["address1"];
-        $address2 = $row2["address2"];
-        $city = $row2["city"];
-        $state = $row2["state"];
-        $zip = $row2["zip"];
-      }
+    if ($row2 = $result2->fetch_assoc()) {
+      $address1 = $row2["address1"];
+      $address2 = $row2["address2"];
+      $city = $row2["city"];
+      $state = $row2["state"];
+      $zip = $row2["zip"];
     }
     $stmt2->close();
   }
 }
 $stmt->close();
 
+// Default to Washington state (WA) since this application primarily serves users in Washington
 if ($state=="") {
   $state="WA";
 }

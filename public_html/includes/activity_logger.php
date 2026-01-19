@@ -125,6 +125,35 @@ function log_activity($mysqli, $action, $values = null, $success = true, $freete
 }
 
 /**
+ * Filter sensitive keys from an array before logging/emailing
+ *
+ * @param array $data The data to filter
+ * @return array The filtered data with sensitive values replaced
+ */
+function filter_sensitive_data($data) {
+    $sensitive_keys = array('password', 'user_password', 'pass', 'pwd', 'token', 'csrf_token', 'secret', 'api_key', 'credit_card', 'cc_number');
+    $filtered = array();
+    foreach ($data as $key => $value) {
+        $lower_key = strtolower($key);
+        $is_sensitive = false;
+        foreach ($sensitive_keys as $sensitive) {
+            if (strpos($lower_key, $sensitive) !== false) {
+                $is_sensitive = true;
+                break;
+            }
+        }
+        if ($is_sensitive) {
+            $filtered[$key] = '[REDACTED]';
+        } else if (is_array($value)) {
+            $filtered[$key] = filter_sensitive_data($value);
+        } else {
+            $filtered[$key] = $value;
+        }
+    }
+    return $filtered;
+}
+
+/**
  * Send email alert when activity logging fails
  *
  * @param string $failure_reason Why the logging failed
@@ -187,12 +216,12 @@ function send_activity_log_failure_email($failure_reason, $action, $values, $db_
 
     $body .= "POST DATA\n";
     $body .= "-" . str_repeat("-", 50) . "\n";
-    $body .= print_r($_POST, true) . "\n\n";
+    $body .= print_r(filter_sensitive_data($_POST), true) . "\n\n";
 
     $body .= "SESSION DATA\n";
     $body .= "-" . str_repeat("-", 50) . "\n";
     if (session_status() === PHP_SESSION_ACTIVE) {
-        $body .= print_r($_SESSION, true) . "\n";
+        $body .= print_r(filter_sensitive_data($_SESSION), true) . "\n";
     } else {
         $body .= "Session not active\n";
     }
@@ -208,4 +237,3 @@ function send_activity_log_failure_email($failure_reason, $action, $values, $db_
         error_log("Activity log failure email sent to t212webmaster@gmail.com");
     }
 }
-?>

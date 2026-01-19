@@ -1,4 +1,4 @@
-<div class = "visible-for-large-up">
+<div class="visible-for-large-up">
 <footer class="row">
 <div class="large-12 columns"><hr>
 <div class="row">
@@ -18,36 +18,25 @@
 </div>
 
 <!-- Asynchronous page counter script -->
-<script type="text/javascript">
+<script>
 (function() {
-    // Get the current page URL without query parameters
+    'use strict';
     var pageUrl = window.location.pathname;
 
-    // Send the page view data asynchronously
-    // This happens after the page has loaded, so it doesn't affect page load time
     if (window.fetch) {
-        // Modern browsers - use fetch API
         fetch('/includes/page_counter.php', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'page_url=' + encodeURIComponent(pageUrl),
-            // Use no-cors mode to avoid CORS issues
             mode: 'no-cors',
-            // Don't wait for the response
             cache: 'no-cache',
-            // Don't send cookies
             credentials: 'omit'
-        }).catch(function(error) {
-            // Silently fail - we don't want to affect the user experience
-            console.log('Page counter error:', error);
-        });
+        }).catch(function() {});
     } else {
-        // Fallback for older browsers - use XMLHttpRequest
         var xhr = new XMLHttpRequest();
-        xhr.open('POST', '/includes/page_counter.php', true); // true for asynchronous
+        xhr.open('POST', '/includes/page_counter.php', true);
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onerror = function() {};
         xhr.send('page_url=' + encodeURIComponent(pageUrl));
     }
 })();

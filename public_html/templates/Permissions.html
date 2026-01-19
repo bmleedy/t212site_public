@@ -194,15 +194,30 @@
 <div id="saveMessage" style="margin-top: 20px; font-weight: bold;"></div>
 
 <script type="text/javascript">
-var userData = []; // Store loaded user data
+// Store minimal user data needed for saving (user_id and original user_access only)
+var userData = [];
+
+// HTML escape function to prevent XSS attacks
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  var div = document.createElement('div');
+  div.textContent = String(text);
+  return div.innerHTML;
+}
 
 function writeRow(user) {
   // Parse current permissions into an array
   var permissions = user.user_access ? user.user_access.split('.') : [];
 
-  var row = '<tr data-user-id="' + user.user_id + '">';
-  row += '<td>' + user.user_id + '</td>';
-  row += '<td class="user-name">' + user.user_first + ' ' + user.user_last + '<br><span class="user-type">' + user.user_type + '</span></td>';
+  // Escape all user-provided data before inserting into HTML
+  var safeUserId = escapeHtml(user.user_id);
+  var safeFirstName = escapeHtml(user.user_first);
+  var safeLastName = escapeHtml(user.user_last);
+  var safeUserType = escapeHtml(user.user_type);
+
+  var row = '<tr data-user-id="' + safeUserId + '">';
+  row += '<td>' + safeUserId + '</td>';
+  row += '<td class="user-name">' + safeFirstName + ' ' + safeLastName + '<br><span class="user-type">' + safeUserType + '</span></td>';
 
   // Create checkboxes for each permission
   var permissionCodes = ['sa', 'wm', 'ue', 'oe', 'pl', 'trs'];
@@ -211,7 +226,7 @@ function writeRow(user) {
     var disabled = code === 'pl' ? 'disabled title="Auto-managed by position"' : '';
     row += '<td class="permission-cell">';
     row += '<input type="checkbox" class="permission-checkbox" ';
-    row += 'data-user-id="' + user.user_id + '" ';
+    row += 'data-user-id="' + safeUserId + '" ';
     row += 'data-permission="' + code + '" ';
     row += checked + ' ' + disabled + ' />';
     row += '</td>';
@@ -235,7 +250,7 @@ function loadPermissions() {
     type: "post",
     data: JSON.stringify(filters),
     contentType: 'application/json',
-    datatype: 'json',
+    dataType: 'json',
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       console.log('Error:', errorThrown);
       console.log('Status:', textStatus);
@@ -243,7 +258,13 @@ function loadPermissions() {
     },
     success: function(data) {
       console.log('Loaded', data.length, 'users');
-      userData = data; // Store for saving later
+      // Store only minimal data needed for saving (user_id and user_access)
+      userData = data.map(function(user) {
+        return {
+          user_id: user.user_id,
+          user_access: user.user_access
+        };
+      });
 
       if (data.length === 0) {
         $('#permissionsData').html('<p>No users found for the selected filters.</p>');
@@ -338,7 +359,7 @@ function savePermissions() {
     type: "post",
     data: JSON.stringify({ updates: updates }),
     contentType: 'application/json',
-    datatype: 'json',
+    dataType: 'json',
     error: function(XMLHttpRequest, textStatus, errorThrown) {
       console.log('Error:', errorThrown);
       console.log('Status:', textStatus);
@@ -346,13 +367,13 @@ function savePermissions() {
     },
     success: function(response) {
       if (response.status === 'Success') {
-        $('#saveMessage').html('<span style="color: green;">✅ Successfully updated ' + response.updated + ' user(s). Changes logged to activity log.</span>');
+        $('#saveMessage').html('<span style="color: green;">Successfully updated ' + escapeHtml(response.updated) + ' user(s). Changes logged to activity log.</span>');
         // Reload to reflect changes
         setTimeout(function() {
           loadPermissions();
         }, 2000);
       } else {
-        $('#saveMessage').html('<span style="color: red;">❌ Error: ' + (response.message || 'Unknown error') + '</span>');
+        $('#saveMessage').html('<span style="color: red;">Error: ' + escapeHtml(response.message || 'Unknown error') + '</span>');
       }
     }
   });

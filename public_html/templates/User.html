@@ -95,28 +95,6 @@
     })
   }
 
-  function writeCell(strData, strWidth, strLink) {
-    if (strLink == null) {
-      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
-    } else {
-      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
-    }
-  }
-
-  function writeRow(element, index, array) {
-    var strStart="";
-    strStart = element['startdate'];
-    strStart = strStart.replace(/-/g, "/");
-    var startDate = new Date(strStart);
-
-    // var strTable = "";
-    // strTable = strTable + "<tr>";
-    // strTable = strTable + writeCell(startDate.toDateString(), "150px");
-    // strTable = strTable + writeCell(element["name"], "200px", "Event.php?id=" + element["event_id"]);
-    // strTable = strTable + writeCell(element["location"], "200px");
-    // strTable = strTable + "</tr>";
-  }
-
   function loadEVTable(strSort, strTypeID, strOrder) {
     var fieldData = {
       "sort": strSort,
@@ -147,9 +125,9 @@
         var strTable = "";
         $(divName).empty();
         strTable = "<table><thead><tr>";
-        strTable = strTable + "<th><a href=javascript:loadEVTable('startdate','" + strTypeID + "','" + strDateOrder + "')>Start Date</a></th>";
-        strTable = strTable + "<th><a href=javascript:loadEVTable('name','" + strTypeID + "','asc')>Event Name</a></th>";
-        strTable = strTable + "<th><a href=javascript:loadEVTable('location','" + strTypeID + "','asc')>Location</a></th>";
+        strTable = strTable + "<th><a href='#' class='ev-sort-link' data-sort='startdate' data-typeid='" + strTypeID + "' data-order='" + strDateOrder + "'>Start Date</a></th>";
+        strTable = strTable + "<th><a href='#' class='ev-sort-link' data-sort='name' data-typeid='" + strTypeID + "' data-order='asc'>Event Name</a></th>";
+        strTable = strTable + "<th><a href='#' class='ev-sort-link' data-sort='location' data-typeid='" + strTypeID + "' data-order='asc'>Location</a></th>";
         strTable = strTable + "</tr></thead><tbody>";
 
         // Build table rows
@@ -159,15 +137,25 @@
           var startDate = new Date(strStart);
 
           strTable = strTable + "<tr>";
-          strTable = strTable + "<td style='width:150px;'>" + startDate.toDateString() + "</td>";
-          strTable = strTable + "<td style='width:200px;'><a href='Event.php?id=" + element["event_id"] + "'>" + element["name"] + "</a></td>";
-          strTable = strTable + "<td style='width:200px;'>" + element["location"] + "</td>";
+          strTable = strTable + "<td style='width:150px;'>" + escapeHtml(startDate.toDateString()) + "</td>";
+          strTable = strTable + "<td style='width:200px;'><a href='Event.php?id=" + encodeURIComponent(element["event_id"]) + "'>" + escapeHtml(element["name"]) + "</a></td>";
+          strTable = strTable + "<td style='width:200px;'>" + escapeHtml(element["location"]) + "</td>";
           strTable = strTable + "</tr>";
         });
 
         strTable = strTable + "</tbody></table>";
         //console.log(strTable);
         $(divName).append(strTable);
+
+        // Bind click handlers for sort links (replacing javascript: protocol)
+        $(divName).find('.ev-sort-link').on('click', function(e) {
+          e.preventDefault();
+          var sortField = $(this).data('sort');
+          var typeId = $(this).data('typeid');
+          var order = $(this).data('order');
+          loadEVTable(sortField, typeId, order);
+        });
+
         $("#divEvents" + strTypeID).show();
       }
     })

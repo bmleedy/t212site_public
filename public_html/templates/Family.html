@@ -1,7 +1,10 @@
 <script type="text/javascript">
-var strTable;
-var user_id;
-  
+/**
+ * Validates a form field is not empty.
+ * @param {string} strFieldID - The ID of the field to validate
+ * @param {string} strLabel - The label to display in the error message
+ * @returns {boolean} - true if valid, false if empty
+ */
 function validateField(strFieldID, strLabel) {
   var fld = document.getElementById(strFieldID);
   if ((fld.type=="text")||(fld.type=="select-one")) {
@@ -11,11 +14,13 @@ function validateField(strFieldID, strLabel) {
       return false;
     }
   }
+  return true;
 }
-  
-  
+
+
 $(document).ready(function () {
-  user_id = document.getElementById('user_id').value;
+  // CSRF token is automatically added by ajaxsetup-csrf-traditional.js
+  var user_id = document.getElementById('user_id').value;
   var fieldData = {
     "id": user_id
   };
@@ -25,15 +30,13 @@ $(document).ready(function () {
     data: fieldData,
     datatype: 'json',
     error: function (data) {
-      console.log("fail");
-      console.log(data);
+      // Error handling - display user-friendly message
+      $("#addressData").html("<p>Unable to load address data. Please try again.</p>");
     },
     success: function (data) {
-      console.log("success");
-      console.log(data);
-      strTable = "";
-      $('#userdata').empty();        
-      $("#addressData").append("<br /><p>Your address:</h4>");
+      $('#userdata').empty();
+      $("#addressData").append("<br /><p>Your address:</p>");
+      // Note: data.addressData is pre-escaped HTML from getfamily.php API (uses escape_html())
       $("#addressData").append(data.addressData);
     }
   });
@@ -41,10 +44,8 @@ $(document).ready(function () {
 </script>
 
 
-<div class="row"\>
+<div class="row">
   <div class="large-12 columns">
-  <div id='addressData'></div>  
+  <div id='addressData'></div>
   </div>
 </div>
-
-
