@@ -17,7 +17,7 @@ file_put_contents(__DIR__ . '/updateattendance_debug.log',
 );
 
 // Check AJAX header
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
     file_put_contents(__DIR__ . '/updateattendance_debug.log',
         date('Y-m-d H:i:s') . " - AJAX header OK\n",
         FILE_APPEND

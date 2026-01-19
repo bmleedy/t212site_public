@@ -10,7 +10,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
   header('Content-Type: application/json');

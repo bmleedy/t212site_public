@@ -3,7 +3,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
   header('Content-Type: application/json');
@@ -102,7 +102,11 @@ if ($user_type == "Scout") {
   } else {
     $scout_4 = NULL;
   }
-  $mb_list = $_POST['mb_list'];
+  if ( array_key_exists("mb_list", $_POST)) {
+    $mb_list = $_POST['mb_list'];
+  } else {
+    $mb_list = array();
+  }
   $scoutList = array();
   if ($scout_1 <> "0" && !is_null($scout_1)) { array_push( $scoutList, $scout_1 ); }
   if ($scout_2 <> "0" && !is_null($scout_2)) { array_push( $scoutList, $scout_2 ); }

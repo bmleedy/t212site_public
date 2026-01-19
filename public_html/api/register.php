@@ -2,7 +2,7 @@
 $activity_log_prefix = __DIR__ . '/../registration_logs/event_';
 $activity_log_suffix = '.log';
 
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
   echo "Not sure what you are after, but it ain't here.";

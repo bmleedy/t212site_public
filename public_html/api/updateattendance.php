@@ -15,7 +15,7 @@ register_shutdown_function(function() {
 ini_set('display_errors', 0); // Don't display, just log
 error_reporting(E_ALL);
 
-if( $_SERVER[ 'HTTP_X_REQUESTED_WITH' ] === 'XMLHttpRequest' ){
+if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
   echo "Not sure what you are after, but it ain't here.";
