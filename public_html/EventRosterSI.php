@@ -16,6 +16,7 @@ $access = explode(".",$_SESSION['user_access']);
   
   <script src="/js/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-migrate-3.4.1.min.js"></script>
+  <script>$.ajaxSetup({ traditional: true });</script>
   <script src="/js/modernizr-shim.js"></script>
   <script src="js/foundation.min.js"></script>
 

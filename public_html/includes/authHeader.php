@@ -49,6 +49,12 @@ if ($user_type=='Scout') {
 
   <script src="/js/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-migrate-3.4.1.min.js"></script>
+  <script>
+    // Enable traditional array serialization for jQuery 3.x compatibility
+    // This ensures arrays are sent as param[]=a&param[]=b (PHP-compatible)
+    // instead of the jQuery 3.x default nested format
+    $.ajaxSetup({ traditional: true });
+  </script>
   <script src="/js/modernizr-shim.js"></script>
   <script src="js/foundation.min.js"></script>
 
