@@ -14,6 +14,7 @@ ini_set('display_errors', '0');
 
 header('Content-Type: application/json');
 
+session_start();
 require 'connect.php';
 require 'auth_helper.php';
 
