@@ -10,6 +10,11 @@ session_start();
 require "includes/authHeader.php";
 ?>
 
+<!-- Inject CSRF token directly for JavaScript access -->
+<script type="text/javascript">
+  var csrfToken = <?php echo json_encode($_SESSION['csrf_token'] ?? ''); ?>;
+</script>
+
 <br>
 <div class='row'>
   <?php

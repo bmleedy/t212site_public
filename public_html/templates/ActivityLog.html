@@ -228,11 +228,8 @@ function writeRow(element) {
 }
 
 function loadActivityLog() {
-  // Debug: Check if meta tag exists and what token it contains
-  var metaTag = $('meta[name="csrf-token"]');
-  var csrfToken = metaTag.attr('content');
-  console.log('CSRF Debug - Meta tag found:', metaTag.length > 0);
-  console.log('CSRF Debug - Token from meta (first 16 chars):', csrfToken ? csrfToken.substring(0, 16) : 'UNDEFINED');
+  // Debug: Check CSRF token availability
+  console.log('CSRF Debug - Token from PHP variable (first 16 chars):', typeof csrfToken !== 'undefined' ? csrfToken.substring(0, 16) : 'UNDEFINED');
 
   // Get local datetime values
   var startDateLocal = document.getElementById('startDate').value;
@@ -260,7 +257,7 @@ function loadActivityLog() {
     user: document.getElementById('filterUser').value,
     success: document.getElementById('filterSuccess').value,
     freetext: document.getElementById('filterFreetext').value,
-    csrf_token: $('meta[name="csrf-token"]').attr('content')
+    csrf_token: csrfToken  // Use PHP-injected variable
   };
 
   $.ajax({
