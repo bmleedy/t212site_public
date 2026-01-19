@@ -6,12 +6,12 @@ define("__ROOT__",dirname(__DIR__));
 
 // for any file that includes this header, write a log entry for this page
 $logFile = __ROOT__ . '/access_log' . date('Y-m-d') . '.txt';
-$logEntry = date('Y-m-d H:i:s') . " - IP: " . $_SERVER['REMOTE_ADDR'] .
-    " - User Agent: " . $_SERVER['HTTP_USER_AGENT'] .
+$logEntry = date('Y-m-d H:i:s') . " - IP: " . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : "UNKNOWN") .
+    " - User Agent: " . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : "UNKNOWN") .
     " - user_id: " . (array_key_exists("user_id", $_SESSION) ? $_SESSION['user_id'] : "NULL") .
     " - user_type: " . (array_key_exists("user_type", $_SESSION) ? $_SESSION['user_type'] : "NULL") .
     " - user_access: " . (array_key_exists("user_access", $_SESSION) ? $_SESSION['user_access'] : "NULL") .
-    " - URL: " . $_SERVER['REQUEST_URI'] .
+    " - URL: " . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "UNKNOWN") .
     PHP_EOL;
 file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
 
