@@ -7,7 +7,8 @@
       "Bash(find:*)",
       "Bash(mysql --version:*)",
       "Bash(mysql:*)",
-      "Bash(/Users/bmleedy/t212site_public/convert_tabs.sh:*)"
+      "Bash(/Users/bmleedy/t212site_public/convert_tabs.sh:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
