@@ -77,7 +77,7 @@
         container.append(bullets_container);
         bullets_container.wrap('<div class="orbit-bullets-container"></div>');
         self.slides().each(function (idx, el) {
-          var bullet = $('<li>').attr('data-orbit-slide', idx).on('click', self.link_bullet);;
+          var bullet = $('<li>').attr('data-orbit-slide', idx).on('click', self.link_bullet);
           bullets_container.append(bullet);
         });
       }
