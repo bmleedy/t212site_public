@@ -36,54 +36,25 @@ require_permission(['wm', 'sa']);
 $raw_input = file_get_contents('php://input');
 $input = json_decode($raw_input, true);
 
-// Debug: Log raw input
-error_log("CSRF Debug - Raw input: " . $raw_input);
-error_log("CSRF Debug - Decoded input: " . print_r($input, true));
-
 // CSRF validation
 $csrf_token = $input['csrf_token'] ?? '';
 $session_token = $_SESSION['csrf_token'] ?? '';
-$session_id = session_id();
-
-// Debug: Log token comparison details
-error_log("CSRF Debug for getactivitylog.php:");
-error_log("  Session ID: " . $session_id);
-error_log("  Session token (first 16 chars): " . substr($session_token, 0, 16));
-error_log("  Received token (first 16 chars): " . substr($csrf_token, 0, 16));
-error_log("  Tokens match: " . ($session_token === $csrf_token ? 'YES' : 'NO'));
-error_log("  Session token length: " . strlen($session_token));
-error_log("  Received token length: " . strlen($csrf_token));
 
 if (empty($session_token)) {
     http_response_code(403);
-    echo json_encode(['error' => 'No CSRF token in session', 'debug' => 'session_id: ' . $session_id]);
+    echo json_encode(['error' => 'Session expired. Please refresh the page.']);
     die();
 }
 
 if (empty($csrf_token)) {
     http_response_code(403);
-    echo json_encode([
-        'error' => 'No CSRF token received',
-        'debug' => [
-            'raw_input_length' => strlen($raw_input),
-            'raw_input_preview' => substr($raw_input, 0, 500),
-            'input_keys' => $input ? array_keys($input) : 'null',
-            'csrf_token_value' => $csrf_token
-        ]
-    ]);
+    echo json_encode(['error' => 'Invalid request. Please refresh the page.']);
     die();
 }
 
 if (!hash_equals($session_token, $csrf_token)) {
     http_response_code(403);
-    echo json_encode([
-        'error' => 'CSRF token mismatch',
-        'debug' => [
-            'session_id' => $session_id,
-            'session_token_prefix' => substr($session_token, 0, 8),
-            'received_token_prefix' => substr($csrf_token, 0, 8)
-        ]
-    ]);
+    echo json_encode(['error' => 'Security validation failed. Please refresh the page.']);
     die();
 }
 

@@ -228,9 +228,6 @@ function writeRow(element) {
 }
 
 function loadActivityLog() {
-  // Debug: Check CSRF token availability
-  console.log('CSRF Debug - Token from PHP variable (first 16 chars):', typeof csrfToken !== 'undefined' ? csrfToken.substring(0, 16) : 'UNDEFINED');
-
   // Get local datetime values
   var startDateLocal = document.getElementById('startDate').value;
   var endDateLocal = document.getElementById('endDate').value;
@@ -257,19 +254,13 @@ function loadActivityLog() {
     user: document.getElementById('filterUser').value,
     success: document.getElementById('filterSuccess').value,
     freetext: document.getElementById('filterFreetext').value,
-    csrf_token: csrfToken  // Use PHP-injected variable
+    csrf_token: csrfToken
   };
-
-  // Debug: Log exactly what we're sending
-  var jsonPayload = JSON.stringify(filters);
-  console.log('CSRF Debug - Filters object:', filters);
-  console.log('CSRF Debug - JSON payload:', jsonPayload);
-  console.log('CSRF Debug - csrf_token in filters:', filters.csrf_token);
 
   $.ajax({
     url: "api/getactivitylog.php",
     type: "post",
-    data: jsonPayload,
+    data: JSON.stringify(filters),
     contentType: 'application/json',
     dataType: 'json',
     error: function(XMLHttpRequest, textStatus, errorThrown) {
