@@ -38,6 +38,40 @@ $checkinfo = __ROOT__ .'/api/checkinfo.php' ;
 if ($user_type=='Scout') {
   require( $checkinfo );
 }
+
+// CSRF Protection: Generate a token if one doesn't exist
+if (!isset($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
+
+/**
+ * Get CSRF token for use in forms
+ * @return string The current CSRF token
+ */
+function get_csrf_token() {
+  return isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '';
+}
+
+/**
+ * Generate a hidden input field with the CSRF token
+ * @return string HTML hidden input element
+ */
+function csrf_input() {
+  return '<input type="hidden" name="csrf_token" value="' . htmlspecialchars(get_csrf_token()) . '">';
+}
+
+/**
+ * Validate CSRF token from POST data
+ * @param string $token The token to validate (optional, reads from $_POST if not provided)
+ * @return bool True if valid, false otherwise
+ */
+function validate_csrf_token($token = null) {
+  if ($token === null) {
+    $token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+  }
+  return isset($_SESSION['csrf_token']) && hash_equals($_SESSION['csrf_token'], $token);
+}
 ?>
 
 <html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths" lang="en" data-useragent="Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36">
@@ -46,15 +80,11 @@ if ($user_type=='Scout') {
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
 
   <script src="/js/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-migrate-3.4.1.min.js"></script>
-  <script>
-    // Enable traditional array serialization for jQuery 3.x compatibility
-    // This ensures arrays are sent as param[]=a&param[]=b (PHP-compatible)
-    // instead of the jQuery 3.x default nested format
-    $.ajaxSetup({ traditional: true });
-  </script>
+  <script src="/js/ajaxsetup-csrf-traditional.js"></script>
   <script src="/js/modernizr-shim.js"></script>
   <script src="js/foundation.min.js"></script>
 

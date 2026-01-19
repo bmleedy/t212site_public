@@ -1,10 +1,16 @@
 <?php
 session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
-require( $_SERVER['DOCUMENT_ROOT'] . '/login/inc_login.php'); 
+require( $_SERVER['DOCUMENT_ROOT'] . '/login/inc_login.php');
 $id = $_GET["id"];
 $user_id = $_SESSION['user_id'];
 $access = explode(".",$_SESSION['user_access']);
+
+// CSRF Protection
+if (!isset($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION['csrf_token'];
 ?>
 
 <html class=" js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths" lang="en" data-useragent="Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.89 Safari/537.36">
@@ -13,10 +19,11 @@ $access = explode(".",$_SESSION['user_access']);
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="csrf-token" content="<?php echo htmlspecialchars($csrf_token); ?>">
+
   <script src="/js/jquery-3.7.1.min.js"></script>
   <script src="/js/jquery-migrate-3.4.1.min.js"></script>
-  <script>$.ajaxSetup({ traditional: true });</script>
+  <script src="/js/ajaxsetup-csrf-traditional.js"></script>
   <script src="/js/modernizr-shim.js"></script>
   <script src="js/foundation.min.js"></script>
 
