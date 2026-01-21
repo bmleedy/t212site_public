@@ -9,8 +9,8 @@ require_ajax();
 // Verify authentication
 $current_user_id = require_authentication();
 
-// Require permission to update payments (treasurer or admin)
-require_permission(['trs', 'sa', 'wm']);
+// Check if user has admin/treasurer permission (can update any registration)
+$is_admin = has_permission('trs') || has_permission('sa') || has_permission('wm');
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -48,6 +48,42 @@ $query = "UPDATE registration SET paid=1, ts_paid=? WHERE id=?";
 $statement = $mysqli->prepare($query);
 
 foreach ($validated_ids as $id) {
+    // First, check if user has permission to update this registration
+    $check_query = "SELECT user_id FROM registration WHERE id=?";
+    $check_stmt = $mysqli->prepare($check_query);
+    $check_stmt->bind_param('i', $id);
+    $check_stmt->execute();
+    $check_result = $check_stmt->get_result();
+    $check_row = $check_result->fetch_assoc();
+    $check_stmt->close();
+
+    if (!$check_row) {
+        log_activity(
+            $mysqli,
+            'ppupdate2.php',
+            'payment_update_failed',
+            json_encode(['reg_id' => $id, 'reason' => 'registration_not_found']),
+            0, // failure
+            "Payment update failed: registration ID $id not found",
+            $current_user_id
+        );
+        continue; // Registration not found, skip
+    }
+
+    // Allow update if user is admin OR owns this registration
+    if (!$is_admin && $check_row['user_id'] != $current_user_id) {
+        log_activity(
+            $mysqli,
+            'ppupdate2.php',
+            'payment_update_denied',
+            json_encode(['reg_id' => $id, 'reg_owner' => $check_row['user_id'], 'requester' => $current_user_id]),
+            0, // failure
+            "Payment update denied: user $current_user_id attempted to update registration $id owned by user " . $check_row['user_id'],
+            $current_user_id
+        );
+        continue; // User doesn't have permission to update this registration
+    }
+
     // Update payment status
     $statement->bind_param('si', $ts_now, $id);
     $statement->execute();

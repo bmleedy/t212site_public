@@ -6,6 +6,9 @@ require 'validation_helper.php';
 require_ajax();
 $current_user_id = require_authentication();
 
+// Manual payment marking is restricted to treasurer and admin only
+require_permission(['trs', 'sa']);
+
 header('Content-Type: application/json');
 require 'connect.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
@@ -13,9 +16,6 @@ require_once(__DIR__ . '/../includes/activity_logger.php');
 $user_id = validate_int_post('user_id');
 $event_id = validate_int_post('event_id');
 $paid = validate_string_post('paid');
-
-// Check if current user can update payment for this user (own data or admin)
-require_user_access($user_id, $current_user_id);
 
 $query = "UPDATE registration SET paid=? WHERE event_id=? AND user_id=?";
 $statement = $mysqli->prepare($query);
