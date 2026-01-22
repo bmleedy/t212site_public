@@ -22,6 +22,14 @@
     strTable = strTable + "</tr>";
   }
 
+  function writeDeniedRow(element, index, array) {
+    strTable = strTable + "<tr>";
+    strTable = strTable + "<td style='width:150px;'>" + (element["username"] || "Unknown") + "</td>";
+    strTable = strTable + "<td style='width:150px;'>" + (element["eventname"] || "Unknown Event") + "</td>";
+    strTable = strTable + "<td style='width:300px;'>" + element["reason"] + "</td>";
+    strTable = strTable + "</tr>";
+  }
+
   $(document).ready(function () {
     reg_ids = document.getElementById('reg_ids').value;
     var fieldData = {
@@ -35,16 +43,56 @@
       error: function (XMLHttpRequest, textStatus, errorThrown) {
         console.log(errorThrown);
         console.log(textStatus);
+        $('#userdata').empty();
+        $("#userdata").append('<div class="alert-box alert" style="margin-bottom: 20px;"><strong>Error:</strong> Unable to process payment update. Please contact a troop administrator.</div>');
       },
       success: function (data) {
         console.log(data);
         strTable = "";
         $('#userdata').empty();
-        $("#userdata").append('<p>Congratulations! You have paid for the following events. Thanks!</p>');
-        strTable = "<table><tr><th>Participant</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
-        data['eventData'].forEach(writeRow);
-        strTable = strTable + "</table>";
-        $("#userdata").append(strTable);
+
+        // Check if there were any denied registrations
+        if (data['denied'] && data['denied'].length > 0) {
+          // Show warning message for denied registrations
+          var deniedMsg = '<div class="alert-box warning" style="margin-bottom: 20px;">';
+          deniedMsg += '<strong>Warning:</strong> Some payment updates could not be processed. ';
+          deniedMsg += 'Please review the details below and contact a troop administrator if you need assistance.';
+          deniedMsg += '</div>';
+          $("#userdata").append(deniedMsg);
+
+          // Show denied registrations table
+          strTable = "<h4>Payment Updates Not Processed</h4>";
+          strTable += "<table><tr><th>Participant</th><th>Event</th><th>Reason</th></tr>";
+          data['denied'].forEach(writeDeniedRow);
+          strTable += "</table><br/>";
+          $("#userdata").append(strTable);
+        }
+
+        // Show successful payments if any
+        if (data['eventData'] && data['eventData'].length > 0) {
+          if (data['status'] === 'Success') {
+            $("#userdata").append('<p>Congratulations! You have paid for the following events. Thanks!</p>');
+          } else {
+            $("#userdata").append('<h4>Successful Payment Updates</h4>');
+          }
+          strTable = "<table><tr><th>Participant</th><th>Event</th><th>Start</th><th>Cost</th></tr>";
+          data['eventData'].forEach(writeRow);
+          strTable = strTable + "</table>";
+          $("#userdata").append(strTable);
+        } else if (!data['denied'] || data['denied'].length === 0) {
+          // No successful payments and no denied - show error
+          $("#userdata").append('<div class="alert-box alert" style="margin-bottom: 20px;"><strong>Error:</strong> No payment updates were processed. Please contact a troop administrator.</div>');
+        }
+
+        // If all registrations were denied (status is Error), show additional help
+        if (data['status'] === 'Error') {
+          var helpMsg = '<div class="panel" style="margin-top: 20px;">';
+          helpMsg += '<p><strong>Need Help?</strong></p>';
+          helpMsg += '<p>If you believe this is an error, please contact the troop webmaster at ';
+          helpMsg += '<a href="mailto:t212webmaster@gmail.com">t212webmaster@gmail.com</a>.</p>';
+          helpMsg += '</div>';
+          $("#userdata").append(helpMsg);
+        }
       }
     });
   })

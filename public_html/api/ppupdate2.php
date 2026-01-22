@@ -42,6 +42,20 @@ if (empty($validated_ids)) {
 
 $ts_now = date('Y-m-d H:i:s');
 $events = null;
+$denied = array(); // Track denied registrations for user feedback
+
+// Get current user's family_id for family relationship check
+$current_user_family_id = null;
+$family_query = "SELECT family_id FROM users WHERE user_id=?";
+$family_stmt = $mysqli->prepare($family_query);
+$family_stmt->bind_param('i', $current_user_id);
+$family_stmt->execute();
+$family_result = $family_stmt->get_result();
+$family_row = $family_result->fetch_assoc();
+if ($family_row) {
+    $current_user_family_id = $family_row['family_id'];
+}
+$family_stmt->close();
 
 // Prepare update statement
 $query = "UPDATE registration SET paid=1, ts_paid=? WHERE id=?";
@@ -49,7 +63,12 @@ $statement = $mysqli->prepare($query);
 
 foreach ($validated_ids as $id) {
     // First, check if user has permission to update this registration
-    $check_query = "SELECT user_id FROM registration WHERE id=?";
+    // Also get event info for user feedback in case of denial
+    $check_query = "SELECT r.user_id, r.event_id, u.family_id, u.user_first, u.user_last, e.name AS event_name
+                    FROM registration r
+                    LEFT JOIN users u ON r.user_id = u.user_id
+                    LEFT JOIN events e ON r.event_id = e.id
+                    WHERE r.id=?";
     $check_stmt = $mysqli->prepare($check_query);
     $check_stmt->bind_param('i', $id);
     $check_stmt->execute();
@@ -60,26 +79,45 @@ foreach ($validated_ids as $id) {
     if (!$check_row) {
         log_activity(
             $mysqli,
-            'ppupdate2.php',
             'payment_update_failed',
-            json_encode(['reg_id' => $id, 'reason' => 'registration_not_found']),
-            0, // failure
+            array('reg_id' => $id, 'reason' => 'registration_not_found'),
+            false,
             "Payment update failed: registration ID $id not found",
             $current_user_id
+        );
+        $denied[] = array(
+            'reg_id' => $id,
+            'reason' => 'Registration not found'
         );
         continue; // Registration not found, skip
     }
 
-    // Allow update if user is admin OR owns this registration
-    if (!$is_admin && $check_row['user_id'] != $current_user_id) {
+    // Check authorization: admin, owns registration, or is in same family
+    $is_owner = ($check_row['user_id'] == $current_user_id);
+    $is_family_member = ($current_user_family_id && $check_row['family_id'] &&
+                         $current_user_family_id == $check_row['family_id']);
+
+    if (!$is_admin && !$is_owner && !$is_family_member) {
+        // Get user name from check_row (already retrieved in query)
+        $denied_user_name = 'Unknown';
+        if ($check_row['user_first'] || $check_row['user_last']) {
+            $denied_user_name = trim($check_row['user_first'] . ' ' . $check_row['user_last']);
+        }
+        $denied_event_name = $check_row['event_name'] ? $check_row['event_name'] : 'Unknown Event';
+
         log_activity(
             $mysqli,
-            'ppupdate2.php',
             'payment_update_denied',
-            json_encode(['reg_id' => $id, 'reg_owner' => $check_row['user_id'], 'requester' => $current_user_id]),
-            0, // failure
+            array('reg_id' => $id, 'reg_owner' => $check_row['user_id'], 'requester' => $current_user_id),
+            false,
             "Payment update denied: user $current_user_id attempted to update registration $id owned by user " . $check_row['user_id'],
             $current_user_id
+        );
+        $denied[] = array(
+            'reg_id' => $id,
+            'username' => $denied_user_name,
+            'eventname' => $denied_event_name,
+            'reason' => 'You are not authorized to update payment for this person. Please contact a troop administrator.'
         );
         continue; // User doesn't have permission to update this registration
     }
@@ -144,19 +182,34 @@ foreach ($validated_ids as $id) {
 $statement->close();
 
 // Log batch payment update
+$successful_count = $events ? count($events) : 0;
+$denied_count = count($denied);
 log_activity(
     $mysqli,
-    'ppupdate2.php',
     'batch_payment_update',
-    json_encode(['reg_ids' => $validated_ids, 'count' => count($validated_ids)]),
-    1, // success
-    "Batch payment update completed for " . count($validated_ids) . " registrations",
+    array('reg_ids' => $validated_ids, 'requested_count' => count($validated_ids), 'successful_count' => $successful_count, 'denied_count' => $denied_count),
+    true,
+    "Batch payment update completed: $successful_count of " . count($validated_ids) . " registrations processed, $denied_count denied",
     $current_user_id
 );
 
+// Determine overall status based on results
+$status = 'Success';
+if ($denied_count > 0 && $successful_count === 0) {
+    $status = 'Error';
+} else if ($denied_count > 0) {
+    $status = 'Partial';
+}
+
 $returnMsg = array(
-    'status' => 'Success',
-    'eventData' => $events
+    'status' => $status,
+    'eventData' => $events,
+    'denied' => $denied,
+    'summary' => array(
+        'requested' => count($validated_ids),
+        'successful' => $successful_count,
+        'denied' => $denied_count
+    )
 );
 echo json_encode($returnMsg);
 die;
