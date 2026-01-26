@@ -2,7 +2,10 @@
 /**
  * Get Patrol Emails API
  *
- * Returns email addresses and phone numbers for all members of a patrol plus the scoutmaster.
+ * Returns email addresses and phone numbers for:
+ * - Active scouts in the patrol
+ * - Parents/guardians of those scouts (Mom, Dad, Other - not alumni or other family members)
+ * - The scoutmaster
  * Used for "Email Patrol" and "Send Patrol Text" buttons on user profile page.
  */
 
@@ -92,7 +95,7 @@ if (!empty($family_ids)) {
     $query = "SELECT DISTINCT user_id, user_email
               FROM users
               WHERE family_id IN ($placeholders)
-              AND user_type != 'Scout'
+              AND user_type IN ('Mom', 'Dad', 'Other')
               AND user_active = 1";
 
     $stmt = $mysqli->prepare($query);

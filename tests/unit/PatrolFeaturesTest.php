@@ -520,9 +520,8 @@ if (assert_true($emails_filters_active, "getPatrolEmails.php filters active user
     $failed++;
 }
 
-$emails_filters_scout = strpos($emails_content, "user_type = 'Scout'") !== false ||
-                        strpos($emails_content, "user_type != 'Scout'") !== false;
-if (assert_true($emails_filters_scout, "getPatrolEmails.php filters by user_type")) {
+$emails_filters_scout = strpos($emails_content, "user_type = 'Scout'") !== false;
+if (assert_true($emails_filters_scout, "getPatrolEmails.php filters scouts by user_type = 'Scout'")) {
     $passed++;
 } else {
     $failed++;
@@ -537,6 +536,30 @@ if (assert_true($members_filters_active, "GetPatrolMembersForUser.php filters ac
 
 $members_filters_scout = strpos($members_content, "user_type = 'Scout'") !== false;
 if (assert_true($members_filters_scout, "GetPatrolMembersForUser.php filters Scout type")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// =============================================================================
+// Test 26: Regression - getPatrolEmails.php only includes parents (not alumni)
+// Bug fix: Previously used "user_type != 'Scout'" which included alumni and
+// other family members. Should only include parents/guardians (Mom, Dad, Other)
+// for family email/phone collection.
+// =============================================================================
+echo "\n--- Test 26: Regression - Only Parents Included (Not Alumni) ---\n";
+
+// Must use user_type IN ('Mom', 'Dad', 'Other') to filter family members
+$uses_parent_filter = strpos($emails_content, "user_type IN ('Mom', 'Dad', 'Other')") !== false;
+if (assert_true($uses_parent_filter, "getPatrolEmails.php uses user_type IN ('Mom', 'Dad', 'Other') for family filter")) {
+    $passed++;
+} else {
+    $failed++;
+}
+
+// Must NOT use user_type != 'Scout' as that would include alumni
+$uses_bad_filter = strpos($emails_content, "user_type != 'Scout'") !== false;
+if (assert_false($uses_bad_filter, "getPatrolEmails.php does NOT use user_type != 'Scout' (would include alumni)")) {
     $passed++;
 } else {
     $failed++;
