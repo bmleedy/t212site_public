@@ -45,6 +45,17 @@ error_log("POST data received: " . print_r($_POST, true));
 
 $user_type = $_POST['user_type'];
 
+// Validate user_type is one of the allowed values
+$allowed_user_types = array('Scout', 'Alumni', 'Dad', 'Mom', 'Other', 'Delete');
+if (!in_array($user_type, $allowed_user_types)) {
+  echo json_encode(array(
+    'status' => 'validation',
+    'message' => 'Invalid user type selected',
+    'field' => 'user_type'
+  ));
+  die;
+}
+
 $first = $_POST['first'];
 $last = $_POST['last'];
 $email = $_POST['email'];
@@ -233,13 +244,13 @@ if ($user_type != "Scout" && array_key_exists("family_id", $_POST) && array_key_
   error_log("Address update SKIPPED - condition not met");
 }
 
-$query = "UPDATE users SET user_first=?, user_last=?, user_email=?, notif_preferences=? WHERE user_id=?";
+$query = "UPDATE users SET user_first=?, user_last=?, user_email=?, user_type=?, notif_preferences=? WHERE user_id=?";
 $statement = $mysqli->prepare($query);
 if ($statement === false) {
   echo json_encode($mysqli->error);
   die;
 }
-$rs = $statement->bind_param('ssssi', $first, $last, $email, $notif_prefs_json, $id);
+$rs = $statement->bind_param('sssssi', $first, $last, $email, $user_type, $notif_prefs_json, $id);
 if($rs == false) {
     echo json_encode($statement->error);
     die;
@@ -257,7 +268,7 @@ if($statement->execute()){
     array(
       'user_id' => $id,
       'user_type' => $user_type,
-      'fields_updated' => array('first', 'last', 'email', 'notif_prefs')
+      'fields_updated' => array('first', 'last', 'email', 'user_type', 'notif_prefs')
     ),
     true,
     "User profile updated for user ID: $id",

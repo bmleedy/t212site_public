@@ -354,8 +354,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateUserContents, "bind_param('ssssi'") !== false,
-    "updateuser.php uses prepared statement with 4 strings and 1 integer for user update"
+    strpos($updateUserContents, "bind_param('sssssi'") !== false,
+    "updateuser.php uses prepared statement with 5 strings and 1 integer for user update (includes user_type)"
 )) {
     $passed++;
 } else {
