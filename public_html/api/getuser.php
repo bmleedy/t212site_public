@@ -55,9 +55,9 @@ $notif_preferences = $row->notif_preferences;
 $stmt->close();
 
 if ($edit && $wm) {
-  $varFirst = '<input type="text" id="user_first" required value="'. escape_html($user_first) . '"/>';
-  $varLast = '<input type="text" id="user_last" required value="'. escape_html($user_last) . '"/>';
-  $varEmail = '<input type="text" id="user_email" required value="'. escape_html($user_email) . '"/>';
+  $varFirst = '<input type="text" id="user_first" name="user_first_' . $id . '" autocomplete="off" required value="'. escape_html($user_first) . '"/>';
+  $varLast = '<input type="text" id="user_last" name="user_last_' . $id . '" autocomplete="off" required value="'. escape_html($user_last) . '"/>';
+  $varEmail = '<input type="text" id="user_email" name="user_email_' . $id . '" autocomplete="off" required value="'. escape_html($user_email) . '"/>';
 
   $isScout='';
   $isAlumni='';

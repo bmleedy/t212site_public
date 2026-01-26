@@ -21,6 +21,17 @@
   // Submits the currently-filled-out document forms
   //  which are pulled from the named fields below.
   function submitDoc() {
+    // Validate that required form fields exist before submitting
+    var userFirstEl = $('#user_first');
+    var userLastEl = $('#user_last');
+    var userEmailEl = $('#user_email');
+
+    if (userFirstEl.length === 0 || userLastEl.length === 0 || userEmailEl.length === 0) {
+      console.error("Required form fields not found. Form not loaded correctly.");
+      alert("Error: Form fields not loaded. Please refresh the page and try again.");
+      return;
+    }
+
     var mb_list = [];
     var family_id = $('#family_id').val();
     var inputElements = document.getElementsByClassName('mbCheckbox');
@@ -41,12 +52,15 @@
 
     // Debug: Log what we're sending
     console.log("Notification preferences being sent:", notif_prefs);
+    console.log("First name being sent:", userFirstEl.val());
+    console.log("Last name being sent:", userLastEl.val());
+    console.log("Email being sent:", userEmailEl.val());
 
     var fieldData = {
       "user_type": $('#user_type').val(),
-      "first": $('#user_first').val(),
-      "last": $('#user_last').val(),
-      "email": $('#user_email').val(),
+      "first": userFirstEl.val(),
+      "last": userLastEl.val(),
+      "email": userEmailEl.val(),
       "rank": $('#rank').val(),
       "patrol": $('#patrol').val(),
       "position": $('#position').val(),
