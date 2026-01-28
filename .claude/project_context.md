@@ -1,7 +1,7 @@
 # T212 Site Context
 
 ## Project
-- **Stack:** PHP, MySQL, jQuery, Foundation CSS
+- **Stack:** PHP 8.3, MySQL, jQuery, Foundation CSS
 - **Purpose:** Scout troop event/payment/user management
 - **Root:** `/Users/bmleedy/t212site_public/`
 - **Webmaster:** t212webmaster@gmail.com

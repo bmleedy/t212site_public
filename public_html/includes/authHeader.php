@@ -50,8 +50,8 @@ if ( !array_key_exists("user_id", $_SESSION) ||
 // Include impersonation helper and check impersonation status
 require_once(__ROOT__ . '/includes/impersonation_helper.php');
 $isImpersonating = is_impersonating();
-$impersonatedUserFirst = $isImpersonating ? $_SESSION['user_first'] : null;
-$impersonatedUserName = $isImpersonating ? $_SESSION['user_name'] : null;
+$impersonatedUserFirst = $isImpersonating ? ($_SESSION['user_first'] ?? '') : null;
+$impersonatedUserName = $isImpersonating ? ($_SESSION['user_name'] ?? '') : null;
 
 // Forces scouts to complete their profile if their profile is not entirely complete already
 $checkinfo = __ROOT__ .'/api/checkinfo.php' ;

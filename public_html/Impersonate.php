@@ -6,6 +6,11 @@
  * Allows selecting a user to impersonate for testing/debugging.
  */
 
+// Temporary error display for debugging - remove after fixing
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Session handling is done in authHeader.php with secure settings
 require "includes/authHeader.php";
 ?>
