@@ -314,7 +314,30 @@
       },
       success: function (data) {
         $('#userData').append(data);
-        $('#profilepic').append('<br><img src="profile_pics/' + strID + '.jpeg" alt="Profile Picture" class="profilepic" onerror="this.src=\'profile_pics/goat.jpeg\'" width=200 height=200>');
+        var img = $('<img>', {
+          src: 'profile_pics/' + strID + '.jpeg',
+          alt: 'Profile Picture',
+          class: 'profilepic',
+          width: 200,
+          height: 200
+        });
+        img.data('errorCount', 0);
+        img.on('error', function() {
+          var errorCount = $(this).data('errorCount') + 1;
+          $(this).data('errorCount', errorCount);
+
+          if (errorCount === 1) {
+            // First failure: try fallback goat image
+            this.src = 'profile_pics/goat.jpeg';
+          } else if (errorCount >= 4) {
+            // 4 attempts reached, stop trying and hide
+            $(this).off('error');
+            $(this).hide();
+            console.log('Profile image: max retries (4) reached, hiding image');
+          }
+          // Errors 2-3: let it retry naturally (browser may cache/retry)
+        });
+        $('#profilepic').append('<br>').append(img);
       }
     });
     $.ajax({
