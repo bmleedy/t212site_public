@@ -18,28 +18,35 @@ $test = array();
 require_user_access($id, $current_user_id);
 
 // Get family_id
-$family_id = "";
+$family_id = 0;
 $query = "SELECT family_id FROM users WHERE user_id=?";
 $stmt = $mysqli->prepare($query);
 $stmt->bind_param('i', $id);
 $stmt->execute();
 $results = $stmt->get_result();
 if ($row = $results->fetch_assoc()) {
-  $family_id = $row["family_id"];
+  $family_id = $row["family_id"] ? $row["family_id"] : 0;
 }
 $stmt->close();
 
-// Get all family members
+// Get all family members (scouts and adults in the same family)
 $uids = array();
-$query = "SELECT user_id FROM users WHERE family_id=?";
-$stmt = $mysqli->prepare($query);
-$stmt->bind_param('s', $family_id);
-$stmt->execute();
-$results = $stmt->get_result();
-while ($row = $results->fetch_assoc()) {
-  $uids[] = $row['user_id'];
+if ($family_id) {
+  $query = "SELECT user_id FROM users WHERE family_id=?";
+  $stmt = $mysqli->prepare($query);
+  $stmt->bind_param('i', $family_id);
+  $stmt->execute();
+  $results = $stmt->get_result();
+  while ($row = $results->fetch_assoc()) {
+    $uids[] = $row['user_id'];
+  }
+  $stmt->close();
 }
-$stmt->close();
+
+// Make sure the current user is included
+if (!in_array($id, $uids)) {
+  $uids[] = $id;
+}
 
 for ($x = 0; $x < count($uids); $x++) {
   $user_id = $uids[$x];

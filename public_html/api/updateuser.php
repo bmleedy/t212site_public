@@ -82,39 +82,8 @@ if ($wm) {
 if ($user_type == "Scout") {
   writeScoutData($id, $rank, $patrol, $position, $mysqli);
 } else {
-  if ( array_key_exists("scout_1", $_POST)) {
-    $scout_1 = $_POST['scout_1'];
-  } else {
-    $scout_1 = NULL;
-  }
-  if ( array_key_exists("scout_2", $_POST)) {
-    $scout_2 = $_POST['scout_2'];
-  } else {
-    $scout_2 = NULL;
-  }
-  if ( array_key_exists("scout_3", $_POST)) {
-    $scout_3 = $_POST['scout_3'];
-  } else {
-    $scout_3 = NULL;
-  }
-  if ( array_key_exists("scout_4", $_POST)) {
-    $scout_4 = $_POST['scout_4'];
-  } else {
-    $scout_4 = NULL;
-  }
   $mb_list = $_POST['mb_list'];
-  $scoutList = array();
-  if ($scout_1 <> "0" && !is_null($scout_1)) { array_push( $scoutList, $scout_1 ); }
-  if ($scout_2 <> "0" && !is_null($scout_2)) { array_push( $scoutList, $scout_2 ); }
-  if ($scout_3 <> "0" && !is_null($scout_3)) { array_push( $scoutList, $scout_3 ); }
-  if ($scout_4 <> "0" && !is_null($scout_4)) { array_push( $scoutList, $scout_4 ); }
-  validateUnique($scoutList);
-  checkRelationshipsForDeletes($scoutList, $id, $mysqli);
   writeMeritBadgeData($id, $mb_list, $mysqli);
-  if (!is_null($scout_1)) { writeRelationshipData($scout_1, $user_type, $id, $mysqli); }
-  if (!is_null($scout_2)) { writeRelationshipData($scout_2, $user_type, $id, $mysqli); }
-  if (!is_null($scout_3)) { writeRelationshipData($scout_3, $user_type, $id, $mysqli); }
-  if (!is_null($scout_4)) { writeRelationshipData($scout_4, $user_type, $id, $mysqli); }
 }
 if (!$wm) {
   $returnMsg = array(
@@ -254,22 +223,6 @@ if($statement->execute()){
 }
 $statement->close();
 
-function validateUnique( $arrayList ) {
-  if (array_unique($arrayList) == $arrayList || count($arrayList)==0) {
-
-  } else {
-    $returnMsg = array(
-      'status' => 'validation',
-      'message' => 'Please do not choose the same scout twice!',
-      'varDiff' => $test,
-      'field' => 'scout_l'
-    );
-    echo json_encode($returnMsg);
-    die;
-  }
-
-
-}
 
 function validateField( $strValue, $strLabel, $strFieldName) {
   if ($strValue=="") {
@@ -350,58 +303,6 @@ function writeMeritBadgeData($user_id, $mb_list, $mysqli) {
       $statement->bind_param('ss', $val, $user_id);
       $statement->execute();
     }
-  }
-}
-
-function checkRelationshipsForDeletes($scoutList, $id, $mysqli){
-  $query = "SELECT scout_id FROM relationships WHERE adult_id=".$id;
-  $results = $mysqli->query($query);
-  while ($row = $results->fetch_assoc()) {
-    $scoutID = $row['scout_id'];
-    if (!in_array($scoutID, $scoutList)) {
-      $query2 = "DELETE FROM relationships WHERE adult_id=? AND scout_id=?" ;
-      $statement = $mysqli->prepare($query2);
-      $statement->bind_param('ss', $id, $scoutID);
-      $statement->execute();
-      $statement->close();
-    }
-  }
-}
-
-function writeRelationshipData($scout_id, $type, $adult_id, $mysqli) {
-  if ($scout_id == "0") {
-    return;
-  }
-  $query = "SELECT type FROM relationships WHERE adult_id='" . $adult_id . "' AND scout_id='" . $scout_id . "'" ;
-  $results = $mysqli->query($query);
-  $row = $results->fetch_assoc();
-
-  if ($row) {
-    if ($row['type'] <> $type) {
-      // Update
-      $query = "UPDATE relationships SET type=? WHERE adult_id=? AND scout_id=?";
-      $statement = $mysqli->prepare($query);
-      $statement->bind_param('sss', $type, $scout_id, $adult_id);
-      if ($statement->execute()){
-        //success
-      }else{
-        echo json_encode( 'Update Relationship Error : ('. $mysqli->errno .') '. $mysqli->error);
-        die;
-      }
-      $statement->close();
-    }
-  } else {
-    // Add
-    $query = "INSERT INTO relationships (scout_id, adult_id, type) VALUES(?, ?, ?)";
-    $statement = $mysqli->prepare($query);
-    $statement->bind_param('sss', $scout_id, $adult_id, $type);
-    if ($statement->execute()){
-      //success
-    }else{
-      echo json_encode( 'Add Relationship Error : ('. $mysqli->errno .') '. $mysqli->error);
-      die;
-    }
-    $statement->close();
   }
 }
 

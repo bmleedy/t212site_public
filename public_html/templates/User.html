@@ -59,10 +59,6 @@
       "phone_id_1": $('#phone_id_1').val(),
       "phone_id_2": $('#phone_id_2').val(),
       "phone_id_3": $('#phone_id_3').val(),
-      "scout_1": $('#scout_1').val(),
-      "scout_2": $('#scout_2').val(),
-      "scout_3": $('#scout_3').val(),
-      "scout_4": $('#scout_4').val(),
       "address1": $('#address1').val(),
       "address2": $('#address2').val(),
       "city": $('#city').val(),
@@ -171,11 +167,6 @@
         $("#divEvents" + strTypeID).show();
       }
     })
-  }
-
-  function selectScout(element, index, array) {
-    var fldIndex = index + 1;
-    $('#scout_' + fldIndex).val(element);
   }
 
   function setButtons(varEdit, showEdit, user_type, webMaster) {
@@ -355,12 +346,6 @@
         if (user_type != "Scout") {
           $('#mb_panel').append(data['mbData']);
           toggleDiv("divMB");
-          //i=1;
-          if (varEdit) {
-            if (data['scouts']) {
-              data['scouts'].forEach(selectScout);
-            }
-          }
         }
       }
     });

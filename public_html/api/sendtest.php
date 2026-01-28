@@ -49,11 +49,21 @@ if (is_array($sendTo)) {
   }
 } else {
   if ($sendTo == "scout parents") {
+    // Get scout's family_id first
+    $stmt_fam = $mysqli->prepare("SELECT family_id FROM users WHERE user_id=?");
+    $stmt_fam->bind_param('i', $user_id);
+    $stmt_fam->execute();
+    $result_fam = $stmt_fam->get_result();
+    $scout_family = $result_fam->fetch_assoc();
+    $scout_family_id = $scout_family ? $scout_family['family_id'] : 0;
+    $stmt_fam->close();
+
+    // Get parent emails via family_id
     $query = "SELECT user_email
-              FROM relationships AS r, users AS u
-              WHERE r.adult_id=u.user_id AND r.scout_id=?";
+              FROM users
+              WHERE user_type != 'Scout' AND family_id=?";
     $stmt = $mysqli->prepare($query);
-    $stmt->bind_param('i', $user_id);
+    $stmt->bind_param('i', $scout_family_id);
     $stmt->execute();
     $results = $stmt->get_result();
 
