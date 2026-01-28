@@ -2,10 +2,10 @@
 <?php session_set_cookie_params(0, '/', '.t212.org');
 session_start();
 require_once "includes/authHeader.php";
-$id = $_GET["id"];
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 ?>
-<input type="hidden" id="id" value="<?php echo $id; ?>">
-<input type="hidden" id="user_id" value="<?php echo $userID; ?>">
+<input type="hidden" id="id" value="<?php echo htmlspecialchars($id, ENT_QUOTES, 'UTF-8'); ?>">
+<input type="hidden" id="user_id" value="<?php echo htmlspecialchars($userID, ENT_QUOTES, 'UTF-8'); ?>">
 <br>
 <div class='row'>
   <?php 

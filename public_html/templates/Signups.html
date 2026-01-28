@@ -9,6 +9,17 @@ var event_id;
 var strTable;
 var outing_name;
 
+// HTML escape function to prevent XSS
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function toggleDiv(divName) {
   $('#'+divName).toggle();
 }
@@ -103,27 +114,27 @@ function writeRow(element, index, array) {
   if (element["attending"] != '0') {
     if (patrolName == "Adults") {
       status = "Attending!";
-      action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+      action = "<a class='register-action round tiny button' data-action='cancel' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Remove Registration</a>";
     } else if (element["approved"] != '0') {
       if (cost != 0) {
         if (element["paid"] == "0") {
           status = "Need Payment";
-          action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+          action = "<a class='register-action round tiny button' data-action='cancel' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Remove Registration</a>";
         } else {
           status = "Completed!";
-          action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
-        } 
+          action = "<a class='register-action round tiny button' data-action='cancel' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Remove Registration</a>";
+        }
       } else {
         status = "Completed!";
-        action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
-      }  
+        action = "<a class='register-action round tiny button' data-action='cancel' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Remove Registration</a>";
+      }
     } else {
       status = "Need Approval";
-      action = "<a onclick=register('cancel','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Remove Registration</a>";
+      action = "<a class='register-action round tiny button' data-action='cancel' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Remove Registration</a>";
     }
   } else {
     status = "Not Attending";
-    action = "<a onclick=register('add','" + userID + "','" + user_type +     "','" + first + "') class='round tiny button'>Sign Up!</a>";
+    action = "<a class='register-action round tiny button' data-action='add' data-user-id='" + escapeHtml(userID) + "' data-user-type='" + escapeHtml(user_type) + "' data-first='" + escapeHtml(first) + "'>Sign Up!</a>";
   } 
   if (patrolName=="Adults") {
     seat_belts = element["seat_belts"];
@@ -155,6 +166,18 @@ function writeCell(strData, strWidth, strLink) {
 
 $(document).ready(function(){
     event_id = document.getElementById('id').value;
+
+  // Event delegation for register actions
+  $(document).on('click', '.register-action', function(e) {
+    e.preventDefault();
+    var $el = $(this);
+    var action = $el.data('action');
+    var userId = $el.data('user-id');
+    var userType = $el.data('user-type');
+    var first = $el.data('first');
+    register(action, userId, userType, first);
+  });
+
   var fieldData = {
     "event_id": event_id
   };

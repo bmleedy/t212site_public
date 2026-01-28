@@ -5,6 +5,7 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_permission(['oe', 'sa']);
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -47,30 +48,24 @@ $returnData = $returnData . '<div class="row"><div class="large-12 columns"><lab
 $scouts = null;
 $adults = null;
 
-// Get scouts with prepared statement
-$query = "SELECT u.user_id, user_first, user_last, user_type, patrol_id
-          FROM users AS u, scout_info AS si
-          WHERE u.user_type='Scout' AND u.user_id = si.user_id
-          ORDER BY patrol_id, user_last, user_first";
-$results = $mysqli->query($query);
+// Get scouts with LEFT JOIN to registration table (optimized from N+1 queries)
+$query = "SELECT u.user_id, u.user_first, u.user_last, u.user_type, si.patrol_id,
+                 r.approved_by, r.attending, r.paid, r.seat_belts
+          FROM users AS u
+          INNER JOIN scout_info AS si ON u.user_id = si.user_id
+          LEFT JOIN registration AS r ON u.user_id = r.user_id AND r.event_id = ?
+          WHERE u.user_type = 'Scout'
+          ORDER BY si.patrol_id, u.user_last, u.user_first";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $event_id);
+$stmt->execute();
+$results = $stmt->get_result();
 
 while ($row = $results->fetch_object()) {
-  $id = $row->user_id;
-
-  $query2 = "SELECT approved_by, attending, paid, seat_belts
-             FROM registration
-             WHERE user_id=? AND event_id=?";
-  $stmt2 = $mysqli->prepare($query2);
-  $stmt2->bind_param('ii', $id, $event_id);
-  $stmt2->execute();
-  $results2 = $stmt2->get_result();
-  $row2 = $results2->fetch_object();
-  $stmt2->close();
-
-  $paid = isset($row2->paid) ? $row2->paid : '0';
-  $approved = isset($row2->approved_by) ? $row2->approved_by : '0';
-  $attending = isset($row2->attending) ? $row2->attending : '0';
-  $seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : '';
+  $paid = isset($row->paid) ? $row->paid : '0';
+  $approved = isset($row->approved_by) ? $row->approved_by : '0';
+  $attending = isset($row->attending) ? $row->attending : '0';
+  $seat_belts = isset($row->seat_belts) ? $row->seat_belts : '';
 
   $scouts[] = [
     'patrol' => escape_html(getLabel('patrols', $row->patrol_id, $mysqli)),
@@ -81,32 +76,26 @@ while ($row = $results->fetch_object()) {
     'paid' => $paid,
     'approved' => $approved,
     'seat_belts' => escape_html($seat_belts),
-    'id' => $id
+    'id' => $row->user_id
   ];
 }
+$stmt->close();
 
-// Get adults
-$query = "SELECT user_id, user_first, user_last, user_type
-          FROM users
-          WHERE user_type not in ('Scout','Alumni','Alum-D','Alum-M','Alum-O','Delete')
-          ORDER BY user_last, user_first";
-$results = $mysqli->query($query);
+// Get adults with LEFT JOIN to registration table (optimized from N+1 queries)
+$query = "SELECT u.user_id, u.user_first, u.user_last, u.user_type,
+                 r.attending, r.seat_belts
+          FROM users AS u
+          LEFT JOIN registration AS r ON u.user_id = r.user_id AND r.event_id = ?
+          WHERE u.user_type NOT IN ('Scout','Alumni','Alum-D','Alum-M','Alum-O','Delete')
+          ORDER BY u.user_last, u.user_first";
+$stmt = $mysqli->prepare($query);
+$stmt->bind_param('i', $event_id);
+$stmt->execute();
+$results = $stmt->get_result();
 
 while ($row = $results->fetch_object()) {
-  $id = $row->user_id;
-
-  $query2 = "SELECT attending, seat_belts
-             FROM registration
-             WHERE user_id=? AND event_id=?";
-  $stmt2 = $mysqli->prepare($query2);
-  $stmt2->bind_param('ii', $id, $event_id);
-  $stmt2->execute();
-  $results2 = $stmt2->get_result();
-  $row2 = $results2->fetch_object();
-  $stmt2->close();
-
-  $attending = isset($row2->attending) ? $row2->attending : '0';
-  $seat_belts = isset($row2->seat_belts) ? $row2->seat_belts : 'N/A';
+  $attending = isset($row->attending) ? $row->attending : '0';
+  $seat_belts = isset($row->seat_belts) ? $row->seat_belts : 'N/A';
 
   $adults[] = [
     'patrol' => "Adults",
@@ -117,9 +106,10 @@ while ($row = $results->fetch_object()) {
     'paid' => '0',
     'approved' => '0',
     'seat_belts' => escape_html($seat_belts),
-    'id' => $id
+    'id' => $row->user_id
   ];
 }
+$stmt->close();
 
 $returnMsg = array(
   'outing_name' => escape_html($name),

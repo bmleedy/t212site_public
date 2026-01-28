@@ -5,9 +5,11 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_permission(['er', 'sa']);
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 $event_id = validate_int_post('event_id');
 
@@ -140,6 +142,16 @@ $returnMsg = array(
   'attendingScouts' => $attendingScouts,
   'attendingAdults' => $attendingAdults,
   'data' => $returnData
+);
+
+// Log roster view
+log_activity(
+    $mysqli,
+    'view_event_roster',
+    array('event_id' => $event_id),
+    true,
+    "Viewed event roster for event {$event_id}",
+    $current_user_id
 );
 
 echo json_encode($returnMsg);

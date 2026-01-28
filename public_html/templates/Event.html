@@ -22,6 +22,14 @@ var nbrAdults=0;
 var nbrSeatBelts=0;
 var strPrompt;
 
+// Helper function to escape HTML entities for safe insertion
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 function toggleDiv(divName) {
   $('#'+divName).toggle();
 }
@@ -121,6 +129,27 @@ function register(strAction,strPayID) {
 
 
 function submitDoc() {
+  // Client-side date validation
+  var startdate = $('#startdate').val();
+  var enddate = $('#enddate').val();
+
+  if (startdate && enddate) {
+    var startTs = new Date(startdate).getTime();
+    var endTs = new Date(enddate).getTime();
+
+    if (isNaN(startTs) || isNaN(endTs)) {
+      alert('Please enter valid dates');
+      $('#startdate').focus();
+      return;
+    }
+
+    if (startTs > endTs) {
+      alert('Start date must be before end date');
+      $('#startdate').focus();
+      return;
+    }
+  }
+
   if ($('#reg_open').is(':checked')){
     reg_open = "1";
   } else {
@@ -175,30 +204,46 @@ function approve(regID) {
 function setButtons(varEdit, showEdit, registered) {
   buttonData = '<div class = "row"><div class="large-12 columns">';
   if (showPR=="1") {
-    buttonData = buttonData + '<a onclick="printRoster()" class="round tiny button">Print Roster</a>&nbsp;';
+    buttonData = buttonData + '<a class="round tiny button" data-action="printRoster">Print Roster</a>&nbsp;';
   }
   if ((varEdit=="1") || (event_id=="New")) {
-    buttonData = buttonData + '<a onclick="submitDoc()" class="round tiny button right">Submit</a><div class="clearfix"></div>';
+    buttonData = buttonData + '<a class="round tiny button right" data-action="submitDoc">Submit</a><div class="clearfix"></div>';
   } else {
     if (registered=="Yes"){
-      buttonData = buttonData + "<a onclick=register('cancel') class='round tiny button'>Plans Changed - I can't go</a>&nbsp;";
+      buttonData = buttonData + "<a class='round tiny button' data-action='register' data-register-action='cancel'>Plans Changed - I can't go</a>&nbsp;";
   if (user_type != "Scout") {
-    buttonData = buttonData + "<a onclick=register('seatbelts') class='round tiny button'>Change # of Seat Belts</a>" ;
+    buttonData = buttonData + "<a class='round tiny button' data-action='register' data-register-action='seatbelts'>Change # of Seat Belts</a>" ;
   }
     } else if (registered=="Cancelled"){
-      buttonData = buttonData + "<a onclick=register('restore') class='round tiny button'>Plans Changed - I can go again!</a>" ;
+      buttonData = buttonData + "<a class='round tiny button' data-action='register' data-register-action='restore'>Plans Changed - I can go again!</a>" ;
     } else {
       if (reg_open==1 || user_type!="Scout") {
-        buttonData = buttonData + "<a onclick=register('add') class='round tiny button'>Sign Me Up!</a>" ;
+        buttonData = buttonData + "<a class='round tiny button' data-action='register' data-register-action='add'>Sign Me Up!</a>" ;
       }
     }
     if (showEdit=="1") {
-      buttonData = buttonData + '&nbsp;<a onclick="editDoc()" class="round tiny button">Edit</a>';
+      buttonData = buttonData + '&nbsp;<a class="round tiny button" data-action="editDoc">Edit</a>';
     }
   }
   buttonData = buttonData + '<div class="clearfix"></div></div></div>';
   $('#userButtons').empty();
   $('#userButtons').append(buttonData);
+
+  // Bind event handlers using jQuery delegation
+  $('#userButtons').off('click', '[data-action]').on('click', '[data-action]', function(e) {
+    e.preventDefault();
+    var action = $(this).data('action');
+    if (action === 'printRoster') {
+      printRoster();
+    } else if (action === 'submitDoc') {
+      submitDoc();
+    } else if (action === 'editDoc') {
+      editDoc();
+    } else if (action === 'register') {
+      var registerAction = $(this).data('register-action');
+      register(registerAction);
+    }
+  });
 }
 /*
 function sendReminders() {
@@ -272,7 +317,7 @@ function writeRow(element, index, array) {
   } else if (element["paid"]=="0") {
     paid = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No" ;
     if (showPayButton=="1") {
-      status = "<a onclick=pay('" + userID + "','" + first + "') class='round tiny button'>Mark Paid</a>";
+      status = "<a class='round tiny button' data-action='pay' data-user-id='" + userID + "' data-user-name='" + escapeHtml(first) + "'>Mark Paid</a>";
     }
   } else {
     paid = "Yes" ;
@@ -282,7 +327,7 @@ function writeRow(element, index, array) {
     approved = "Yes";
   } else {
     if (element["show_approved"]=="1") {
-      approved = "<a onclick=approve('"+registerID+"') class='round tiny button'>Approve</a>" ;
+      approved = "<a class='round tiny button' data-action='approve' data-register-id='" + registerID + "'>Approve</a>" ;
     } else {
       approved = "<i class='fi-flag' style='font-size:20px'></i>&nbsp;No";
     }
@@ -439,6 +484,20 @@ $(document).ready(function(){
     }
   });
 
+  // Event delegation for dynamically generated pay and approve buttons
+  $('#attendingData').on('click', '[data-action="pay"]', function(e) {
+    e.preventDefault();
+    var userId = $(this).data('user-id');
+    var userName = $(this).data('user-name');
+    pay(userId, userName);
+  });
+
+  $('#attendingData').on('click', '[data-action="approve"]', function(e) {
+    e.preventDefault();
+    var registerId = $(this).data('register-id');
+    approve(registerId);
+  });
+
 })
 
 
@@ -589,6 +648,13 @@ function loadEventSMSButtons() {
   <div id="attendingData"></div>
 </form>
 
-<button type="button" onclick="tableToCSV()">
+<button type="button" id="downloadCSVBtn">
     download CSV
 </button>
+<script>
+$(document).ready(function() {
+  $('#downloadCSVBtn').on('click', function() {
+    tableToCSV();
+  });
+});
+</script>

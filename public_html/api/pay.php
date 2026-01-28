@@ -8,6 +8,7 @@ $current_user_id = require_authentication();
 
 // Manual payment marking is restricted to treasurer and admin only
 require_permission(['trs', 'sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';

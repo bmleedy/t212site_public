@@ -298,10 +298,11 @@ echo "Test 10: End-to-end flow verification\n";
 echo str_repeat("-", 60) . "\n";
 
 // Verify the complete flow exists
+// Note: As of Jan 2026, onclick handlers converted to data-action attributes for XSS prevention
 $flow_checks = array(
     array(
-        'check' => strpos($signupsContents, 'register(\'add\'') !== false,
-        'desc' => 'Signups.html can register scouts'
+        'check' => strpos($signupsContents, 'data-action=\'add\'') !== false,
+        'desc' => 'Signups.html can register scouts (via data-action attribute)'
     ),
     array(
         'check' => strpos($signupsContents, 'sendParentsEmail') !== false,

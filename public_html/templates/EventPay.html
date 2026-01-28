@@ -16,6 +16,14 @@ var reg_ids='';
 var strTable;
 var strID;  // User ID for payment processing
 
+// Escape HTML to prevent XSS (defense-in-depth, data is also escaped server-side)
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  var div = document.createElement('div');
+  div.appendChild(document.createTextNode(String(text)));
+  return div.innerHTML;
+}
+
 // Initialize PayPal Buttons when DOM is ready
 function initPayPalButtons() {
   paypal.Buttons({
@@ -112,10 +120,11 @@ function initPayPalButtons() {
 }
 
 function writeCell(strData, strWidth, strLink) {
+  var safeData = escapeHtml(strData);
   if (strLink == null) {
-    return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+    return "<td style='width:" +strWidth+ ";'>" + safeData + "</td>" ;
   } else {
-    return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+    return "<td style='width:" +strWidth+ ";'><a href='" + escapeHtml(strLink) + "'>" + safeData + "</a></td>" ;
   }
 }
 

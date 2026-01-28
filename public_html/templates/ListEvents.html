@@ -4,24 +4,36 @@
     location.href = "Event.php?id=New";
   }
 
+  // Escape HTML to prevent XSS attacks
+  function escapeHtml(text) {
+    if (text === null || text === undefined) {
+      return '';
+    }
+    var div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
   var strTable;
   function writeCell(strData, strWidth, strLink, extraStyle) {
     var style = "width:" + strWidth + ";";
     if (extraStyle) {
       style += extraStyle;
     }
+    var escapedData = escapeHtml(strData);
     if (strLink == null) {
-      return "<td style='" + style + "'>" + strData + "</td>";
+      return "<td style='" + style + "'>" + escapedData + "</td>";
     } else {
-      return "<td style='" + style + "'><a href='" + strLink + "'>" + strData + "</a></td>";
+      return "<td style='" + style + "'><a href='" + strLink + "'>" + escapedData + "</a></td>";
     }
   }
+
   function writeRow(element, index, array) {
     strStart = element['startdate'];
-    strStart = strStart.replace(/-/g,"/");
+    strStart = strStart.replace(/-/g, "/");
     var startDate = new Date(strStart);
     strEnd = element['enddate'];
-    strEnd = strEnd.replace(/-/g,"/");
+    strEnd = strEnd.replace(/-/g, "/");
     var endDate = new Date(strEnd);
 
     var greyStyle = "";
@@ -29,12 +41,18 @@
       greyStyle = "color: #999;";
     }
 
+    // Validate ID is numeric before using in URL
+    var eventId = parseInt(element["id"], 10);
+    if (isNaN(eventId)) {
+      return; // Skip invalid entries
+    }
+
     strTable = strTable + "<tr>";
-    strTable = strTable + writeCell(element["name"] , "150px" , "Event.php?id=" + element["id"] );
+    strTable = strTable + writeCell(element["name"], "150px", "Event.php?id=" + eventId);
     strTable = strTable + writeCell(element["location"], "150px", null, greyStyle);
     strTable = strTable + writeCell(startDate.toDateString(), "150px", null, greyStyle);
     strTable = strTable + writeCell(endDate.toDateString(), "150px", null, greyStyle);
-    strTable = strTable + writeCell( "$" + element["cost"], "75px", null, greyStyle);
+    strTable = strTable + writeCell("$" + element["cost"], "75px", null, greyStyle);
     strTable = strTable + writeCell(element["registered"], "100px", null, greyStyle);
     strTable = strTable + "</tr>";
   }
@@ -58,11 +76,16 @@
       datatype: 'json',
       error: function (errorThrown) {
         console.log(errorThrown);
+        $('#userdata').html('<p style="color: red;">Error loading events. Please try again later.</p>');
       },
       success: function (data) {
         strTable = "";
         $('#userdata').empty();
-        strTable="<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th><th>Signed Up</th></tr>";
+        if (!data || data.length === 0) {
+          $('#userdata').html('<p>No events found.</p>');
+          return;
+        }
+        strTable = "<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th><th>Signed Up</th></tr>";
         data.forEach(writeRow);
         strTable = strTable + "</table>";
         $("#userdata").append(strTable);

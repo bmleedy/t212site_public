@@ -1,10 +1,8 @@
-<?php 
+<?php
 session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require "includes/authHeader.php";
-$showEdit=0;
 ?>
-<input type="hidden" id="showEdit" value="<?php echo $showEdit; ?>">
 <br>
 <div class='row'>
   <?php

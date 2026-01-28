@@ -3,64 +3,87 @@
     location.href = "Event.php?id=New";
   }
 
+  // Escape HTML to prevent XSS attacks
+  function escapeHtml(text) {
+    if (text === null || text === undefined) {
+      return '';
+    }
+    var div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+  }
+
   var strTable;
   function writeCell(strData, strWidth, strLink) {
+    var escapedData = escapeHtml(strData);
     if (strLink == null) {
-      return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
+      return "<td style='width:" + strWidth + ";'>" + escapedData + "</td>";
     } else {
-      return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
+      // Validate that link ID is numeric to prevent injection
+      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + escapedData + "</a></td>";
     }
   }
-  
+
   function writeRow(element, index, array) {
     strStart = element['startdate'];
-    strStart = strStart.replace(/-/g,"/");
+    strStart = strStart.replace(/-/g, "/");
     var startDate = new Date(strStart);
     strEnd = element['enddate'];
-    strEnd = strEnd.replace(/-/g,"/");
+    strEnd = strEnd.replace(/-/g, "/");
     var endDate = new Date(strEnd);
-    
+
+    // Validate ID is numeric before using in URL
+    var eventId = parseInt(element["id"], 10);
+    if (isNaN(eventId)) {
+      return; // Skip invalid entries
+    }
+
     strTable = strTable + "<tr>";
-    strTable = strTable + writeCell(element["name"] , "150px" , "Event.php?id=" + element["id"] );
-    strTable = strTable + writeCell(element["location"], "150px" );
-    strTable = strTable + writeCell(startDate.toDateString(), "150px" );
-    strTable = strTable + writeCell(endDate.toDateString(), "150px" );
-    strTable = strTable + writeCell( "$" + element["cost"], "75px" );
+    strTable = strTable + writeCell(element["name"], "150px", "Event.php?id=" + eventId);
+    strTable = strTable + writeCell(element["location"], "150px");
+    strTable = strTable + writeCell(startDate.toDateString(), "150px");
+    strTable = strTable + writeCell(endDate.toDateString(), "150px");
+    strTable = strTable + writeCell("$" + element["cost"], "75px");
     strTable = strTable + "</tr>";
   }
 
   function setButtons(showEdit) {
     buttonData = '';
-    if (showEdit=="1") {
+    if (showEdit == "1") {
       buttonData = '<span style="width:25%"><button type="button" onclick="createNew();" class="tiny round button">New Entry</button></span>';
     }
     buttonData = buttonData + "<span style='float:right;width:75%;text-align:right'><a href='/ListEvents.php'>View Current Events</a></span>"
     $('#userButtons').append(buttonData);
   }
 
-  $(document).ready(function(){ 
+  $(document).ready(function () {
     showEdit = document.getElementById('showEdit').value;
     $.ajax({
-      url: "api/geteventsall.php" ,
+      url: "api/geteventsall.php",
       type: "post",
       contentType: 'application/json',
       datatype: 'json',
-      error: function(errorThrown) {
+      error: function (errorThrown) {
         console.log(errorThrown);
+        $('#userdata').html('<p style="color: red;">Error loading events. Please try again later.</p>');
       },
-      success: function(data){
+      success: function (data) {
         strTable = "";
         $('#userdata').empty();
-        strTable="<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th></tr>";
+        if (!data || data.length === 0) {
+          $('#userdata').html('<p>No events found.</p>');
+          return;
+        }
+        strTable = "<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th></tr>";
         data.forEach(writeRow);
-        strTable = strTable + "</table>" ;
+        strTable = strTable + "</table>";
         $("#userdata").append(strTable);
       }
     });
     setButtons(showEdit);
   })
 </script>
-<div class="row" \>
+<div class="row">
   <div class="large-12 columns">
     <div id="userButtons"></div>
     <div id='userdata'></div>

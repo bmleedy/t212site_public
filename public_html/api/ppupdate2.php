@@ -1,4 +1,23 @@
 <?php
+/**
+ * PayPal Return Handler - Updates payment status after PayPal redirect
+ *
+ * SECURITY LIMITATION: This endpoint marks registrations as paid based on
+ * the client-side redirect from PayPal. It does NOT verify that payment
+ * actually occurred with PayPal's servers.
+ *
+ * TODO: Implement PayPal webhook/IPN verification to validate payments
+ * server-side. This would require:
+ * 1. Storing PayPal transaction/order ID with each payment
+ * 2. Setting up PayPal webhook endpoint
+ * 3. Verifying payment amount matches event costs
+ *
+ * Current mitigations:
+ * - Requires authentication (user must be logged in)
+ * - Authorization check (user can only update own/family registrations)
+ * - Activity logging for audit trail
+ * - Double-payment prevention
+ */
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
@@ -8,6 +27,9 @@ require_ajax();
 
 // Verify authentication
 $current_user_id = require_authentication();
+
+// Verify CSRF token
+require_csrf();
 
 // Check if user has admin/treasurer permission (can update any registration)
 $is_admin = has_permission('trs') || has_permission('sa') || has_permission('wm');
@@ -64,7 +86,7 @@ $statement = $mysqli->prepare($query);
 foreach ($validated_ids as $id) {
     // First, check if user has permission to update this registration
     // Also get event info for user feedback in case of denial
-    $check_query = "SELECT r.user_id, r.event_id, u.family_id, u.user_first, u.user_last, e.name AS event_name
+    $check_query = "SELECT r.user_id, r.event_id, r.paid, u.family_id, u.user_first, u.user_last, e.name AS event_name
                     FROM registration r
                     LEFT JOIN users u ON r.user_id = u.user_id
                     LEFT JOIN events e ON r.event_id = e.id
@@ -120,6 +142,31 @@ foreach ($validated_ids as $id) {
             'reason' => 'You are not authorized to update payment for this person. Please contact a troop administrator.'
         );
         continue; // User doesn't have permission to update this registration
+    }
+
+    // Check if already paid to prevent double-payment
+    if ($check_row['paid'] == 1) {
+        log_activity(
+            $mysqli,
+            'payment_already_processed',
+            array('reg_id' => $id),
+            true,
+            "Payment already processed for registration $id - skipping",
+            $current_user_id
+        );
+        // Still include in successful list since payment was already made
+        $denied_user_name = trim($check_row['user_first'] . ' ' . $check_row['user_last']);
+        $denied_event_name = $check_row['event_name'] ? $check_row['event_name'] : 'Unknown Event';
+        $events[] = [
+            'eventname' => $denied_event_name,
+            'eventid' => $check_row['event_id'],
+            'regid' => $id,
+            'startdate' => '',
+            'cost' => '',
+            'username' => $denied_user_name,
+            'note' => 'Already paid'
+        ];
+        continue; // Skip already-paid registrations
     }
 
     // Update payment status

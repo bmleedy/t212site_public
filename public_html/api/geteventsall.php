@@ -1,30 +1,41 @@
 <?php
-if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {  
-  echo "Not sure what you are after, but it ain't here.";
-  die();
-}
+/**
+ * API endpoint to retrieve all events (past and future)
+ * Requires authentication - returns events ordered by start date descending
+ */
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+// Validate request
+require_ajax();
+require_authentication();
+require_csrf();
+
 date_default_timezone_set('America/Los_Angeles');
 header('Content-Type: application/json');
-require 'connect.php';
-$query="SELECT * FROM events WHERE 1 ORDER BY startdate DESC";// ORDER BY startdate";
-$results = $mysqli->query($query);
-$events = null;
 
-while ($row = $results->fetch_object()) {
-  $events[] = [
-  'name' => $row->name,
-  'description' => $row->description,
-  'location'=> $row->location,
-  'startdate'=> $row->startdate,
-  'enddate'=> $row->enddate,
-  'cost'=> $row->cost,
-  'reg_open'=> $row->reg_open,
-  'id'=>$row->id
-  ];
+require 'connect.php';
+
+// Use prepared statement for consistency with codebase standards
+$stmt = $mysqli->prepare("SELECT id, name, description, location, startdate, enddate, cost, reg_open FROM events ORDER BY startdate DESC");
+$stmt->execute();
+$result = $stmt->get_result();
+
+$events = [];
+
+while ($row = $result->fetch_object()) {
+    $events[] = [
+        'id' => $row->id,
+        'name' => escape_html($row->name),
+        'description' => escape_html($row->description),
+        'location' => escape_html($row->location),
+        'startdate' => $row->startdate,
+        'enddate' => $row->enddate,
+        'cost' => escape_html($row->cost),
+        'reg_open' => $row->reg_open
+    ];
 }
 
+$stmt->close();
 echo json_encode($events);
-
-?> 

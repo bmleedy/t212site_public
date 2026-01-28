@@ -1,7 +1,7 @@
 <?php session_set_cookie_params(0, '/', '.t212.org');
 session_start();
 require "includes/authHeader.php"; ?>
-<input type="hidden" id="reg_ids" value="<?php echo $_GET['reg_ids']; ?>">
+<input type="hidden" id="reg_ids" value="<?php echo htmlspecialchars($_GET['reg_ids'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
 <br />
 <div class='row'>
   <?php

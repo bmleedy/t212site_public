@@ -1,53 +1,84 @@
 <script type="text/javascript">
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    if (text === null || text === undefined) {
+      return '';
+    }
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   function createNew() {
     location.href = "Event.php?id=New";
   }
 
-  var strTable;
-  function writeCell(strData, strWidth, strLink) {
-    if (strLink == null) {
-      return "<td style='width:" +strWidth+ ";'>" + strData + "</td>" ;
-    } else {
-      return "<td style='width:" +strWidth+ ";'><a href='"+strLink+"'>" + strData + "</a></td>" ;
-    }
-  }
-
   function writeRow(element, index, array) {
-  strStart = element['startdate'];
-  strStart = strStart.replace(/-/g,"/");
-  var startDate = new Date(strStart);
-  strEnd = element['enddate'];
-  strEnd = strEnd.replace(/-/g,"/");
-  var endDate = new Date(strEnd);
+    var strStart = element['startdate'];
+    strStart = strStart.replace(/-/g, "/");
+    var startDate = new Date(strStart);
+    var strEnd = element['enddate'];
+    strEnd = strEnd.replace(/-/g, "/");
+    var endDate = new Date(strEnd);
 
-  strTable = strTable + "<tr>";
-  strTable = strTable + writeCell(element["name"] , "150px" , "Signups.php?id=" + element["id"] );
-  strTable = strTable + writeCell(element["location"], "150px" );
-  strTable = strTable + writeCell(startDate.toDateString(), "150px" );
-  strTable = strTable + writeCell(endDate.toDateString(), "150px" );
-  strTable = strTable + writeCell( "$" + element["cost"], "75px" );
-  strTable = strTable + "</tr>";
+    var $row = $('<tr></tr>');
+
+    // Name cell with link - use text() for safe insertion
+    var $nameCell = $('<td></td>').css('width', '150px');
+    var $nameLink = $('<a></a>')
+      .attr('href', 'Signups.php?id=' + encodeURIComponent(element["id"]))
+      .text(element["name"]);
+    $nameCell.append($nameLink);
+    $row.append($nameCell);
+
+    // Location cell
+    $row.append($('<td></td>').css('width', '150px').text(element["location"]));
+
+    // Start date cell
+    $row.append($('<td></td>').css('width', '150px').text(startDate.toDateString()));
+
+    // End date cell
+    $row.append($('<td></td>').css('width', '150px').text(endDate.toDateString()));
+
+    // Cost cell
+    $row.append($('<td></td>').css('width', '75px').text("$" + element["cost"]));
+
+    return $row;
   }
-    
-  $(document).ready(function(){ 
-  $.ajax({
-    url: "api/getevents.php" ,
-    type: "post",
-    contentType: 'application/json',
-    datatype: 'json',
-    error: function(data) {
-      console.log(data);
-    },
-    success: function(data){
-      strTable = "";
-      $('#userdata').empty();
-      strTable="<table><tr><th>Event</th><th>Location</th><th>Start</th><th>End</th><th>Cost</th></tr>";
-      data.forEach(writeRow);
-      strTable = strTable + "</table>" ;
-      $("#userdata").append(strTable);
-  }
+
+  $(document).ready(function() {
+    $.ajax({
+      url: "api/getevents.php",
+      type: "post",
+      contentType: 'application/json',
+      datatype: 'json',
+      error: function(data) {
+        console.log(data);
+      },
+      success: function(data) {
+        // Validate API response
+        if (!data || !Array.isArray(data)) {
+          console.error('Invalid API response');
+          return;
+        }
+
+        var $table = $('<table></table>');
+        var $headerRow = $('<tr></tr>');
+        $headerRow.append($('<th></th>').text('Event'));
+        $headerRow.append($('<th></th>').text('Location'));
+        $headerRow.append($('<th></th>').text('Start'));
+        $headerRow.append($('<th></th>').text('End'));
+        $headerRow.append($('<th></th>').text('Cost'));
+        $table.append($headerRow);
+
+        data.forEach(function(element, index, array) {
+          $table.append(writeRow(element, index, array));
+        });
+
+        $('#userdata').empty().append($table);
+      }
     });
-  })
+  });
 </script>
 <div class="row"\>
   <div class="large-12 columns">

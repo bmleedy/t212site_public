@@ -2,9 +2,15 @@
 session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require( $_SERVER['DOCUMENT_ROOT'] . '/login/inc_login.php');
-$id = $_GET["id"];
-$user_id = $_SESSION['user_id'];
-$access = explode(".",$_SESSION['user_access']);
+
+// Validate input
+$id = isset($_GET["id"]) ? intval($_GET["id"]) : 0;
+if ($id <= 0) {
+  die("Invalid event ID");
+}
+
+$user_id = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 0;
+$access = isset($_SESSION['user_access']) ? explode(".", $_SESSION['user_access']) : array();
 
 // CSRF Protection
 if (!isset($_SESSION['csrf_token'])) {
@@ -46,15 +52,15 @@ $csrf_token = $_SESSION['csrf_token'];
 <body>
 
 
-<input type="hidden" id="id" value="<?php echo $id; ?>">
-<input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
+<input type="hidden" id="id" value="<?php echo htmlspecialchars($id, ENT_QUOTES, 'UTF-8'); ?>">
+<input type="hidden" id="user_id" value="<?php echo htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8'); ?>">
 <input type="hidden" id="edit" value="<?php echo $varEdit; ?>">
 <input type="hidden" id="showEdit" value="<?php echo $showEdit; ?>">
 <br>
 <div class='row'>
   <div class="large-9 columns">
     <div class="panel">
-      <?
+      <?php
       if ($login->isUserLoggedIn() == true) {
         if ((!in_array("er",$access)) && (!in_array("sa",$access))) {
           echo "You are not authorized to view this page!";

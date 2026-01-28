@@ -1,11 +1,21 @@
 <script type="text/javascript">
   var strTable;
   var reg_ids;  // Registration IDs for payment confirmation
+
+  // Escape HTML to prevent XSS (defense-in-depth, data is also escaped server-side)
+  function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(text)));
+    return div.innerHTML;
+  }
+
   function writeCell(strData, strWidth, strLink) {
+    var safeData = escapeHtml(strData);
     if (strLink == null) {
-      return "<td style='width:" + strWidth + ";'>" + strData + "</td>";
+      return "<td style='width:" + strWidth + ";'>" + safeData + "</td>";
     } else {
-      return "<td style='width:" + strWidth + ";'><a href='" + strLink + "'>" + strData + "</a></td>";
+      return "<td style='width:" + strWidth + ";'><a href='" + escapeHtml(strLink) + "'>" + safeData + "</a></td>";
     }
   }
 
@@ -24,9 +34,9 @@
 
   function writeDeniedRow(element, index, array) {
     strTable = strTable + "<tr>";
-    strTable = strTable + "<td style='width:150px;'>" + (element["username"] || "Unknown") + "</td>";
-    strTable = strTable + "<td style='width:150px;'>" + (element["eventname"] || "Unknown Event") + "</td>";
-    strTable = strTable + "<td style='width:300px;'>" + element["reason"] + "</td>";
+    strTable = strTable + "<td style='width:150px;'>" + escapeHtml(element["username"] || "Unknown") + "</td>";
+    strTable = strTable + "<td style='width:150px;'>" + escapeHtml(element["eventname"] || "Unknown Event") + "</td>";
+    strTable = strTable + "<td style='width:300px;'>" + escapeHtml(element["reason"]) + "</td>";
     strTable = strTable + "</tr>";
   }
 
