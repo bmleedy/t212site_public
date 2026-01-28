@@ -19,15 +19,26 @@ if ($id != $current_user_id) {
 $eventsPay = null;
 $eventsApprove = null;
 
-$stmt = $mysqli->prepare("SELECT scout_id FROM relationships WHERE adult_id=?");
+// Get the adult's family_id and find all scouts in the family
+$stmt = $mysqli->prepare("SELECT family_id FROM users WHERE user_id=?");
 $stmt->bind_param("i", $id);
 $stmt->execute();
 $result = $stmt->get_result();
-$uids = [];
-while ($row = $result->fetch_assoc()) {
-  $uids[] = $row['scout_id'];
-}
+$row = $result->fetch_assoc();
+$adult_family_id = $row ? $row['family_id'] : 0;
 $stmt->close();
+
+$uids = [];
+if ($adult_family_id) {
+  $stmt = $mysqli->prepare("SELECT user_id FROM users WHERE family_id=? AND user_type='Scout'");
+  $stmt->bind_param("i", $adult_family_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  while ($row = $result->fetch_assoc()) {
+    $uids[] = $row['user_id'];
+  }
+  $stmt->close();
+}
 
 $uids[] = $id;
 

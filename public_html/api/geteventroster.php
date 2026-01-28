@@ -53,13 +53,23 @@ while ($row = $results->fetch_assoc()) {
   $first = "";
   $isFirstRow = 1;
 
-  // Get adult contact info for scout
+  // Get adult contact info for scout via family_id
+  // First get the scout's family_id
+  $query_fam = "SELECT family_id FROM users WHERE user_id=?";
+  $stmt_fam = $mysqli->prepare($query_fam);
+  $stmt_fam->bind_param('i', $row['user_id']);
+  $stmt_fam->execute();
+  $result_fam = $stmt_fam->get_result();
+  $scout_family = $result_fam->fetch_assoc();
+  $stmt_fam->close();
+
   $query2 = "SELECT user_first, user_last, p.type, phone
-             FROM relationships as r, users as u, phone as p
-             WHERE r.adult_id = u.user_id AND r.adult_id = p.user_id AND r.scout_id=?
+             FROM users as u, phone as p
+             WHERE u.user_id = p.user_id AND u.user_type != 'Scout' AND u.family_id=?
              ORDER BY u.user_first";
   $stmt2 = $mysqli->prepare($query2);
-  $stmt2->bind_param('i', $row['user_id']);
+  $scout_family_id = $scout_family ? $scout_family['family_id'] : 0;
+  $stmt2->bind_param('i', $scout_family_id);
   $stmt2->execute();
   $results2 = $stmt2->get_result();
 

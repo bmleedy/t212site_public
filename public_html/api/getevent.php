@@ -184,14 +184,25 @@ $returnData = $returnData . '<div class="large-12 columns"><label>Event Descript
 if ($event_id != "New") {
   $isParentOf = [];
   if ($user_type <> "Scout") {
-    $stmt = $mysqli->prepare("SELECT scout_id FROM relationships WHERE adult_id=?");
+    // Get the adult's family_id and find all scouts in the same family
+    $stmt = $mysqli->prepare("SELECT family_id FROM users WHERE user_id=?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    while ($row = $result->fetch_assoc()) {
-      $isParentOf[]=$row['scout_id'];
-    }
+    $row = $result->fetch_assoc();
+    $adult_family_id = $row['family_id'];
     $stmt->close();
+
+    if ($adult_family_id) {
+      $stmt = $mysqli->prepare("SELECT user_id FROM users WHERE family_id=? AND user_type='Scout'");
+      $stmt->bind_param("i", $adult_family_id);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      while ($row = $result->fetch_assoc()) {
+        $isParentOf[] = $row['user_id'];
+      }
+      $stmt->close();
+    }
   }
 
   $stmt = $mysqli->prepare("SELECT reg.user_id, paid, seat_belts, user_first, user_last, patrol_id, user_email, reg.id as register_id, reg.approved_by FROM registration AS reg, users AS u, scout_info AS si WHERE reg.attending=1 AND u.user_type='Scout' AND reg.user_id = u.user_id AND reg.user_id = si.user_id AND reg.event_id=? ORDER BY patrol_id, user_last, user_first");
