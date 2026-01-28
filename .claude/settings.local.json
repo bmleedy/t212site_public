@@ -10,7 +10,8 @@
       "Bash(/Users/bmleedy/t212site_public/convert_tabs.sh:*)",
       "Bash(curl:*)",
       "Bash(done)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(node --check:*)"
     ],
     "deny": [],
     "ask": []
