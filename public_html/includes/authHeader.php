@@ -9,6 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
     'httponly' => true,
     'samesite' => 'Lax'
   ]);
+  session_start();
 }
 
 // the root of our directory is one level above this file
@@ -19,9 +20,9 @@ define("__ROOT__",dirname(__DIR__));
 $logFile = __ROOT__ . '/access_log' . date('Y-m-d') . '.txt';
 $logEntry = date('Y-m-d H:i:s') . " - IP: " . (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : "UNKNOWN") .
     " - User Agent: " . (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : "UNKNOWN") .
-    " - user_id: " . (array_key_exists("user_id", $_SESSION) ? $_SESSION['user_id'] : "NULL") .
-    " - user_type: " . (array_key_exists("user_type", $_SESSION) ? $_SESSION['user_type'] : "NULL") .
-    " - user_access: " . (array_key_exists("user_access", $_SESSION) ? $_SESSION['user_access'] : "NULL") .
+    " - user_id: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : "NULL") .
+    " - user_type: " . (isset($_SESSION['user_type']) ? $_SESSION['user_type'] : "NULL") .
+    " - user_access: " . (isset($_SESSION['user_access']) ? $_SESSION['user_access'] : "NULL") .
     " - URL: " . (isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : "UNKNOWN") .
     PHP_EOL;
 file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
