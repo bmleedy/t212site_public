@@ -231,6 +231,66 @@ Use your Test User account for these tests. Modify permissions via Permissions.p
 
 ---
 
+## SECTION 8A: User Impersonation (SA Only)
+
+This section tests the user impersonation feature for Super Admins.
+
+### 8A.1 Access Control
+- [ ] As SA: Navigate to Admin > Impersonate User
+- [ ] Verify: Page loads with user list
+- [ ] As non-SA user: Try to access Impersonate.php directly
+- [ ] Verify: "Access Denied" message appears
+
+### 8A.2 Start Impersonation
+- [ ] As SA: Go to Impersonate.php
+- [ ] Use search filter to find a test user (non-SA)
+- [ ] Click "Impersonate" button
+- [ ] Verify: Confirmation dialog appears
+- [ ] Confirm impersonation
+- [ ] Verify: Redirected to home page
+- [ ] Verify: Blue banner appears at top with impersonated user's name
+- [ ] Verify: "Exit Impersonation" link is visible in banner
+- [ ] Verify: Welcome message shows impersonated user's name
+
+### 8A.3 Verify Impersonation Behavior
+- [ ] Navigate to "My Profile"
+- [ ] Verify: You see the impersonated user's profile (not your admin profile)
+- [ ] Navigate to ListEvents.php
+- [ ] Verify: Site behaves as if logged in as that user
+- [ ] Verify: Blue banner persists on all pages
+
+### 8A.4 Activity Log During Impersonation
+- [ ] While impersonating, perform an action that logs to activity log
+  - Example: Update a setting on profile page (if available)
+- [ ] Exit impersonation (see 8A.5)
+- [ ] Navigate to Admin > Activity Log
+- [ ] Search for the action you performed
+- [ ] Verify: Activity log entry contains "impersonated_by" in values JSON
+- [ ] Verify: impersonated_by shows your admin username
+
+### 8A.5 Exit Impersonation
+- [ ] Click "Exit Impersonation" link in blue banner
+- [ ] Verify: Redirected to Impersonate.php
+- [ ] Verify: Blue banner no longer appears
+- [ ] Verify: Welcome message shows your admin name
+- [ ] Navigate to "My Profile"
+- [ ] Verify: You see your admin profile again
+
+### 8A.6 Logout During Impersonation
+- [ ] Start impersonating a user
+- [ ] Click "Logoff" in sidebar or top menu
+- [ ] Verify: Impersonation ends (NOT logged out)
+- [ ] Verify: Redirected to Impersonate.php as admin
+- [ ] Verify: Blue banner no longer appears
+
+### 8A.7 Session Expiry (Optional)
+- [ ] Start impersonating a user
+- [ ] Close the browser tab completely
+- [ ] Open a new tab and navigate to site
+- [ ] Verify: Not impersonating (session expired)
+
+---
+
 ## SECTION 9: Event Registration Flow (Non-Destructive)
 
 ### 9.1 View-Only Event Test
@@ -291,6 +351,8 @@ Resize browser or use mobile emulation.
 | 7. Admin                    |      |      |       |
 |                             |      |      |       |
 | 8. Permissions              |      |      |       |
+|                             |      |      |       |
+| 8A. Impersonation           |      |      |       |
 |                             |      |      |       |
 | 9. Event Registration       |      |      |       |
 |                             |      |      |       |

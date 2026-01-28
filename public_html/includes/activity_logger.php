@@ -32,6 +32,14 @@ function log_activity($mysqli, $action, $values = null, $success = true, $freete
         $user_id = 0;
     }
 
+    // Check if impersonating and add impersonator info to values
+    if (isset($_SESSION['is_impersonating']) && $_SESSION['is_impersonating'] === true) {
+        if (!is_array($values)) {
+            $values = array();
+        }
+        $values['impersonated_by'] = $_SESSION['original_user_name'] ?? 'unknown_admin';
+    }
+
     // If session and POST user IDs differ, add that to values_json
     if ($session_user_id && $post_user_id && $session_user_id != $post_user_id) {
         if (!is_array($values)) {

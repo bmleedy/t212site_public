@@ -434,6 +434,12 @@ class Login
      */
     public function doLogout()
     {
+        // If impersonating, end impersonation instead of logging out
+        if (isset($_SESSION['is_impersonating']) && $_SESSION['is_impersonating'] === true) {
+            header('Location: /api/stopimpersonation.php');
+            exit();
+        }
+
         $this->deleteRememberMeCookie();
 
         // destroy the session cookie, which was preventing us from properly logging out.

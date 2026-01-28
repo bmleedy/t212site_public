@@ -47,6 +47,12 @@ if ( !array_key_exists("user_id", $_SESSION) ||
   $access = explode(".",$_SESSION['user_access']);
 }
 
+// Include impersonation helper and check impersonation status
+require_once(__ROOT__ . '/includes/impersonation_helper.php');
+$isImpersonating = is_impersonating();
+$impersonatedUserFirst = $isImpersonating ? $_SESSION['user_first'] : null;
+$impersonatedUserName = $isImpersonating ? $_SESSION['user_name'] : null;
+
 // Forces scouts to complete their profile if their profile is not entirely complete already
 $checkinfo = __ROOT__ .'/api/checkinfo.php' ;
 if ($user_type=='Scout') {
@@ -107,6 +113,16 @@ function validate_csrf_token($token = null) {
 </head>
 
 <body>
+<?php if ($isImpersonating): ?>
+<div id="impersonation-banner" style="position:fixed;top:0;left:0;right:0;background:#007bff;color:white;padding:10px 20px;text-align:center;z-index:99999;font-size:14px;box-shadow:0 2px 5px rgba(0,0,0,0.2);">
+    <i class="fi-torso" style="margin-right:8px;"></i>
+    <strong>Impersonating:</strong>
+    <?php echo htmlspecialchars($impersonatedUserFirst . ' (' . $impersonatedUserName . ')'); ?>
+    <span style="margin:0 15px;">|</span>
+    <a href="/api/stopimpersonation.php" style="color:white;text-decoration:underline;font-weight:bold;">Exit Impersonation</a>
+</div>
+<div style="height:45px;"></div>
+<?php endif; ?>
 <img src="/images/BSA_color.gif">
 
 <div class = "visible-for-large-up">
