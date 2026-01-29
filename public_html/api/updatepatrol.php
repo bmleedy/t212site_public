@@ -17,6 +17,9 @@ $current_user_id = require_authentication();
 // Check if user has webmaster or super admin access
 require_permission(['wm', 'sa']);
 
+// Verify CSRF token for write operation
+require_csrf();
+
 header('Content-Type: application/json');
 require 'connect.php';
 

@@ -1,6 +1,6 @@
 <?php
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
+// Note: authHeader.php handles secure session configuration (httponly, samesite, secure flags)
+// It must be included before any session operations
 require "includes/authHeader.php";
 
 $user_id = $_SESSION['user_id'];

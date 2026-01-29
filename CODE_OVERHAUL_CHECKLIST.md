@@ -299,22 +299,43 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `Patrols.php` | `templates/Patrols.html` | `api/getpatrols.php`, `api/getallpatrols.php`, `api/createpatrol.php`, `api/updatepatrol.php`, `api/deletepatrol.php` | [ ] |
+| `Patrols.php` | `templates/Patrols.html` | `api/getpatrols.php`, `api/getallpatrols.php`, `api/createpatrol.php`, `api/updatepatrol.php`, `api/deletepatrol.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Patrol CRUD restricted to wm/sa
-- [ ] Deleting patrol handles scouts in that patrol
-- [ ] Position-permission sync for Patrol Leader
+- [x] Patrol CRUD restricted to wm/sa (verified - require_permission(['wm', 'sa']) on all CRUD APIs)
+- [x] Deleting patrol handles scouts in that patrol (verified - deletepatrol.php checks before deletion and prevents if scouts assigned)
+- [x] Position-permission sync for Patrol Leader (documented - Patrol Leaders get 'pl' permission through position_id in scout_info table; permission checks use has_permission('pl'))
 
 ### 5.2 Patrol Features
 
 | API File | Purpose | Review Status |
 |----------|---------|---------------|
-| `api/getpatrol.php` | Get single patrol | [ ] |
-| `api/getpatrolmembers.php` | Get patrol members | [ ] |
-| `api/GetPatrolMembersForUser.php` | Get patrol for a user | [ ] |
-| `api/getPatrolEmails.php` | Get patrol email list | [ ] |
-| `api/getuserpatrol.php` | Get user's patrol | [ ] |
+| `api/getpatrol.php` | Get single patrol | [x] |
+| `api/getpatrolmembers.php` | Get patrol members | [x] |
+| `api/GetPatrolMembersForUser.php` | Get patrol for a user | [x] |
+| `api/getPatrolEmails.php` | Get patrol email list | [x] |
+| `api/getuserpatrol.php` | Get user's patrol | [x] |
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **Patrols.php**: Added wm/sa permission check before displaying page content
+- [x] **Patrols.html**: Added escapeHtml() XSS prevention helper, client-side validation for patrol names
+- [x] **getpatrols.php**: Added require_authentication(), require_csrf(), proper prepared statements, filters only active scouts
+- [x] **getallpatrols.php**: Added require_permission(['wm', 'sa']) for admin-only access, require_csrf()
+- [x] **createpatrol.php**: Added require_permission(['wm', 'sa']), require_csrf(), prepared statements, patrol name format validation, duplicate name/sort checks, activity logging
+- [x] **updatepatrol.php**: Added require_permission(['wm', 'sa']), require_csrf(), prepared statements, patrol name format validation, duplicate sort check, activity logging
+- [x] **deletepatrol.php**: Added require_permission(['wm', 'sa']), require_csrf(), prepared statements, scout-in-patrol check before deletion, activity logging
+- [x] **getpatrol.php**: Added authorization check (user in patrol OR pl/er/wm/sa), require_csrf(), prepared statements, escape_html() for output, table whitelist for getLabel(), activity logging
+- [x] **getpatrolmembers.php**: Added authorization check (user in patrol OR pl/er/wm/sa), require_csrf(), prepared statements, filters active scouts only, attendance integration, activity logging
+- [x] **GetPatrolMembersForUser.php**: Added authorization check (own data, same patrol, OR pl/er/wm/sa), require_csrf(), prepared statements, filters active scouts only, NoPatrol handling, activity logging
+- [x] **getPatrolEmails.php**: Added authorization check (own data, same patrol, OR pl/er/wm/sa), require_csrf(), prepared statements, filters parents only (not alumni), phone sanitization, activity logging
+- [x] **getuserpatrol.php**: Added authorization check (own data OR wm/sa), require_csrf(), prepared statements, escape_html() for output, activity logging
+
+**Authorization Model:**
+- **Read patrols list (getpatrols.php)**: Any authenticated user (patrol names not sensitive)
+- **Manage patrols (getallpatrols, create, update, delete)**: wm/sa only
+- **View patrol details with contact info (getpatrol.php, getpatrolmembers.php)**: User in patrol OR pl/er/wm/sa
+- **View patrol members for user profile (GetPatrolMembersForUser.php, getPatrolEmails.php)**: Own data, same patrol, OR pl/er/wm/sa
+- **Get user's patrol ID (getuserpatrol.php)**: Own data OR wm/sa
 
 ---
 
@@ -661,4 +682,4 @@
 ---
 
 *Document Created: January 2026*
-*Last Updated: January 19, 2026*
+*Last Updated: January 29, 2026*

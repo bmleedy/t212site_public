@@ -1,13 +1,28 @@
 <?php
+/**
+ * Get Patrols API
+ *
+ * Returns a list of patrols that have active scouts.
+ * Used for patrol selection dropdowns.
+ *
+ * Authorization: Any authenticated user can access this list.
+ * This is intentionally open because patrol names are not sensitive
+ * and are needed for various UI components.
+ */
+
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Verify AJAX request
 require_ajax();
 
 // Verify authentication
 $current_user_id = require_authentication();
+
+// Validate CSRF token
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';

@@ -1,13 +1,26 @@
 <?php
+/**
+ * Get Patrol Members API
+ *
+ * Returns all scouts in a patrol with their attendance status for a given date.
+ * Used for attendance tracking on the patrol page.
+ *
+ * Authorization: User must be in the patrol OR have pl/er/wm/sa permission.
+ */
+
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Verify AJAX request
 require_ajax();
 
 // Verify authentication
 $current_user_id = require_authentication();
+
+// Validate CSRF token
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -18,6 +31,45 @@ $date = validate_date_post('date', false);
 if (!$patrol_id || $patrol_id === 0) {
     // No patrol selected or "None" selected
     echo json_encode(['status' => 'Success', 'members' => []]);
+    die();
+}
+
+// Authorization check: User can access patrol data if:
+// 1. They are in the requested patrol
+// 2. They have elevated permissions (pl, er, wm, sa)
+$authorized = false;
+
+// Check if user has elevated permissions
+if (has_permission('pl') || has_permission('er') || has_permission('wm') || has_permission('sa')) {
+    $authorized = true;
+}
+
+// Check if user is in this patrol
+if (!$authorized) {
+    $checkPatrolQuery = "SELECT patrol_id FROM scout_info WHERE user_id = ?";
+    $checkStmt = $mysqli->prepare($checkPatrolQuery);
+    $checkStmt->bind_param('i', $current_user_id);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $patrolCheck = $checkResult->fetch_assoc();
+    $checkStmt->close();
+
+    if ($patrolCheck && $patrolCheck['patrol_id'] == $patrol_id) {
+        $authorized = true;
+    }
+}
+
+if (!$authorized) {
+    http_response_code(403);
+    echo json_encode(['status' => 'Error', 'message' => 'Not authorized to view this patrol\'s data']);
+    log_activity(
+        $mysqli,
+        'get_patrol_members',
+        array('patrol_id' => $patrol_id),
+        false,
+        "Unauthorized attempt to access patrol members for patrol ID: $patrol_id",
+        $current_user_id
+    );
     die();
 }
 
@@ -81,5 +133,16 @@ $returnMsg = array(
 );
 
 echo json_encode($returnMsg);
+
+// Log access to patrol member data with attendance info
+log_activity(
+    $mysqli,
+    'get_patrol_members',
+    array('patrol_id' => $patrol_id, 'date' => $date, 'member_count' => count($members)),
+    true,
+    "Retrieved patrol members for patrol ID: $patrol_id (date: $date)",
+    $current_user_id
+);
+
 die();
 ?>

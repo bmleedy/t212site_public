@@ -12,12 +12,16 @@ ini_set('display_errors', '0');
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Verify AJAX request
 require_ajax();
 
 // Verify authentication
 $current_user_id = require_authentication();
+
+// Validate CSRF token
+require_csrf();
 
 header('Content-Type: application/json');
 
@@ -28,6 +32,54 @@ $user_id = validate_int_post('user_id');
 
 if (!$user_id) {
     echo json_encode(['status' => 'Error', 'message' => 'User ID required']);
+    exit;
+}
+
+// Authorization check: User can access patrol data if:
+// 1. They are requesting their own data
+// 2. They are in the same patrol as the requested user
+// 3. They have elevated permissions (pl, er, wm, sa)
+$authorized = false;
+
+// Check if user is accessing their own data
+if ($user_id == $current_user_id) {
+    $authorized = true;
+}
+
+// Check if user has elevated permissions
+if (!$authorized && (has_permission('pl') || has_permission('er') || has_permission('wm') || has_permission('sa'))) {
+    $authorized = true;
+}
+
+// Check if users are in the same patrol
+if (!$authorized) {
+    $checkPatrolQuery = "SELECT si1.patrol_id as current_patrol, si2.patrol_id as requested_patrol
+                         FROM scout_info si1, scout_info si2
+                         WHERE si1.user_id = ? AND si2.user_id = ?";
+    $checkStmt = $mysqli->prepare($checkPatrolQuery);
+    $checkStmt->bind_param('ii', $current_user_id, $user_id);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    $patrolCheck = $checkResult->fetch_assoc();
+    $checkStmt->close();
+
+    if ($patrolCheck && $patrolCheck['current_patrol'] &&
+        $patrolCheck['current_patrol'] == $patrolCheck['requested_patrol']) {
+        $authorized = true;
+    }
+}
+
+if (!$authorized) {
+    http_response_code(403);
+    echo json_encode(['status' => 'Error', 'message' => 'Not authorized to view this patrol\'s data']);
+    log_activity(
+        $mysqli,
+        'get_patrol_members',
+        array('requested_user_id' => $user_id),
+        false,
+        "Unauthorized attempt to access patrol members for user ID: $user_id",
+        $current_user_id
+    );
     exit;
 }
 
@@ -88,3 +140,12 @@ echo json_encode([
     'patrol_name' => $patrol_name,
     'members' => $members
 ]);
+
+log_activity(
+    $mysqli,
+    'get_patrol_members',
+    array('requested_user_id' => $user_id, 'patrol_id' => $patrol_id, 'member_count' => count($members)),
+    true,
+    "Retrieved patrol members for user ID: $user_id (patrol: $patrol_name)",
+    $current_user_id
+);

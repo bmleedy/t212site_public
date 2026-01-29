@@ -1,3 +1,7 @@
+<script src="/js/jquery-3.7.1.min.js"></script>
+<script src="/js/jquery-migrate-3.4.1.min.js"></script>
+<script src="/js/ajaxsetup-csrf-traditional.js"></script>
+
 <h3>Manage Patrols</h3>
 <p>Edit patrol names and display order. Changes are saved when you click the Submit button.</p>
 
@@ -69,6 +73,14 @@
 </div>
 
 <script>
+// XSS prevention helper
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 $(document).ready(function() {
   var patrols = [];
   var originalPatrols = [];
@@ -337,7 +349,7 @@ $(document).ready(function() {
     });
 
     if (validationErrors.length > 0) {
-      showError(validationErrors.join('<br>'));
+      showError(validationErrors.join('\n'));
       return;
     }
 
@@ -377,7 +389,7 @@ $(document).ready(function() {
 
           if (completed === modifiedPatrols.length) {
             if (errors.length > 0) {
-              showError('Some updates failed:<br>' + errors.join('<br>'));
+              showError('Some updates failed:\n' + errors.join('\n'));
             } else {
               showSuccess('All changes saved successfully.');
               loadPatrols(); // Reload to get fresh data
@@ -389,7 +401,7 @@ $(document).ready(function() {
           errors.push('Patrol ' + patrol.label + ': Network error');
 
           if (completed === modifiedPatrols.length) {
-            showError('Some updates failed:<br>' + errors.join('<br>'));
+            showError('Some updates failed:\n' + errors.join('\n'));
           }
         }
       });
@@ -402,12 +414,12 @@ $(document).ready(function() {
   });
 
   function showError(message) {
-    $('#errorMessages').html(message).show();
+    $('#errorMessages').text(message).show();
     $('#successMessage').hide();
   }
 
   function showSuccess(message) {
-    $('#successMessage').html(message).show();
+    $('#successMessage').text(message).show();
     $('#errorMessages').hide();
   }
 
@@ -443,5 +455,10 @@ $(document).ready(function() {
 
 #deleteConfirmDialog button {
   margin-right: 10px;
+}
+
+#errorMessages,
+#successMessage {
+  white-space: pre-line;
 }
 </style>
