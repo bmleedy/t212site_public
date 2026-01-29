@@ -408,23 +408,43 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `TreasurerReport.php` | `templates/TreasurerReport.html` | `api/gettreasurerreport.php` | [ ] |
+| `TreasurerReport.php` | `templates/TreasurerReport.html` | `api/gettreasurerreport.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Treasurer access restricted to trs/sa
-- [ ] Financial data not exposed in logs
-- [ ] Payment history accurate
+- [x] Treasurer access restricted to trs/wm/sa (verified in TreasurerReport.php and gettreasurerreport.php)
+- [x] Financial data not exposed in logs (activity logging uses filtered sensitive data)
+- [x] Payment history accurate (prepared statements, proper escaping)
 
 ### 7.2 Payment APIs
 
 | API File | Purpose | Review Status |
 |----------|---------|---------------|
-| `api/pay.php` | Process payment | [ ] |
-| `api/getpasteventpay.php` | Get past payments | [ ] |
-| `api/order_create.php` | Create order | [ ] |
-| `api/order_fulfill.php` | Fulfill order | [ ] |
-| `api/order_getall.php` | Get all orders | [ ] |
-| `api/order_getconfig.php` | Get order config | [ ] |
+| `api/pay.php` | Process payment | [x] |
+| `api/getpasteventpay.php` | Get past payments | [x] |
+| `api/order_create.php` | Create order | [x] (Section 6) |
+| `api/order_fulfill.php` | Fulfill order | [x] (Section 6) |
+| `api/order_getall.php` | Get all orders | [x] (Section 6) |
+| `api/order_getconfig.php` | Get order config | [x] (Section 6) |
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **CRITICAL:** Added `require_csrf()` to `gettreasurerreport.php` (was missing CSRF protection)
+- [x] **CRITICAL:** Added `require_csrf()` to `getpasteventpay.php` (was missing CSRF protection)
+- [x] Added activity logging to `gettreasurerreport.php` (`view_treasurer_report` action with filter params)
+- [x] Added activity logging to `getpasteventpay.php` (`view_past_event_payments` action)
+- [x] Fixed NULL check in `getpasteventpay.php` for user not found case (lines 54-55)
+- [x] Fixed XSS vulnerability in `TreasurerReport.html` error message display (line 113)
+- [x] Verified `pay.php` already secure (CSRF, auth, trs/sa permission, activity logging)
+- [x] Verified `TreasurerReport.php` already secure (auth, trs/wm/sa permission check)
+
+**Authorization Model:**
+- **Treasurer Report (gettreasurerreport.php):** trs/wm/sa permission required
+- **Past Event Payments (getpasteventpay.php):** Own data or family member data only
+- **Update Payment Status (pay.php):** trs/sa permission only (more restrictive - excludes wm)
+
+**Test Files Created:**
+- `tests/unit/TreasurerReportAccessControlTest.php` - 31 tests
+- `tests/unit/PastEventPayAccessControlTest.php` - 24 tests
+- `tests/unit/PaymentAPIAccessControlTest.php` - 28 tests
 
 ---
 

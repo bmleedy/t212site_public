@@ -4,9 +4,11 @@ require 'auth_helper.php';
 require 'validation_helper.php';
 require_ajax();
 $current_user_id = require_authentication();
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Validate inputs
 $id = validate_int_post('id', true);
@@ -49,8 +51,8 @@ for ($x = 0; $x < count($uids); $x++) {
   $stmt->execute();
   $result = $stmt->get_result();
   $row = $result->fetch_assoc();
-  $first = $row['user_first'];
-  $last = $row['user_last'];
+  $first = $row ? $row['user_first'] : '';
+  $last = $row ? $row['user_last'] : '';
   $stmt->close();
 
   $stmt2 = $mysqli->prepare("SELECT id,event_id FROM registration WHERE user_id=? AND attending=1 AND paid=0 AND approved_by<>0");
@@ -82,6 +84,17 @@ for ($x = 0; $x < count($uids); $x++) {
 $returnData = 'success';
 $returnMsg = array(
   'eventDataPay' => $eventsPay
+);
+
+// Log financial data access
+$events_count = $eventsPay ? count($eventsPay) : 0;
+log_activity(
+  $mysqli,
+  'view_past_event_payments',
+  array('requested_user_id' => $id, 'family_members_checked' => count($uids), 'pending_payments_found' => $events_count),
+  true,
+  "Past event payments retrieved for user $id, found $events_count pending payments",
+  $current_user_id
 );
 
 echo json_encode($returnMsg);

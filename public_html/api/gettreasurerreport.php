@@ -7,9 +7,11 @@ require_ajax();
 $current_user_id = require_authentication();
 // Only treasurer, webmaster, or super admin can access
 require_permission(['trs', 'wm', 'sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Get filter parameters
 $input = json_decode(file_get_contents('php://input'), true);
@@ -117,6 +119,27 @@ while ($row = $result->fetch_assoc()) {
 }
 
 $statement->close();
+
+// Log treasurer report access (audit trail for financial data)
+$filter_info = array(
+  'startDate' => $startDate,
+  'endDate' => $endDate,
+  'scoutName' => $scoutName,
+  'eventType' => $eventType,
+  'eventName' => $eventName,
+  'minAmount' => $minAmount,
+  'maxAmount' => $maxAmount,
+  'results_count' => count($payments)
+);
+log_activity(
+  $mysqli,
+  'view_treasurer_report',
+  $filter_info,
+  true,
+  "Treasurer report accessed with " . count($payments) . " results",
+  $current_user_id
+);
+
 $mysqli->close();
 
 echo json_encode($payments);

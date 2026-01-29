@@ -110,7 +110,7 @@ function loadReport() {
         if (data.error) {
             console.error('API Error:', data.error);
             document.getElementById('reportResults').innerHTML =
-                '<div class="alert-box alert">Error: ' + data.error + '</div>';
+                '<div class="alert-box alert">Error: ' + escapeHtml(data.error) + '</div>';
             return;
         }
 
