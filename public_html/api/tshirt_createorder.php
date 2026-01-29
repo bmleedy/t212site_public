@@ -4,6 +4,10 @@
  *
  * Creates a new T-shirt order after PayPal payment.
  * This is a public endpoint - no authentication required.
+ *
+ * SECURITY NOTE: This endpoint stores PayPal order ID but does not verify payment
+ * with PayPal servers. For production use, implement PayPal webhook/IPN verification.
+ * TODO: Implement PayPal payment verification via webhook or server-to-server API call.
  */
 
 header('Content-Type: application/json');
@@ -12,12 +16,19 @@ require 'validation_helper.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
 require_once(__DIR__ . '/../includes/tshirt_email.php');
 
-// Validate required fields
-$customer_name = validate_string_post('customer_name', true);
+// Validate required fields with max length constraints
+$customer_name = validate_string_post('customer_name', true, null, 100);
 $customer_email = validate_email_post('customer_email', true);
-$customer_phone = validate_string_post('customer_phone', true);
-$shipping_address = validate_string_post('shipping_address', true);
-$paypal_order_id = validate_string_post('paypal_order_id', false, '');
+$customer_phone = validate_string_post('customer_phone', true, null, 20);
+$shipping_address = validate_string_post('shipping_address', true, null, 500);
+$paypal_order_id = validate_string_post('paypal_order_id', true, null, 50);
+
+// Additional validation for paypal_order_id format
+if (empty($paypal_order_id)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'Error', 'message' => 'PayPal order ID is required.']);
+    die();
+}
 
 // Validate quantities (all optional but at least one must be > 0)
 $qty_xs = validate_int_post('qty_xs', false, 0);
@@ -62,10 +73,37 @@ $total_amount += $qty_l * (isset($prices['tshirt_l']) ? $prices['tshirt_l'] : 15
 $total_amount += $qty_xl * (isset($prices['tshirt_xl']) ? $prices['tshirt_xl'] : 15.00);
 $total_amount += $qty_xxl * (isset($prices['tshirt_xxl']) ? $prices['tshirt_xxl'] : 15.00);
 
-// Get source IP
+// Get source IP - use REMOTE_ADDR only to prevent IP spoofing via X-Forwarded-For
+// Note: If behind a trusted proxy, configure the proxy to set a verified header
 $source_ip = $_SERVER['REMOTE_ADDR'];
-if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-    $source_ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+
+// Rate limiting: Check if same IP has created more than 10 orders in last hour
+$rate_limit_query = "SELECT COUNT(*) as order_count FROM tshirt_orders
+                     WHERE source_ip = ? AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+$rate_stmt = $mysqli->prepare($rate_limit_query);
+$rate_stmt->bind_param('s', $source_ip);
+$rate_stmt->execute();
+$rate_result = $rate_stmt->get_result();
+$rate_row = $rate_result->fetch_assoc();
+$rate_stmt->close();
+
+if ($rate_row['order_count'] >= 10) {
+    log_activity(
+        $mysqli,
+        'tshirt_order_rate_limited',
+        array(
+            'email' => $customer_email,
+            'source_ip' => $source_ip,
+            'order_count_last_hour' => $rate_row['order_count']
+        ),
+        false,
+        "T-shirt order rate limited - IP $source_ip exceeded 10 orders/hour",
+        0
+    );
+
+    http_response_code(429);
+    echo json_encode(['status' => 'Error', 'message' => 'Too many orders from this IP address. Please try again later.']);
+    die();
 }
 
 // Insert order into database

@@ -5,6 +5,8 @@
  * Returns item prices, images, and store status for a given category.
  * This is a public endpoint - no authentication required.
  *
+ * @security Read-only endpoint. Category parameter uses prepared statements to prevent SQL injection.
+ *
  * Parameters:
  *   category - (optional) Item category to filter by (e.g., 'tshirt'). Defaults to all active items.
  */

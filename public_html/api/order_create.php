@@ -5,6 +5,10 @@
  * Creates a new order with line items after payment.
  * This is a public endpoint - no authentication required.
  *
+ * SECURITY NOTE: This endpoint stores PayPal order ID but does not verify payment
+ * with PayPal servers. For production use, implement PayPal webhook/IPN verification.
+ * TODO: Implement PayPal payment verification via webhook or server-to-server API call.
+ *
  * Parameters:
  *   customer_name - Customer's full name
  *   customer_email - Customer's email address
@@ -12,7 +16,7 @@
  *   shipping_address - Delivery/pickup address
  *   order_type - Type of order (e.g., 'tshirt', 'merchandise')
  *   items - JSON array of items: [{"item_code": "tshirt_m", "quantity": 2}, ...]
- *   paypal_order_id - (optional) PayPal order ID for payment tracking
+ *   paypal_order_id - PayPal order ID for payment tracking (required)
  */
 
 header('Content-Type: application/json');
@@ -21,13 +25,20 @@ require 'validation_helper.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
 require_once(__DIR__ . '/../includes/store_email.php');
 
-// Validate required fields
-$customer_name = validate_string_post('customer_name', true);
+// Validate required fields with max length constraints
+$customer_name = validate_string_post('customer_name', true, null, 100);
 $customer_email = validate_email_post('customer_email', true);
-$customer_phone = validate_string_post('customer_phone', true);
-$shipping_address = validate_string_post('shipping_address', true);
-$order_type = validate_string_post('order_type', false, 'merchandise');
-$paypal_order_id = validate_string_post('paypal_order_id', false, '');
+$customer_phone = validate_string_post('customer_phone', true, null, 20);
+$shipping_address = validate_string_post('shipping_address', true, null, 500);
+$order_type = validate_string_post('order_type', false, 'merchandise', 50);
+$paypal_order_id = validate_string_post('paypal_order_id', true, null, 50);
+
+// Additional validation for paypal_order_id format
+if (empty($paypal_order_id)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'Error', 'message' => 'PayPal order ID is required.']);
+    die();
+}
 
 // Get items from JSON
 $items_json = isset($_POST['items']) ? $_POST['items'] : '';
@@ -110,10 +121,38 @@ foreach ($valid_items as $item) {
     ];
 }
 
-// Get source IP
+// Get source IP - use REMOTE_ADDR only to prevent IP spoofing via X-Forwarded-For
+// Note: If behind a trusted proxy, configure the proxy to set a verified header
 $source_ip = $_SERVER['REMOTE_ADDR'];
-if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-    $source_ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
+
+// Rate limiting: Check if same IP has created more than 10 orders in last hour
+$rate_limit_query = "SELECT COUNT(*) as order_count FROM orders
+                     WHERE source_ip = ? AND created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+$rate_stmt = $mysqli->prepare($rate_limit_query);
+$rate_stmt->bind_param('s', $source_ip);
+$rate_stmt->execute();
+$rate_result = $rate_stmt->get_result();
+$rate_row = $rate_result->fetch_assoc();
+$rate_stmt->close();
+
+if ($rate_row['order_count'] >= 10) {
+    log_activity(
+        $mysqli,
+        'order_create_rate_limited',
+        array(
+            'email' => $customer_email,
+            'order_type' => $order_type,
+            'source_ip' => $source_ip,
+            'order_count_last_hour' => $rate_row['order_count']
+        ),
+        false,
+        "Order creation rate limited - IP $source_ip exceeded 10 orders/hour",
+        0
+    );
+
+    http_response_code(429);
+    echo json_encode(['status' => 'Error', 'message' => 'Too many orders from this IP address. Please try again later.']);
+    die();
 }
 
 // Start transaction

@@ -1,3 +1,7 @@
+<script src="/js/jquery-3.7.1.min.js"></script>
+<script src="/js/jquery-migrate-3.4.1.min.js"></script>
+<script src="/js/ajaxsetup-csrf-traditional.js"></script>
+
 <h2>Manage Item Prices</h2>
 
 <p>Update prices for store items. Changes are saved automatically and logged in the activity log.</p>
@@ -67,7 +71,7 @@ function loadItems() {
             $('#itemsTable').show();
         },
         error: function(xhr, status, error) {
-            $('#loadingMessage').html('<div class="alert-box alert">Failed to load items. Please try again.</div>');
+            $('#loadingMessage').text('Failed to load items. Please try again.').addClass('alert-box alert');
             console.error('Load error:', error);
         }
     });
@@ -195,9 +199,9 @@ function hideMessages() {
 }
 
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
     var div = document.createElement('div');
-    div.appendChild(document.createTextNode(text));
+    div.textContent = text;
     return div.innerHTML;
 }
 </script>

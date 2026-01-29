@@ -4,6 +4,8 @@
  *
  * Returns T-shirt prices, image URL, and store status.
  * This is a public endpoint - no authentication required.
+ *
+ * @security Read-only endpoint with no user input in queries
  */
 
 header('Content-Type: application/json');

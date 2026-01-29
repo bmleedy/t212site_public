@@ -1,3 +1,7 @@
+<script src="/js/jquery-3.7.1.min.js"></script>
+<script src="/js/jquery-migrate-3.4.1.min.js"></script>
+<script src="/js/ajaxsetup-csrf-traditional.js"></script>
+
 <!-- PayPal JavaScript SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($paypal_client_id); ?>&enable-funding=venmo&currency=USD"></script>
 
@@ -80,7 +84,7 @@
         <p><em>You can pay with PayPal, Venmo, or Credit/Debit Card.</em></p>
 
         <div id="validationError" style="display:none;" data-alert class="alert-box alert">
-            <span id="validationErrorText"></span>
+            <span id="validationErrorText" style="white-space: pre-line;"></span>
         </div>
 
         <div id="paypal-button-container"></div>
@@ -137,7 +141,7 @@ function loadConfig() {
             initPayPalButtons();
         },
         error: function(xhr, status, error) {
-            $('#loadingMessage').html('<div class="alert-box alert">Failed to load pricing. Please refresh the page.</div>');
+            $('#loadingMessage').text('Failed to load pricing. Please refresh the page.').addClass('alert-box alert');
             console.error('Config load error:', error);
         }
     });
@@ -186,7 +190,7 @@ function validateForm() {
     }
 
     if (errors.length > 0) {
-        $('#validationErrorText').html(errors.join('<br>'));
+        $('#validationErrorText').text(errors.join('\n'));
         $('#validationError').show();
         return false;
     }
@@ -287,7 +291,7 @@ function initPayPalButtons() {
                     dataType: 'json',
                     success: function(response) {
                         if (response.status === 'Success') {
-                            window.location.href = 'TShirtOrderComplete.php?order_id=' + response.order_id;
+                            window.location.href = 'TShirtOrderComplete.php?order_id=' + response.order_id + '&email=' + encodeURIComponent(orderData.customer_email);
                         } else {
                             alert('Order was paid but there was an error saving it. Please contact us. Error: ' + response.message);
                         }
@@ -314,8 +318,9 @@ function initPayPalButtons() {
 }
 
 function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
     var div = document.createElement('div');
-    div.appendChild(document.createTextNode(text));
+    div.textContent = text;
     return div.innerHTML;
 }
 </script>

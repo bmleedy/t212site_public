@@ -4,18 +4,15 @@
  *
  * Admin page to view and manage T-shirt orders.
  * Requires treasurer, webmaster, or admin permission.
+ *
+ * @security Session cookies configured with httponly, samesite, and secure flags via authHeader.php
  */
 
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
 require "includes/authHeader.php";
-
-$user_id = $_SESSION['user_id'];
 
 // Check if user has permission to access this page
 $hasAccess = (in_array("trs", $access) || in_array("wm", $access) || in_array("sa", $access));
 ?>
-<input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
 <br>
 <div class='row'>
     <?php

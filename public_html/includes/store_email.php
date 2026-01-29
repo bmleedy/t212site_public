@@ -4,6 +4,10 @@
  *
  * Generic functions to send order confirmation and notification emails.
  * Supports any order type (T-shirts, merchandise, etc.)
+ *
+ * @security All database queries use prepared statements to prevent SQL injection.
+ *           Email content is built from sanitized database values.
+ *           PHPMailer library handles email header injection protection.
  */
 
 require_once(__DIR__ . '/../login/config/config.php');
@@ -138,6 +142,8 @@ function send_order_confirmation($mysqli, $order_id) {
     $body .= "Order Number: #" . $order_id . "\r\n";
     $body .= "Order Type: " . $order_type_name . "\r\n";
     $body .= "Order Date: " . date('F j, Y', strtotime($order['order_date'])) . "\r\n\r\n";
+    $body .= "View your order online:\r\n";
+    $body .= "https://t212.org/TShirtOrderComplete.php?order_id=" . $order_id . "&email=" . urlencode($order['customer_email']) . "\r\n\r\n";
     $body .= "Items Ordered:\r\n";
     $body .= $items_list . "\r\n\r\n";
     $body .= "Total: $" . number_format($order['total_amount'], 2) . "\r\n\r\n";

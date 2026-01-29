@@ -13,6 +13,7 @@ require 'validation_helper.php';
 require_ajax();
 $current_user_id = require_authentication();
 require_permission(['wm', 'sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -27,6 +28,13 @@ $new_active = isset($_POST['active']) ? intval($_POST['active']) : null;
 if ($new_price !== null && $new_price < 0) {
     http_response_code(400);
     echo json_encode(['status' => 'Error', 'message' => 'Price cannot be negative.']);
+    die();
+}
+
+// Validate price maximum ($9999.99)
+if ($new_price !== null && $new_price > 9999.99) {
+    http_response_code(400);
+    echo json_encode(['status' => 'Error', 'message' => 'Price cannot exceed $9999.99.']);
     die();
 }
 

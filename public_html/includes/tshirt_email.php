@@ -8,6 +8,8 @@
  *
  * The functions send_tshirt_order_confirmation() and send_tshirt_order_notification()
  * are defined in store_email.php as wrappers around the generic functions.
+ *
+ * @security See store_email.php for security documentation.
  */
 
 require_once(__DIR__ . '/store_email.php');

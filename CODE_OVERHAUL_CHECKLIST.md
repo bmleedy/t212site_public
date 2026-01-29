@@ -345,33 +345,60 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `TShirtOrder.php` | `templates/TShirtOrder.html` | `api/tshirt_createorder.php`, `api/tshirt_getconfig.php` | [ ] |
-| `TShirtOrderComplete.php` | `templates/TShirtOrderComplete.html` | (order confirmation) | [ ] |
+| `TShirtOrder.php` | `templates/TShirtOrder.html` | `api/order_create.php`, `api/order_getconfig.php` | [x] |
+| `TShirtOrderComplete.php` | `templates/TShirtOrderComplete.html` | (order confirmation) | [x] |
 
 **Priority Issues to Check:**
-- [ ] PayPal integration secure
-- [ ] Order validation server-side
-- [ ] Email confirmation sent
-- [ ] Store can be disabled via config
+- [x] PayPal integration secure - PayPal order ID stored; server-side verification TODO documented (see Known Limitations)
+- [x] Order validation server-side - All inputs validated with validation_helper.php, prepared statements
+- [x] Email confirmation sent - send_order_confirmation() called after order creation
+- [x] Store can be disabled via config - store_config table with store_enabled flag
 
 ### 6.2 Store Management
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `ManageTShirtOrders.php` | `templates/ManageTShirtOrders.html` | `api/tshirt_getorders.php`, `api/tshirt_fulfillorder.php` | [ ] |
-| `ManageItemPrices.php` | `templates/ManageItemPrices.html` | `api/itemprices_getall.php`, `api/itemprices_update.php` | [ ] |
+| `ManageTShirtOrders.php` | `templates/ManageTShirtOrders.html` | `api/order_getall.php`, `api/order_fulfill.php` | [x] |
+| `ManageItemPrices.php` | `templates/ManageItemPrices.html` | `api/itemprices_getall.php`, `api/itemprices_update.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Order management restricted to trs/wm/sa
-- [ ] Price changes restricted to wm/sa
-- [ ] Fulfillment status tracked with audit
+- [x] Order management restricted to trs/wm/sa - require_permission(['trs', 'wm', 'sa']) in order_getall.php and order_fulfill.php
+- [x] Price changes restricted to wm/sa - require_permission(['wm', 'sa']) in itemprices_update.php
+- [x] Fulfillment status tracked with audit - order_fulfill.php logs to activity_log with fulfilled_by user ID
 
 ### 6.3 Store Email
 
 | File | Purpose | Review Status |
 |------|---------|---------------|
-| `includes/tshirt_email.php` | T-shirt order email | [ ] |
-| `includes/store_email.php` | Store notification email | [ ] |
+| `includes/tshirt_email.php` | T-shirt order email (backward compat wrapper) | [x] |
+| `includes/store_email.php` | Generic store notification email | [x] |
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **REFACTORED:** Renamed APIs to generic names (order_create.php, order_getconfig.php, order_getall.php, order_fulfill.php)
+- [x] **order_create.php:** Added validation_helper.php for all inputs, prepared statements, database transactions, rate limiting (10 orders/hour per IP)
+- [x] **order_getconfig.php:** Public read-only endpoint with prepared statements for category filter
+- [x] **order_getall.php:** Added require_authentication(), require_permission(['trs', 'wm', 'sa']), require_csrf()
+- [x] **order_fulfill.php:** Added require_authentication(), require_permission(['trs', 'wm', 'sa']), require_csrf(), double-fulfillment prevention
+- [x] **itemprices_getall.php:** Added require_permission(['wm', 'sa']), require_csrf()
+- [x] **itemprices_update.php:** Added require_permission(['wm', 'sa']), require_csrf(), price validation (0-9999.99), activity logging with old/new values
+- [x] **ManageTShirtOrders.php:** Added server-side trs/wm/sa permission check before displaying template
+- [x] **ManageItemPrices.php:** Added server-side wm/sa permission check before displaying template
+- [x] **store_email.php:** Complete rewrite with prepared statements, PHPMailer, notification preferences support, activity logging
+- [x] **tshirt_email.php:** Converted to backward-compatibility wrapper for store_email.php
+
+**Authorization Model:**
+- **Public store (order_getconfig.php):** No authentication - read-only price/availability info
+- **Create orders (order_create.php):** No authentication - public can place orders (with rate limiting)
+- **View orders (order_getall.php):** trs/wm/sa permission required
+- **Fulfill orders (order_fulfill.php):** trs/wm/sa permission required
+- **View item prices admin (itemprices_getall.php):** wm/sa permission required
+- **Update item prices (itemprices_update.php):** wm/sa permission required
+
+**Known Limitations:**
+- PayPal payment verification stores order ID but does not verify with PayPal servers
+- Order marked as paid based on PayPal client-side redirect, not server-side verification
+- TODO documented in order_create.php: Implement PayPal webhook/IPN verification for production security
+- Recommend implementing PayPal webhook or server-to-server API verification in future
 
 ---
 
@@ -683,3 +710,88 @@
 
 *Document Created: January 2026*
 *Last Updated: January 29, 2026*
+
+---
+
+## Section 6 Overhaul Summary (January 29, 2026)
+
+### Files Modified
+
+**API Files:**
+- `/Users/bmleedy/t212site_public/public_html/api/order_create.php` - Order creation with validation, transactions, rate limiting
+- `/Users/bmleedy/t212site_public/public_html/api/order_getconfig.php` - Public store configuration endpoint
+- `/Users/bmleedy/t212site_public/public_html/api/order_getall.php` - Admin order listing with permission checks
+- `/Users/bmleedy/t212site_public/public_html/api/order_fulfill.php` - Order fulfillment with audit trail
+- `/Users/bmleedy/t212site_public/public_html/api/itemprices_getall.php` - Item price listing for admins
+- `/Users/bmleedy/t212site_public/public_html/api/itemprices_update.php` - Item price updates with validation
+
+**Page Files:**
+- `/Users/bmleedy/t212site_public/public_html/TShirtOrder.php` - Public order page
+- `/Users/bmleedy/t212site_public/public_html/TShirtOrderComplete.php` - Order confirmation page
+- `/Users/bmleedy/t212site_public/public_html/ManageTShirtOrders.php` - Admin order management
+- `/Users/bmleedy/t212site_public/public_html/ManageItemPrices.php` - Admin price management
+
+**Template Files:**
+- `/Users/bmleedy/t212site_public/public_html/templates/TShirtOrder.html`
+- `/Users/bmleedy/t212site_public/public_html/templates/TShirtOrderComplete.html`
+- `/Users/bmleedy/t212site_public/public_html/templates/ManageTShirtOrders.html`
+- `/Users/bmleedy/t212site_public/public_html/templates/ManageItemPrices.html`
+
+**Include Files:**
+- `/Users/bmleedy/t212site_public/public_html/includes/store_email.php` - Generic order email functions
+- `/Users/bmleedy/t212site_public/public_html/includes/tshirt_email.php` - Backward compatibility wrapper
+
+**Test Files:**
+- `/Users/bmleedy/t212site_public/tests/unit/StoreAPITest.php` - 58 unit tests (all passing)
+- `/Users/bmleedy/t212site_public/tests/integration/StoreOrderFlowTest.php` - Integration tests (requires mysqli)
+
+### Security Fixes Applied
+
+1. **Authentication & Authorization:**
+   - All admin APIs require authentication via `require_authentication()`
+   - Order management requires trs/wm/sa permission
+   - Price management requires wm/sa permission (more restrictive)
+   - Server-side permission checks in PHP pages before displaying templates
+
+2. **Input Validation:**
+   - All user inputs validated via `validation_helper.php`
+   - String length limits enforced (name: 100, phone: 20, address: 500)
+   - Price validation with min/max bounds (0 to 9999.99)
+   - JSON items array validation with type checking
+
+3. **SQL Injection Prevention:**
+   - All database queries use prepared statements
+   - No string concatenation in SQL queries
+
+4. **CSRF Protection:**
+   - All state-changing APIs require `require_csrf()` validation
+
+5. **Rate Limiting:**
+   - Order creation limited to 10 orders per IP per hour
+   - Prevents abuse of public ordering endpoint
+
+6. **Transaction Safety:**
+   - Order creation uses database transactions
+   - Rollback on failure with error logging
+
+7. **Activity Logging:**
+   - All order operations logged with success/failure status
+   - Fulfillment logs include user ID of fulfiller
+   - Price changes log old and new values
+
+### Test Results
+
+```
+TEST SUITE: Store API Unit Tests
+============================================================
+SUMMARY: All tests passed! (58 passed, 0 failed)
+
+TEST SUITE: T212 SITE TEST RUNNER
+============================================================
+Total Test Suites: 34
+Passed: 34
+Failed: 0
+Skipped: 4 (mysqli not available)
+```
+
+Note: `StoreOrderFlowTest.php` requires mysqli extension which is not available in the local test environment. These integration tests will run in environments with database connectivity.

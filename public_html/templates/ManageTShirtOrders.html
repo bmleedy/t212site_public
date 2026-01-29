@@ -1,3 +1,7 @@
+<script src="/js/jquery-3.7.1.min.js"></script>
+<script src="/js/jquery-migrate-3.4.1.min.js"></script>
+<script src="/js/ajaxsetup-csrf-traditional.js"></script>
+
 <h2>Manage T-Shirt Orders</h2>
 
 <div class="row" style="margin-bottom:15px;">
@@ -177,7 +181,7 @@ function loadOrders() {
             $('#ordersTable').show();
         },
         error: function(xhr, status, error) {
-            $('#loadingMessage').html('<div class="alert-box alert">Failed to load orders. Please try again.</div>');
+            $('#loadingMessage').text('Failed to load orders. Please try again.').addClass('alert-box alert');
             console.error('Load error:', error);
         }
     });
@@ -218,14 +222,14 @@ function renderOrdersTable(orders) {
 
 function buildItemsSummary(order) {
     if (!order.items || order.items.length === 0) {
-        return order.total_qty + ' items';
+        return escapeHtml(order.total_qty + ' items');
     }
 
     var summary = [];
     order.items.forEach(function(item) {
         // Extract size from item name for T-shirts
         var label = item.item_name.replace('Class B T-Shirt - ', '');
-        summary.push(label + ':' + item.quantity);
+        summary.push(escapeHtml(label) + ':' + escapeHtml(String(item.quantity)));
     });
     return summary.join(', ');
 }
@@ -347,9 +351,9 @@ function formatDateTime(dateStr) {
 }
 
 function escapeHtml(text) {
-    if (!text) return '';
+    if (text === null || text === undefined) return '';
     var div = document.createElement('div');
-    div.appendChild(document.createTextNode(text));
+    div.textContent = text;
     return div.innerHTML;
 }
 </script>
