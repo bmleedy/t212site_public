@@ -40,8 +40,8 @@ echo str_repeat("-", 60) . "\n";
 $updateAttendanceContents = file_get_contents($updateAttendanceFile);
 
 if (assert_true(
-    strpos($updateAttendanceContents, 'HTTP_X_REQUESTED_WITH') !== false,
-    "updateattendance.php checks for AJAX request"
+    strpos($updateAttendanceContents, 'require_ajax()') !== false,
+    "updateattendance.php uses require_ajax() for AJAX protection"
 )) {
     $passed++;
 } else {
@@ -49,8 +49,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateAttendanceContents, '$_POST[\'user_id\']') !== false,
-    "updateattendance.php accepts user_id parameter"
+    strpos($updateAttendanceContents, 'validate_int_post') !== false,
+    "updateattendance.php uses validate_int_post for user_id parameter"
 )) {
     $passed++;
 } else {
@@ -67,8 +67,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateAttendanceContents, '$_POST[\'date\']') !== false,
-    "updateattendance.php accepts optional date parameter"
+    strpos($updateAttendanceContents, 'validate_date_post') !== false,
+    "updateattendance.php uses validate_date_post for date parameter"
 )) {
     $passed++;
 } else {
@@ -203,8 +203,8 @@ echo "Test 5: Parameter validation\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($updateAttendanceContents, 'if (!$user_id || $was_present === null)') !== false,
-    "Validates required parameters (user_id and was_present)"
+    strpos($updateAttendanceContents, "validate_int_post('user_id')") !== false,
+    "Uses validate_int_post() for user_id validation"
 )) {
     $passed++;
 } else {
@@ -212,8 +212,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateAttendanceContents, 'intval($_POST[\'user_id\'])') !== false,
-    "Sanitizes user_id with intval()"
+    strpos($updateAttendanceContents, "validate_date_post('date'") !== false,
+    "Uses validate_date_post() for date validation"
 )) {
     $passed++;
 } else {
@@ -221,8 +221,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/\$was_present\s*=\s*\([^\)]*true[^\)]*\)\s*\?\s*1\s*:\s*0/', $updateAttendanceContents),
-    "Converts was_present to boolean (1 or 0)"
+    strpos($updateAttendanceContents, "isset(\$_POST['was_present'])") !== false,
+    "Checks if was_present parameter is set"
 )) {
     $passed++;
 } else {
@@ -239,8 +239,8 @@ echo "Test 6: Security - SQL injection protection\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($updateAttendanceContents, 'intval(') !== false,
-    "Uses intval() for integer parameters"
+    strpos($updateAttendanceContents, 'validate_int_post') !== false,
+    "Uses validate_int_post() for integer validation"
 )) {
     $passed++;
 } else {
@@ -248,8 +248,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateAttendanceContents, 'real_escape_string') !== false,
-    "Uses real_escape_string for date parameter"
+    strpos($updateAttendanceContents, 'bind_param') !== false,
+    "Uses prepared statements with bind_param for SQL injection protection"
 )) {
     $passed++;
 } else {
@@ -259,15 +259,6 @@ if (assert_true(
 if (assert_true(
     strpos($updateAttendanceContents, 'isset($_POST') !== false,
     "Checks if POST parameters are set"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($updateAttendanceContents, 'Not sure what you are after') !== false,
-    "Rejects non-AJAX requests"
 )) {
     $passed++;
 } else {
@@ -374,17 +365,9 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($updateAttendanceContents, '$mysqli->error') !== false,
-    "Includes MySQL error message in response"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($updateAttendanceContents, 'user_id and was_present are required') !== false,
-    "Returns error message for missing required parameters"
+    strpos($updateAttendanceContents, 'Failed to update attendance') !== false ||
+    strpos($updateAttendanceContents, 'Failed to record attendance') !== false,
+    "Returns generic error message for security (hides internal details)"
 )) {
     $passed++;
 } else {
@@ -668,17 +651,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    strpos($attendanceTemplateContents, 'data.action') !== false,
-    "Uses action field from response (created/updated)"
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
-
-if (assert_true(
-    strpos($attendanceTemplateContents, 'console.log("Attendance update response:') !== false,
-    "Logs response to console"
+    strpos($attendanceTemplateContents, "if (data.status === \"Success\")") !== false,
+    "Has success response handling"
 )) {
     $passed++;
 } else {

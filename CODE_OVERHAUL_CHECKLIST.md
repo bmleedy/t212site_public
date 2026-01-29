@@ -261,20 +261,35 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `Attendance.php` | `templates/Attendance.html` | `api/getattendancedata.php`, `api/updateattendance.php`, `api/getscoutsforattendance.php` | [ ] |
-| `AttendanceReport.php` | `templates/AttendanceReport.html` | `api/getattendanceevents.php` | [ ] |
+| `Attendance.php` | `templates/Attendance.html` | `api/getattendancedata.php`, `api/updateattendance.php`, `api/getscoutsforattendance.php` | [x] |
+| `AttendanceReport.php` | `templates/AttendanceReport.html` | `api/getattendanceevents.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Attendance updates restricted to pl/oe/sa
-- [ ] Date range validation on reports
-- [ ] Efficient queries for large date ranges
+- [x] Attendance updates restricted to pl/oe/sa
+- [x] Date range validation on reports
+- [x] Efficient queries for large date ranges
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **CRITICAL:** Added `require_authentication()`, `require_permission()`, `require_csrf()` to `updateattendance.php`
+- [x] **CRITICAL:** Added `require_authentication()`, `require_permission()`, `require_csrf()` to `getscoutsforattendance.php`
+- [x] **CRITICAL:** Converted `updateattendance.php` from string concatenation to prepared statements
+- [x] Added CSRF and permission checks to `getattendancedata.php` and `getattendanceevents.php`
+- [x] Added date range validation (start_date <= end_date) to both date-range APIs
+- [x] Fixed XSS in `Attendance.php` and `AttendanceReport.php` hidden inputs (htmlspecialchars)
+- [x] Modernized session cookie handling with secure flags (httponly, samesite)
+- [x] Added escapeHtml() function to `Attendance.html` and `AttendanceReport.html`
+- [x] Escaped all dynamic content in JavaScript templates (patrol names, scout names, error messages)
+- [x] Added event_id validation with parseInt() before use in hrefs
+- [x] Removed debug console.log statements that exposed sensitive data
+- [x] Added `escape_html()` to API outputs for defense-in-depth
+- [x] Activity logging uses correct actor ID (current_user_id, not target user_id)
 
 ### 4.2 Related APIs
 
 | API File | Purpose | Review Status |
 |----------|---------|---------------|
-| `api/getattendance.php` | Get attendance records | [ ] |
-| `api/updateattendance_debug.php` | Debug version (REMOVE?) | [ ] |
+| `api/getattendance.php` | Get attendance records | [x] Already reviewed - uses auth_helper, prepared statements |
+| `api/updateattendance_debug.php` | Debug version (REMOVE?) | [x] REMOVED - Already deleted per earlier cleanup |
 
 ---
 

@@ -1,10 +1,12 @@
 <?php
-if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
-  // respond to Ajax request
-} else {
-  echo "Not sure what you are after, but it ain't here.";
-  die();
-}
+session_start();
+require 'auth_helper.php';
+require 'validation_helper.php';
+
+require_ajax();
+$current_user_id = require_authentication();
+require_permission(['pl', 'oe', 'sa', 'wm']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -19,25 +21,25 @@ $query = "SELECT u.user_id, u.user_first, u.user_last, p.label AS patrol_label, 
           WHERE u.user_type = 'Scout'
           ORDER BY p.sort, u.user_last, u.user_first";
 
-$results = $mysqli->query($query);
+$stmt = $mysqli->prepare($query);
+$stmt->execute();
+$results = $stmt->get_result();
 
 if ($results) {
   while ($row = $results->fetch_assoc()) {
     $scouts[] = [
       'user_id' => $row['user_id'],
-      'first' => $row['user_first'],
-      'last' => $row['user_last'],
+      'first' => escape_html($row['user_first']),
+      'last' => escape_html($row['user_last']),
       'patrol_id' => $row['patrol_id'],
-      'patrol' => $row['patrol_label'] ? $row['patrol_label'] : 'No Patrol'
+      'patrol' => $row['patrol_label'] ? escape_html($row['patrol_label']) : 'No Patrol'
     ];
   }
+  $stmt->close();
+  echo json_encode(['status' => 'Success', 'scouts' => $scouts]);
+} else {
+  echo json_encode(['status' => 'Error', 'message' => 'Failed to load scouts']);
 }
 
-$returnMsg = array(
-  'status' => 'Success',
-  'scouts' => $scouts
-);
-
-echo json_encode($returnMsg);
 die();
 ?>

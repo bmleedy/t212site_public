@@ -296,7 +296,9 @@ if (assert_true(
 }
 
 // Check that frontend conditionally creates links based on event_id
+// (We now also validate with parseInt to ensure it's numeric)
 if (assert_true(
+    preg_match('/eventDate\.event_id.*parseInt.*Event\.php/s', $templateContents) ||
     preg_match('/if\s*\(eventDate\.event_id\).*Event\.php/s', $templateContents),
     "Frontend creates links only for events with event_id"
 )) {
@@ -417,11 +419,14 @@ if (file_exists($updateApiFile)) {
         $failed++;
     }
 
-    // Check that API receives the data
+    // Check that API receives the data (now uses validation helpers)
     if (assert_true(
-        strpos($updateApiContents, "\$_POST['was_present']") !== false &&
-        strpos($updateApiContents, "\$_POST['user_id']") !== false &&
-        strpos($updateApiContents, "\$_POST['date']") !== false,
+        (strpos($updateApiContents, "\$_POST['was_present']") !== false ||
+         strpos($updateApiContents, "isset(\$_POST['was_present'])") !== false) &&
+        (strpos($updateApiContents, "\$_POST['user_id']") !== false ||
+         strpos($updateApiContents, "validate_int_post('user_id')") !== false) &&
+        (strpos($updateApiContents, "\$_POST['date']") !== false ||
+         strpos($updateApiContents, "validate_date_post('date'") !== false),
         "Update API receives was_present, user_id, and date"
     )) {
         $passed++;

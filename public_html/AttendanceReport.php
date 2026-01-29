@@ -1,5 +1,12 @@
 <?php
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => $_SERVER['SERVER_NAME'],
+    'secure' => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 session_start();
 require "includes/authHeader.php";
 
@@ -12,7 +19,7 @@ $hasAccess = (in_array("wm", $access) || in_array("oe", $access) || in_array("sa
 // Check if user has extended permissions (scoutmaster or webmaster can edit attendance)
 $canEditAttendance = (in_array("wm", $access) || in_array("sa", $access));
 ?>
-<input type="hidden" id="user_id" value="<?php echo $user_id; ?>">
+<input type="hidden" id="user_id" value="<?php echo htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8'); ?>">
 <input type="hidden" id="canEditAttendance" value="<?php echo $canEditAttendance ? '1' : '0'; ?>">
 <br>
 <div class='row'>

@@ -214,7 +214,7 @@ echo str_repeat("-", 60) . "\n";
 $scoutsApiContents = file_get_contents($scoutsApiFile);
 
 if (assert_true(
-    strpos($scoutsApiContents, 'XMLHttpRequest') !== false,
+    strpos($scoutsApiContents, 'require_ajax()') !== false,
     "AJAX-only protection is present"
 )) {
     $passed++;

@@ -3,6 +3,14 @@
 <script src="/js/ajaxsetup-csrf-traditional.js"></script>
 
 <script type="text/javascript">
+// XSS prevention helper
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    var div = document.createElement('div');
+    div.textContent = String(text);
+    return div.innerHTML;
+}
+
 var user_id;
 var canEditAttendance = false; // Whether user can edit attendance (wm/sa only)
 var startDate = null; // Start date for attendance report
@@ -61,8 +69,7 @@ $(document).ready(function() {
   // Load scouts
   loadScouts();
 
-  console.log("Attendance Report page loaded for user ID: " + user_id);
-  console.log("Can edit attendance: " + canEditAttendance);
+  console.log("Attendance Report page loaded");
 });
 
 function setDefaultDateRange() {
@@ -112,8 +119,6 @@ function loadScouts() {
       $('#attendanceTable').html('<p class="alert-box alert">Error loading events. Please try again.</p>');
     },
     success: function(eventsData) {
-      console.log("Events loaded:", eventsData);
-
       if (eventsData.status === "Success") {
         eventDates = eventsData.dates || [];
         console.log("Found " + eventDates.length + " event dates");
@@ -121,7 +126,7 @@ function loadScouts() {
         // Now load scouts
         loadScoutsWithEvents();
       } else {
-        $('#attendanceTable').html('<p class="alert-box alert">Error loading events: ' + (eventsData.message || 'Unknown error') + '</p>');
+        $('#attendanceTable').html('<p class="alert-box alert">Error loading events: ' + escapeHtml(eventsData.message || 'Unknown error') + '</p>');
       }
     }
   });
@@ -150,9 +155,6 @@ function loadScoutsWithEvents() {
     var scoutsData = scoutsResponse[0];
     var attendanceDataResponse = attendanceResponse[0];
 
-    console.log("Scouts loaded:", scoutsData);
-    console.log("Attendance loaded:", attendanceDataResponse);
-
     if (scoutsData.status === "Success" && attendanceDataResponse.status === "Success") {
       attendanceData = attendanceDataResponse.attendance || {};
       allScouts = scoutsData.scouts || [];
@@ -167,7 +169,7 @@ function loadScoutsWithEvents() {
       }
     } else {
       var errorMsg = scoutsData.message || attendanceDataResponse.message || 'Unknown error';
-      $('#attendanceTable').html('<p class="alert-box alert">Error: ' + errorMsg + '</p>');
+      $('#attendanceTable').html('<p class="alert-box alert">Error: ' + escapeHtml(errorMsg) + '</p>');
     }
   }).fail(function(error) {
     console.error("Error loading data:", error);
@@ -201,7 +203,7 @@ function populatePatrolDropdown(scouts) {
   dropdown.find('option:not([value="all"])').remove();
 
   patrols.forEach(function(patrol) {
-    dropdown.append('<option value="' + patrol.id + '">' + patrol.name + '</option>');
+    dropdown.append('<option value="' + escapeHtml(patrol.id) + '">' + escapeHtml(patrol.name) + '</option>');
   });
 
   // Add "No Patrol" option if any scouts have no patrol
@@ -262,12 +264,12 @@ function buildAttendanceTable(scouts) {
       eventName = eventName.substring(0, 15);
     }
 
-    // If event has an event_id, link to Event.php
-    if (eventDate.event_id) {
-      tableHTML += '<th><a href="Event.php?id=' + eventDate.event_id + '">' + eventName + '</a></th>';
+    // If event has an event_id, link to Event.php (validate event_id as integer)
+    if (eventDate.event_id && !isNaN(parseInt(eventDate.event_id))) {
+      tableHTML += '<th><a href="Event.php?id=' + parseInt(eventDate.event_id) + '">' + escapeHtml(eventName) + '</a></th>';
     } else {
       // No link for Troop Meetings (no event_id)
-      tableHTML += '<th>' + eventName + '</th>';
+      tableHTML += '<th>' + escapeHtml(eventName) + '</th>';
     }
   });
   tableHTML += '</tr></thead>';
@@ -276,8 +278,8 @@ function buildAttendanceTable(scouts) {
   tableHTML += '<tbody>';
   scouts.forEach(function(scout) {
     tableHTML += '<tr>';
-    tableHTML += '<td>' + scout.patrol + '</td>';
-    tableHTML += '<td>' + scout.first + ' ' + scout.last + '</td>';
+    tableHTML += '<td>' + escapeHtml(scout.patrol) + '</td>';
+    tableHTML += '<td>' + escapeHtml(scout.first) + ' ' + escapeHtml(scout.last) + '</td>';
 
     // Add cells for each date with attendance status
     eventDates.forEach(function(eventDate) {
@@ -314,8 +316,6 @@ function buildAttendanceTable(scouts) {
       var date = checkbox.data('date');
       var wasPresent = checkbox.is(':checked');
 
-      console.log("Attendance checkbox changed - User: " + userId + ", Date: " + date + ", Present: " + wasPresent);
-
       // Update attendance via AJAX
       updateAttendance(userId, date, wasPresent, checkbox);
     });
@@ -346,13 +346,10 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
       checkbox.prop('checked', !wasPresent);
     },
     success: function(data) {
-      console.log("Attendance update response:", data);
-
       // Re-enable checkbox
       checkbox.prop('disabled', false);
 
       if (data.status === "Success") {
-        console.log("Attendance " + data.action + " successfully for user " + userId + " on " + date);
         // Update local attendance data
         var key = userId + '-' + date;
         attendanceData[key] = wasPresent;
@@ -366,12 +363,6 @@ function updateAttendance(userId, date, wasPresent, checkbox) {
 }
 
 function downloadCSV(scouts) {
-  console.log("Generating CSV download...");
-  console.log("Scouts count:", scouts.length);
-  console.log("Event dates count:", eventDates.length);
-  console.log("Attendance data keys count:", Object.keys(attendanceData).length);
-  console.log("Sample attendance data:", attendanceData);
-
   // Build CSV content
   var csvContent = '';
 
@@ -428,8 +419,6 @@ function downloadCSV(scouts) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-
-  console.log("CSV download initiated: " + filename);
 }
 </script>
 

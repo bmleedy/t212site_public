@@ -3,6 +3,14 @@
 <script src="/js/ajaxsetup-csrf-traditional.js"></script>
 
 <script type="text/javascript">
+// XSS prevention helper
+function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
+    var div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 var user_id;
 var selectedPatrolId = null;
 var defaultPatrolId = null;
@@ -49,7 +57,7 @@ $(document).ready(function() {
   // Get user's default patrol, then load patrols
   getUserDefaultPatrol();
 
-  console.log("Attendance page loaded for user ID: " + user_id);
+  console.log("Attendance page loaded");
 });
 
 function setCurrentDate() {
@@ -87,7 +95,6 @@ function getUserDefaultPatrol() {
       loadPatrols();
     },
     success: function(data) {
-      console.log("User's default patrol:", data);
       if (data.status === "Success" && data.patrol_id) {
         defaultPatrolId = data.patrol_id;
       }
@@ -107,8 +114,6 @@ function loadPatrols() {
       $('#patrolSelector').html('<option value="">Error loading patrols</option>');
     },
     success: function(data) {
-      console.log("Patrols loaded:", data);
-
       if (data.status === "Success") {
         // Clear the dropdown
         $('#patrolSelector').empty();
@@ -124,7 +129,7 @@ function loadPatrols() {
             if (defaultPatrolId && patrol.id == defaultPatrolId) {
               selected = ' selected';
             }
-            $('#patrolSelector').append('<option value="' + patrol.id + '"' + selected + '>' + patrol.label + '</option>');
+            $('#patrolSelector').append('<option value="' + escapeHtml(patrol.id) + '"' + selected + '>' + escapeHtml(patrol.label) + '</option>');
           });
         }
 
@@ -149,7 +154,7 @@ function loadPatrols() {
           loadPatrolMembers(defaultPatrolId);
         }
       } else {
-        $('#patrolSelector').html('<option value="">Error: ' + (data.message || 'Unknown error') + '</option>');
+        $('#patrolSelector').html('<option value="">Error: ' + escapeHtml(data.message || 'Unknown error') + '</option>');
       }
     }
   });
@@ -175,8 +180,6 @@ function loadPatrolMembers(patrolId) {
       $('#membersTable').html('<p class="alert-box alert">Error loading patrol members. Please try again.</p>');
     },
     success: function(data) {
-      console.log("Patrol members loaded:", data);
-
       if (data.status === "Success") {
         if (data.members && data.members.length > 0) {
           // Build the table
@@ -188,8 +191,8 @@ function loadPatrolMembers(patrolId) {
           data.members.forEach(function(member) {
             tableHTML += '<tr>';
             var checked = member.was_present ? ' checked' : '';
-            tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + member.user_id + '"' + checked + ' /></td>';
-            tableHTML += '<td>' + member.first + ' ' + member.last + '</td>';
+            tableHTML += '<td style="text-align:center;"><input type="checkbox" class="attendance-checkbox" data-user-id="' + escapeHtml(member.user_id) + '"' + checked + ' /></td>';
+            tableHTML += '<td>' + escapeHtml(member.first) + ' ' + escapeHtml(member.last) + '</td>';
             tableHTML += '</tr>';
           });
 
@@ -202,8 +205,6 @@ function loadPatrolMembers(patrolId) {
             var userId = checkbox.data('user-id');
             var wasPresent = checkbox.is(':checked');
 
-            console.log("Attendance checkbox changed - User: " + userId + ", Present: " + wasPresent);
-
             // Update attendance via AJAX
             updateAttendance(userId, wasPresent, checkbox);
           });
@@ -211,7 +212,7 @@ function loadPatrolMembers(patrolId) {
           $('#membersTable').html('<p>No members found in this patrol.</p>');
         }
       } else {
-        $('#membersTable').html('<p class="alert-box alert">Error: ' + (data.message || 'Unknown error') + '</p>');
+        $('#membersTable').html('<p class="alert-box alert">Error: ' + escapeHtml(data.message || 'Unknown error') + '</p>');
       }
     }
   });
@@ -239,13 +240,11 @@ function updateAttendance(userId, wasPresent, checkbox) {
       checkbox.prop('checked', !wasPresent);
     },
     success: function(data) {
-      console.log("Attendance update response:", data);
-
       // Re-enable checkbox
       checkbox.prop('disabled', false);
 
       if (data.status === "Success") {
-        console.log("Attendance " + data.action + " successfully for user " + userId);
+        // Attendance updated successfully
         // Visual feedback could be added here (e.g., brief highlight)
       } else {
         alert("Error: " + (data.message || 'Failed to update attendance'));

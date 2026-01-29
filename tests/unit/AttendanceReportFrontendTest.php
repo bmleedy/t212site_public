@@ -597,8 +597,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/console\.log.*Events loaded/', $templateContents),
-    "Logs events loading"
+    preg_match('/console\.log.*event dates/', $templateContents),
+    "Logs event count"
 )) {
     $passed++;
 } else {
@@ -606,8 +606,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/console\.log.*Scouts loaded/', $templateContents),
-    "Logs scouts loading"
+    preg_match('/console\.log.*Loading scouts and events/', $templateContents),
+    "Logs scouts loading start"
 )) {
     $passed++;
 } else {
@@ -615,8 +615,8 @@ if (assert_true(
 }
 
 if (assert_true(
-    preg_match('/console\.log.*Attendance loaded/', $templateContents),
-    "Logs attendance loading"
+    preg_match('/console\.log.*Displayed.*scouts/', $templateContents),
+    "Logs display completion"
 )) {
     $passed++;
 } else {
