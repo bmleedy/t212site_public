@@ -621,6 +621,8 @@ class Login
     /**
      * Sets a random token into the database (that will verify the user when he/she comes back via the link
      * in the email) and sends the according email.
+     *
+     * Rate limited to 1 request per 5 minutes per user to prevent abuse.
      */
     public function setPasswordResetDatabaseTokenAndSendMail($user_name)
     {
@@ -630,15 +632,25 @@ class Login
             $this->errors[] = MESSAGE_USERNAME_EMPTY;
 
         } else {
-            // generate timestamp (to see when exactly the user (or an attacker) requested the password reset mail)
-            $temporary_timestamp = time();
-            // generate cryptographically secure random hash for email password reset verification (64 char string)
-            $user_password_reset_hash = bin2hex(random_bytes(32));
             // database query, getting all the info of the selected user
             $result_row = $this->getUserData($user_name);
 
             // if this user exists
             if (isset($result_row->user_id)) {
+
+                // Rate limit check: 1 reset email per 5 minutes per user
+                if (isset($result_row->user_password_reset_timestamp) && $result_row->user_password_reset_timestamp > 0) {
+                    $time_since_last_reset = time() - $result_row->user_password_reset_timestamp;
+                    if ($time_since_last_reset < 300) { // 5 minutes
+                        $this->messages[] = MESSAGE_PASSWORD_RESET_MAIL_SUCCESSFULLY_SENT; // Don't reveal rate limiting to attackers
+                        return true; // Silently succeed to prevent user enumeration
+                    }
+                }
+
+                // generate timestamp (to see when exactly the user (or an attacker) requested the password reset mail)
+                $temporary_timestamp = time();
+                // generate cryptographically secure random hash for email password reset verification (64 char string)
+                $user_password_reset_hash = bin2hex(random_bytes(32));
 
                 // database query:
                 $query_update = $this->db_connection->prepare('UPDATE users SET user_password_reset_hash = :user_password_reset_hash,

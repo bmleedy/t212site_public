@@ -164,6 +164,9 @@ function filter_sensitive_data($data) {
 /**
  * Send email alert when activity logging fails
  *
+ * Rate limited to 1 email per 5 minutes to prevent email flooding
+ * when there are persistent database issues.
+ *
  * @param string $failure_reason Why the logging failed
  * @param string $action The action that was being logged
  * @param array|null $values The values that were being logged
@@ -171,6 +174,22 @@ function filter_sensitive_data($data) {
  * @param string $source_file The file that attempted to log
  */
 function send_activity_log_failure_email($failure_reason, $action, $values, $db_error, $source_file) {
+    // Rate limit: only send 1 email per 5 minutes
+    $rate_limit_file = sys_get_temp_dir() . '/t212_activity_log_email_' . md5(__DIR__) . '.lock';
+    $rate_limit_seconds = 300; // 5 minutes
+
+    if (file_exists($rate_limit_file)) {
+        $last_sent = filemtime($rate_limit_file);
+        if (time() - $last_sent < $rate_limit_seconds) {
+            // Rate limited - log to error_log instead
+            error_log("Activity log failure (email rate limited): $failure_reason - $action - $db_error");
+            return;
+        }
+    }
+
+    // Update rate limit file
+    touch($rate_limit_file);
+
     // Load PHPMailer and config
     try {
         require_once(__DIR__ . '/../login/config/config.php');

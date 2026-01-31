@@ -41,7 +41,21 @@ function printRoster() {
   strURL = "EventRoster.php?id=" + event_id ;
   location.href = strURL;
 }
+
+// Flag to prevent duplicate AJAX submissions
+var registerInProgress = false;
+
 function register(strAction,strPayID) {
+  // Prevent duplicate submissions
+  if (registerInProgress) {
+    console.log("Registration already in progress, ignoring click");
+    return false;
+  }
+  registerInProgress = true;
+
+  // Disable all register buttons to prevent multiple clicks
+  $('[data-action="register"]').addClass('disabled').css('pointer-events', 'none');
+
   paid = 0;
   console.log("Register function called with action: " + strAction);
   // IF the registration is not a cancelation or payment.
@@ -112,6 +126,9 @@ function register(strAction,strPayID) {
     data: fieldData,
     error: function(errorThrown) {
       console.error(errorThrown);
+      // Reset flag and re-enable buttons on error
+      registerInProgress = false;
+      $('[data-action="register"]').removeClass('disabled').css('pointer-events', 'auto');
     },
     success: function(data){
       if (data["status"]=="Success") {
@@ -122,6 +139,10 @@ function register(strAction,strPayID) {
           console.warn("Email sent to parents.");}
         alert(data["message"]);
         location.reload();
+      } else {
+        // Reset flag and re-enable buttons if not successful
+        registerInProgress = false;
+        $('[data-action="register"]').removeClass('disabled').css('pointer-events', 'auto');
       }
     }
   })

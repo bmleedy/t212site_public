@@ -37,8 +37,8 @@ define("COOKIE_SECRET_KEY", $creds->getCookieSecretKey());
  * SMTP credentials are loaded from CREDENTIALS.json via the Credentials utility.
  * Set EMAIL_USE_SMTP to true to enable SMTP email delivery (recommended).
  */
-define("EMAIL_USE_SMTP", false);
-define("EMAIL_SMTP_HOST", "ssl://relay-hosting.secureserver.net");
+define("EMAIL_USE_SMTP", true);
+define("EMAIL_SMTP_HOST", "smtp.hostinger.com");
 define("EMAIL_SMTP_AUTH", true);
 define("EMAIL_SMTP_USERNAME", $creds->getSMTPUsername());
 define("EMAIL_SMTP_PASSWORD", $creds->getSMTPPassword());
