@@ -69,7 +69,7 @@ $mysqli->close();
     </div>
   </a>
 
-  <a href="https://www.facebook.com/Troop212" target="_blank">
+  <a href="https://www.facebook.com/Troop212" target="_blank" rel="noopener noreferrer">
     <div class="large-3 columns">
       <div class="panel">
         <p><i class="fi-social-facebook" style="font-size:20px"></i> Troop Photos</p>

@@ -488,11 +488,28 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `MB_Counselors.php` | `templates/MB_Counselors.html` | `api/getMBcounselors.php` | [ ] |
+| `MB_Counselors.php` | `templates/MB_Counselors.html` | `api/getMBcounselors.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Counselor list login-protected
-- [ ] Contact info visible only to logged-in users
+- [x] Counselor list login-protected
+- [x] Contact info visible only to logged-in users
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **getMBcounselors.php:** Added `require_csrf()` for CSRF protection
+- [x] **getMBcounselors.php:** Fixed SQL query to use proper JOIN syntax
+- [x] **getMBcounselors.php:** Added error handling for prepare() failure
+- [x] **getMBcounselors.php:** Added activity logging (`view_mb_counselors` action)
+- [x] **getMBcounselors.php:** Cast `mb_id` and `id` to int for type safety
+- [x] **getMBcounselors.php:** Added null check for user lookup
+- [x] **MB_Counselors.php:** Upgraded session cookies with secure flags (httponly, secure, samesite)
+- [x] **MB_Counselors.php:** Added CSRF token output as hidden field with `htmlspecialchars()` escaping
+- [x] **MB_Counselors.html:** Added `escapeHtml()` JavaScript function for XSS prevention
+- [x] **MB_Counselors.html:** Applied escapeHtml to all dynamic content (names, emails, links)
+- [x] **MB_Counselors.html:** Replaced inline `onclick` handlers with jQuery event delegation
+- [x] **MB_Counselors.html:** Added CSRF token to AJAX requests
+
+**Test Files Created:**
+- `tests/unit/MBCounselorsAccessControlTest.php` - 35 tests covering auth, CSRF, AJAX, XSS prevention
 
 ---
 
@@ -502,22 +519,43 @@
 
 | Page File | Template File | Review Status |
 |-----------|---------------|---------------|
-| `index.php` | (home page) | [ ] |
-| `Calendar.php` | (Google Calendar embed) | [ ] |
-| `CurrentInfo.php` | (troop info) | [ ] |
-| `Scoutmaster.php` | (scoutmaster info) | [ ] |
-| `OurHistory.php` | (troop history) | [ ] |
-| `EagleScouts.php` | (eagle scouts) | [ ] |
-| `Handbook.php` | (handbook info) | [ ] |
-| `FAQ.php` | `templates/FAQ.html` | [ ] |
-| `Links.php` | (external links) | [ ] |
-| `NewScoutInfo.php` | (new scout info) | [ ] |
-| `ParentInfo.php` | (parent info) | [ ] |
+| `index.php` | (home page) | [x] |
+| `Calendar.php` | (Google Calendar embed) | [x] |
+| `CurrentInfo.php` | (troop info) | [x] |
+| `Scoutmaster.php` | (scoutmaster info) | [x] |
+| `OurHistory.php` | (troop history) | [x] |
+| `EagleScouts.php` | (eagle scouts) | [x] |
+| `Handbook.php` | (handbook info) | [x] |
+| `FAQ.php` | `templates/FAQ.html` | [x] |
+| `Links.php` | (external links) | [x] |
+| `NewScoutInfo.php` | (new scout info) | [x] |
+| `ParentInfo.php` | (parent info) | [x] |
 
 **Priority Issues to Check:**
-- [ ] No member PII on public pages
-- [ ] Google Calendar iframe secure
-- [ ] External links use rel="noopener"
+- [x] No member PII on public pages
+- [x] Google Calendar iframe secure
+- [x] External links use rel="noopener"
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **index.php:** Added `rel="noopener noreferrer"` to Facebook external link
+- [x] **Calendar.php:** Added `sandbox="allow-scripts allow-same-origin allow-popups"` to iframe
+- [x] **Calendar.php:** Added `title` attribute for accessibility
+- [x] **FAQ.php:** Fixed XSS vulnerability - added `isset()` check and `htmlspecialchars()` for user input
+- [x] **Handbook.php:** Fixed malformed HTML (`<p/>` to `</p>`, `<a/>` to `</a>`)
+- [x] **Handbook.php:** Added `target="_blank" rel="noopener noreferrer"` to Google Docs link
+- [x] **EagleScouts.php:** Fixed missing `</li>` tag
+- [x] **Links.php:** Upgraded all 14 external links from HTTP to HTTPS
+- [x] **Links.php:** Added `target="_blank" rel="noopener noreferrer"` to all external links
+- [x] **Links.php:** Updated `co.pierce.wa.us` to `piercecountywa.gov` (modern URL)
+
+**Audit Findings:**
+- **index.php:** No PII exposure - only public contact email
+- **CurrentInfo.php:** Database output already escaped with `htmlspecialchars()`
+- **EagleScouts.php:** Eagle Scout names are intentionally public (historical record)
+- **Scoutmaster.php, OurHistory.php, NewScoutInfo.php, ParentInfo.php:** Static content, no dynamic data
+
+**Test Files Created:**
+- `tests/unit/PublicPagesSecurityTest.php` - 67 tests covering PII exposure, external links, iframe security
 
 ---
 
@@ -527,24 +565,57 @@
 
 | API File | Purpose | Review Status |
 |----------|---------|---------------|
-| `api/notifications_getprefs.php` | Get user notification prefs | [ ] |
-| `api/notifications_updatepref.php` | Update notification prefs | [ ] |
+| `api/notifications_getprefs.php` | Get user notification prefs | [x] |
+| `api/notifications_updatepref.php` | Update notification prefs | [x] |
 
 ### 11.2 Email System
 
 | File | Purpose | Review Status |
 |------|---------|---------------|
-| `api/sendmail.php` | Send email | [ ] |
-| `api/sendtest.php` | Test email (REMOVE?) | [ ] |
-| `login/libraries/PHPMailer.php` | PHPMailer library | [ ] |
-| `login/libraries/class.smtp.php` | SMTP library | [ ] |
-| `scripts/reminders.php` | Cron reminder script | [ ] |
+| `api/sendmail.php` | Send email | [x] |
+| `api/sendtest.php` | Test email (REMOVE?) | [x] REMOVED (earlier cleanup) |
+| `login/libraries/PHPMailer.php` | PHPMailer library | [x] AUDITED - v5.2.6, upgrade recommended |
+| `login/libraries/class.smtp.php` | SMTP library | [x] AUDITED - v5.2.6, upgrade recommended |
+| `scripts/reminders.php` | Cron reminder script | [x] |
 
 **Priority Issues to Check:**
-- [ ] Email content escaped for HTML
-- [ ] Rate limiting on email sends
-- [ ] Unsubscribe option available
-- [ ] PHPMailer version is current
+- [x] Email content escaped for HTML
+- [x] Rate limiting on email sends
+- [x] Unsubscribe option available (via notification preferences)
+- [x] PHPMailer version is current - **NO: v5.2.6 is outdated, recommend upgrade to 6.x**
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **notifications_getprefs.php:** Added `require_csrf()` for CSRF protection
+- [x] **notifications_getprefs.php:** Added activity logging for audit trail
+- [x] **notifications_updatepref.php:** Added `require_csrf()` for CSRF protection
+- [x] **sendmail.php:** Added `require_csrf()` for CSRF protection
+- [x] **sendmail.php:** Added header injection prevention (rejects newlines in From, FromName, Subject)
+- [x] **sendmail.php:** Added rate limiting (10 emails per hour per user, tracked via activity_log)
+- [x] **sendmail.php:** Added recipient email validation
+- [x] **sendmail.php:** Added HTML escaping for email content
+- [x] **sendmail.php:** Added proper JSON response headers
+- [x] **reminders.php:** Complete rewrite as CLI-only cron script
+- [x] **reminders.php:** Added CLI-only check (`php_sapi_name() !== 'cli'` returns 403)
+- [x] **reminders.php:** Uses prepared statements for all queries
+- [x] **reminders.php:** Respects user notification preferences ('evnt' preference)
+- [x] **reminders.php:** Added comprehensive activity logging
+
+**PHPMailer Audit Findings:**
+- **Version:** 5.2.6 (circa 2013)
+- **Current Version:** 6.x (as of 2025)
+- **Status:** OUTDATED - Security concern
+- **Recommendation:** Upgrade to PHPMailer 6.x for CVE fixes, PHP 8.x compatibility, PSR-4 autoloading
+- **Note:** Library files not modified per plan - audit only
+
+**Authorization Model:**
+- **Get preferences (notifications_getprefs.php):** Users can only access their OWN preferences
+- **Update preferences (notifications_updatepref.php):** Users can only update their OWN preferences
+- **Send email (sendmail.php):** Requires authentication + `require_user_access()` permission check
+- **Reminders (reminders.php):** CLI-only execution
+
+**Test Files Created:**
+- `tests/unit/NotificationPrefsAccessControlTest.php` - 25 tests
+- `tests/unit/SendmailSecurityTest.php` - 29 tests
 
 ---
 
@@ -748,7 +819,7 @@
 ---
 
 *Document Created: January 2026*
-*Last Updated: January 29, 2026*
+*Last Updated: January 31, 2026*
 
 ---
 

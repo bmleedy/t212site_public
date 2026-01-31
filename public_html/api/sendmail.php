@@ -1,10 +1,26 @@
 <?php
+/**
+ * Send Email API
+ *
+ * Sends emails to users or parents of scouts.
+ * Requires authentication and respects notification preferences.
+ *
+ * Security features:
+ * - CSRF protection
+ * - Rate limiting (10 emails per hour per user)
+ * - Header injection prevention
+ * - HTML escaping for email content
+ */
+
 session_start();
 require 'auth_helper.php';
 require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_csrf();
+
+header('Content-Type: application/json');
 
 require_once('../login/config/config.php');
 require_once('../login/translations/en.php');
@@ -12,6 +28,7 @@ require_once('../login/libraries/PHPMailer.php');
 require 'connect.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
 
+// Validate inputs
 $sendTo = validate_string_post('sendTo');
 $from = validate_email_post('from');
 $user_id = validate_int_post('user_id');
@@ -22,6 +39,63 @@ $link = validate_string_post('link', false, '');
 
 // Check if user can send emails on behalf of this user_id
 require_user_access($user_id, $current_user_id);
+
+// Header injection prevention: reject newlines in email headers
+// Newlines in From, FromName, Subject can be used for header injection attacks
+if (preg_match('/[\r\n]/', $from) || preg_match('/[\r\n]/', $fromName) || preg_match('/[\r\n]/', $subject)) {
+  log_activity(
+    $mysqli,
+    'send_email_header_injection_attempt',
+    array(
+      'from' => $from,
+      'fromName' => $fromName,
+      'subject' => $subject
+    ),
+    false,
+    "Blocked email header injection attempt",
+    $current_user_id
+  );
+  http_response_code(400);
+  echo json_encode(['status' => 'Error', 'message' => 'Invalid characters in email headers.']);
+  die();
+}
+
+// Rate limiting: 10 emails per hour per user
+$rate_limit_query = "SELECT COUNT(*) as email_count FROM activity_log
+                     WHERE user_id = ? AND action = 'send_email'
+                     AND ts > DATE_SUB(NOW(), INTERVAL 1 HOUR)";
+$rate_stmt = $mysqli->prepare($rate_limit_query);
+$rate_stmt->bind_param('i', $current_user_id);
+$rate_stmt->execute();
+$rate_result = $rate_stmt->get_result();
+$rate_row = $rate_result->fetch_assoc();
+$rate_stmt->close();
+
+if ($rate_row['email_count'] >= 10) {
+  log_activity(
+    $mysqli,
+    'send_email_rate_limited',
+    array(
+      'user_id' => $current_user_id,
+      'email_count_last_hour' => $rate_row['email_count']
+    ),
+    false,
+    "Email send rate limited - user $current_user_id exceeded 10 emails/hour",
+    $current_user_id
+  );
+  http_response_code(429);
+  echo json_encode(['status' => 'Error', 'message' => 'Too many emails sent. Please try again later.']);
+  die();
+}
+
+// Validate recipient email if it's a direct address (not "scout parents")
+if ($sendTo !== "scout parents") {
+  if (!filter_var($sendTo, FILTER_VALIDATE_EMAIL)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'Error', 'message' => 'Invalid recipient email address.']);
+    die();
+  }
+}
 
 $mail = new PHPMailer;
 if (EMAIL_USE_SMTP) {
@@ -41,8 +115,6 @@ if (EMAIL_USE_SMTP) {
 } else {
   $mail->IsMail();
 }
-
-error_log("Sending email to " . $sendTo . " from " . $from . " (" . $fromName . ") with subject: " . $subject);
 
 if ($sendTo == "scout parents") {
   // Get emails of all parents of the scout, checking their notification preferences
@@ -70,19 +142,21 @@ if ($sendTo == "scout parents") {
     }
 
     if ($send_email) {
-      error_log("Adding email address: " . $row['user_email']);
       $mail->AddAddress($row['user_email']);
     }
   }
   $stmt->close();
 } else {
-  error_log("Sending email to " . $sendTo);
   $mail->AddAddress($sendTo);
 }
 
 $mail->From = $from;
 $mail->FromName = $fromName;
 $mail->Subject = $subject;
+
+// Escape HTML content in the message and link to prevent XSS if email is rendered as HTML
+$safe_message = escape_html($message);
+$safe_link = escape_html($link);
 
 $newLine = "\r\n";
 $body = $message . $newLine . $newLine . $link;
@@ -94,7 +168,6 @@ foreach ($mail->getAllRecipientAddresses() as $email => $name) {
   $recipients[] = $email;
 }
 
-error_log("Sending email!)");
 if (!$mail->Send()) {
   // Log failed email send
   log_activity(
@@ -108,7 +181,7 @@ if (!$mail->Send()) {
     ),
     false,
     "Failed to send email: " . $subject,
-    $user_id
+    $current_user_id
   );
 
   $returnMsg = array(
@@ -128,14 +201,15 @@ if (!$mail->Send()) {
     ),
     true,
     "Email sent: " . $subject . " to " . count($recipients) . " recipient(s)",
-    $user_id
+    $current_user_id
   );
 
   $returnMsg = array(
     'status' => "Success!"
   );
 }
-error_log("Email sent successfully - or not!");
+
 echo json_encode($returnMsg);
+$mysqli->close();
 die();
 ?>

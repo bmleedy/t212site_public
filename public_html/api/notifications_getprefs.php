@@ -12,9 +12,11 @@ require 'auth_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
+require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Get user's notification preferences from the users table
 $query = "SELECT notif_preferences FROM users WHERE user_id = ?";
@@ -67,9 +69,19 @@ foreach ($available_types as $type => $info) {
 }
 
 echo json_encode([
-    'status' => 'Success',
-    'preferences' => $response_prefs
+  'status' => 'Success',
+  'preferences' => $response_prefs
 ]);
+
+// Log activity for audit trail
+log_activity(
+  $mysqli,
+  'notification_prefs_retrieved',
+  array('user_id' => $current_user_id, 'pref_count' => count($response_prefs)),
+  true,
+  "Retrieved notification preferences for user $current_user_id",
+  $current_user_id
+);
 
 $mysqli->close();
 ?>

@@ -13,6 +13,7 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';

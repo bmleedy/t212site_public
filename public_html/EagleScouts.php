@@ -174,8 +174,8 @@
 <li> Zachary B. Saxon  (June 11, 2024)</li>
 <li> Ryan A. Dietrich  (June 18, 2024)</li>
 <li> Nathaniel J. Dietrich  (July 9, 2024)</li>
-<li> Boen Liu (September 23, 2025)
-<li> Landon McClurg (September 23, 2025)</li>
+<li>Boen Liu (September 23, 2025)</li>
+<li>Landon McClurg (September 23, 2025)</li>
     </ol>
     </div>
   </div>
