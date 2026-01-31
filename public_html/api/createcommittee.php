@@ -16,6 +16,7 @@ $current_user_id = require_authentication();
 
 // Check if user has super admin access
 require_permission(['sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -91,10 +92,7 @@ if ($insertStmt->execute()) {
     $current_user_id
   );
 } else {
-  echo json_encode([
-    'status' => 'Error',
-    'message' => 'Database error: ' . $insertStmt->error
-  ]);
+  // Log the actual error for debugging
   log_activity(
     $mysqli,
     'create_committee',
@@ -103,6 +101,10 @@ if ($insertStmt->execute()) {
     "Failed to create committee role: " . $insertStmt->error,
     $current_user_id
   );
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Failed to create committee role. Please try again or contact the webmaster.'
+  ]);
 }
 
 $insertStmt->close();

@@ -16,6 +16,7 @@ $current_user_id = require_authentication();
 
 // Check if user has super admin access
 require_permission(['sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -82,10 +83,7 @@ if ($deleteStmt->execute()) {
     );
   }
 } else {
-  echo json_encode([
-    'status' => 'Error',
-    'message' => 'Database error: ' . $deleteStmt->error
-  ]);
+  // Log the actual error for debugging
   log_activity(
     $mysqli,
     'delete_committee',
@@ -94,6 +92,10 @@ if ($deleteStmt->execute()) {
     "Failed to delete committee role (ID: $role_id): " . $deleteStmt->error,
     $current_user_id
   );
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Failed to delete committee role. Please try again or contact the webmaster.'
+  ]);
 }
 
 $deleteStmt->close();

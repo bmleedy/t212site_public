@@ -454,12 +454,31 @@
 
 | Page File | Template File | API Files | Review Status |
 |-----------|---------------|-----------|---------------|
-| `ManageCommittee.php` | `templates/ManageCommittee.html` | `api/getallcommittee.php`, `api/createcommittee.php`, `api/updatecommittee.php`, `api/deletecommittee.php` | [ ] |
+| `ManageCommittee.php` | `templates/ManageCommittee.html` | `api/getallcommittee.php`, `api/createcommittee.php`, `api/updatecommittee.php`, `api/deletecommittee.php` | [x] |
 
 **Priority Issues to Check:**
-- [ ] Committee management restricted to wm/sa
-- [ ] Sort order enforced
-- [ ] No orphaned committee entries
+- [x] Committee management restricted to wm/sa (actually sa-only, more restrictive)
+- [x] Sort order enforced (UNIQUE constraint on sort_order column)
+- [x] No orphaned committee entries (application-level check + FK migration created)
+
+**Security Fixes Applied (Jan 2026):**
+- [x] **ManageCommittee.php:** Already had sa permission check before displaying template
+- [x] **ManageCommittee.html:** Already had escapeHtml() XSS prevention, client-side validation
+- [x] **getallcommittee.php:** Already had require_authentication(), require_permission(['sa']), require_ajax()
+- [x] **createcommittee.php:** Added require_csrf(), sanitized error messages (no $mysqli->error exposure)
+- [x] **updatecommittee.php:** Added require_csrf(), sanitized error messages (no $mysqli->error exposure)
+- [x] **deletecommittee.php:** Added require_csrf(), sanitized error messages (no $mysqli->error exposure)
+- [x] All write APIs use prepared statements (no SQL injection)
+- [x] All write APIs have comprehensive activity logging (success and failure cases)
+- [x] FK migration created: `db_copy/migrations/add_committee_user_fk.sql`
+
+**Authorization Model:**
+- **All committee operations:** Super Admin (sa) only - more restrictive than wm/sa
+
+**Test Files Created:**
+- `tests/unit/CommitteeApiAuthorizationTest.php` - 67 tests
+- `tests/unit/CommitteeApiInputValidationTest.php` - 78 tests
+- `tests/unit/CommitteeActivityLoggingTest.php` - 20 tests
 
 ---
 

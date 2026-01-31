@@ -16,6 +16,7 @@ $current_user_id = require_authentication();
 
 // Check if user has super admin access
 require_permission(['sa']);
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -101,10 +102,7 @@ if ($updateStmt->execute()) {
     );
   }
 } else {
-  echo json_encode([
-    'status' => 'Error',
-    'message' => 'Database error: ' . $updateStmt->error
-  ]);
+  // Log the actual error for debugging
   log_activity(
     $mysqli,
     'update_committee',
@@ -113,6 +111,10 @@ if ($updateStmt->execute()) {
     "Failed to update committee role (ID: $role_id): " . $updateStmt->error,
     $current_user_id
   );
+  echo json_encode([
+    'status' => 'Error',
+    'message' => 'Failed to update committee role. Please try again or contact the webmaster.'
+  ]);
 }
 
 $updateStmt->close();
