@@ -11,16 +11,30 @@ function toggleDiv(divName) {
   $('#'+divName).toggle();
 }
 
+// Flag to prevent duplicate AJAX submissions
+var registerInProgress = false;
+
 function register(strAction, strUserID, strUserType, strUserName) {
+  // Prevent duplicate submissions
+  if (registerInProgress) {
+    console.log("Registration already in progress, ignoring click");
+    return false;
+  }
+
   if (!confirm("Please click ok if you are " + strUserName)) {
-    return false;  
+    return false;
   } else if (strAction == "cancel") {
     if (!confirm(strUserName + "\n\n Do you want to be removed from attending " + outing_name + "?\n\n Click OK if you want to be removed, CANCEL if you still wish to go.")) {
       return false;
     }
   } else if (!confirm(strUserName + "\n\n Do you want to attend the " + outing_name + "?\n\n Click OK if you want to sign up, CANCEL if you do not.")) {
-    return false;  
+    return false;
   }
+
+  // Set flag and disable buttons after user confirms
+  registerInProgress = true;
+  $('[onclick*="register"]').addClass('disabled').css('pointer-events', 'none');
+
   if (strAction != "cancel") {
     if (strUserType == "Scout") {
       seat_belts = "0";
@@ -28,8 +42,11 @@ function register(strAction, strUserID, strUserType, strUserName) {
     } else {
       paid = "1";
       var seat_belts = prompt("If you can drive, please enter the total number of seat belts (including driver's). Enter '0' if you cannot drive.", "0");
-      if (seat_belts == null) { 
-        return false; 
+      if (seat_belts == null) {
+        // Reset on cancel
+        registerInProgress = false;
+        $('[onclick*="register"]').removeClass('disabled').css('pointer-events', 'auto');
+        return false;
       }
     }
   }
@@ -49,6 +66,9 @@ function register(strAction, strUserID, strUserType, strUserName) {
     data: fieldData,
     error: function (XMLHttpRequest, textStatus, errorThrown) {
       console.log(errorThrown);
+      // Reset flag and re-enable buttons on error
+      registerInProgress = false;
+      $('[onclick*="register"]').removeClass('disabled').css('pointer-events', 'auto');
     },
     success: function (data) {
       if (data["status"] == "Success") {
@@ -57,7 +77,11 @@ function register(strAction, strUserID, strUserType, strUserName) {
           sendParentsEmail(strUserID, strUserName);
         }
         location.reload();
-        }
+      } else {
+        // Reset flag and re-enable buttons if not successful
+        registerInProgress = false;
+        $('[onclick*="register"]').removeClass('disabled').css('pointer-events', 'auto');
+      }
     }
   })
 }

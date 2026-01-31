@@ -209,11 +209,33 @@ $statement->close();
 /**
  * Send cancellation notification to Scout in Charge and Adult in Charge
  *
+ * Includes idempotency check to prevent duplicate emails within 5 minutes.
+ *
  * @param int $event_id The event ID
  * @param int $user_id The user who cancelled
  * @param mysqli $mysqli Database connection
  */
 function sendCancellationNotification($event_id, $user_id, $mysqli) {
+  // Idempotency check: prevent duplicate cancellation emails within 5 minutes
+  $idempotency_query = "SELECT id FROM activity_log
+                        WHERE action = 'send_cancellation_email'
+                        AND JSON_EXTRACT(values_json, '$.event_id') = ?
+                        AND JSON_EXTRACT(values_json, '$.cancelled_by_user_id') = ?
+                        AND timestamp > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                        LIMIT 1";
+  $idempotency_stmt = $mysqli->prepare($idempotency_query);
+  if ($idempotency_stmt) {
+    $idempotency_stmt->bind_param('ss', $event_id, $user_id);
+    $idempotency_stmt->execute();
+    $idempotency_result = $idempotency_stmt->get_result();
+    if ($idempotency_result->num_rows > 0) {
+      error_log("Cancellation email already sent for event $event_id user $user_id within 5 minutes - skipping duplicate");
+      $idempotency_stmt->close();
+      return;
+    }
+    $idempotency_stmt->close();
+  }
+
   // Get event details and SIC/AIC IDs
   $query = "SELECT name, sic_id, aic_id FROM events WHERE id = ?";
   $statement = $mysqli->prepare($query);
