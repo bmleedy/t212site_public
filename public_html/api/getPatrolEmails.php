@@ -138,7 +138,8 @@ while ($row = $result->fetch_assoc()) {
 }
 $stmt->close();
 
-// Get parent/adult emails and user_ids for these families
+// Get parent emails and user_ids for these families,
+// not alumni and scouts in the same family.
 $adult_user_ids = [];
 if (!empty($family_ids)) {
     $placeholders = implode(',', array_fill(0, count($family_ids), '?'));
@@ -147,7 +148,7 @@ if (!empty($family_ids)) {
     $query = "SELECT DISTINCT user_id, user_email
               FROM users
               WHERE family_id IN ($placeholders)
-              AND user_type IN ('Mom', 'Dad', 'Other')
+              AND user_type IN ('Dad', 'Mom')
               AND user_active = 1";
 
     $stmt = $mysqli->prepare($query);

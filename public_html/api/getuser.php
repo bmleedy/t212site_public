@@ -109,7 +109,7 @@ if ($edit && $wm) {
       $mailTo = $mailTo . $sep . escape_html($row3['user_email']);
     }
     $stmt->close();
-    $mailTo = $mailTo . '?Subject=Troop 212 Summer Camp Merit Badge Follow-up">Email Scout & Parents</a>';
+    $mailTo = $mailTo . '?Subject=Troop 212">Email Scout & Family</a>';
   }
 
   $varFirst = '<p>'.escape_html($user_first).'</p>';

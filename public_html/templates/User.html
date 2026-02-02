@@ -51,10 +51,7 @@
     }
 
     // Debug: Log what we're sending
-    console.log("Notification preferences being sent:", notif_prefs);
-    console.log("First name being sent:", userFirstEl.val());
-    console.log("Last name being sent:", userLastEl.val());
-    console.log("Email being sent:", userEmailEl.val());
+    // console.log("Notification preferences being sent:", notif_prefs);
 
     var fieldData = {
       "user_type": $('#user_type').val(),
@@ -357,7 +354,7 @@
           loadEVTable("startdate", "2", "desc");    //2=Service Projects
           loadEVTable("startdate", "3", "desc");    //3=Work Parties
         }
-        //console.log(data);
+
         user_type = data['user_type'];
         setButtons(varEdit, showEdit, user_type, webMaster);
         $('#scoutData').append(data['scoutData']);
