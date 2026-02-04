@@ -1,7 +1,30 @@
 <?php
+/**
+ * create_thumbnails.php - Profile Picture Thumbnail Generator
+ *
+ * CLI utility script that generates thumbnail images for profile pictures.
+ * Creates 75px wide thumbnails maintaining aspect ratio.
+ *
+ * @security CLI-only execution - web access blocked
+ * @security Only processes files in the script's directory (no path traversal)
+ * @security Validates image types using exif_imagetype()
+ *
+ * Usage: php create_thumbnails.php [--force]
+ *   --force  Recreate thumbnails even if they already exist
+ */
+
+// CLI-only check - block web access
+if (php_sapi_name() !== 'cli') {
+    http_response_code(403);
+    echo 'Access denied. This script can only be run from the command line.';
+    exit(1);
+}
+
+// Parse command line arguments
+$FORCE_CREATE = in_array('--force', $argv ?? [], true);
+
 // Link image type to correct image loader and saver
-// - makes it easier to add additional types later on
-// - makes the function easier to read
+// Makes it easier to add additional types later on
 const IMAGE_HANDLERS = [
     IMAGETYPE_JPEG => [
         'load' => 'imagecreatefromjpeg',
@@ -15,92 +38,99 @@ const IMAGE_HANDLERS = [
     ],
     IMAGETYPE_GIF => [
         'load' => 'imagecreatefromgif',
-        'save' => 'imagegif'
+        'save' => 'imagegif',
+        'quality' => null // GIF doesn't use quality parameter
     ]
 ];
 
 /**
- * @param $src - a valid file location
- * @param $dest - a valid file target
- * @param $targetWidth - desired output width
- * @param $targetHeight - desired output height or null
+ * Create a thumbnail from a source image
+ *
+ * @param string $src Source file path (validated by exif_imagetype)
+ * @param string $dest Destination file path
+ * @param int $targetWidth Desired output width in pixels
+ * @param int|null $targetHeight Desired output height (null = maintain aspect ratio)
+ * @return bool True on success, false on failure
  */
-function createThumbnail($src, $dest, $targetWidth, $targetHeight = null) {
-
-    // 1. Load the image from the given $src
-    // - see if the file actually exists
-    // - check if it's of a valid image type
-    // - load the image resource
-
-    // get the type of the image
-    // we need the type to determine the correct loader
-    $type = exif_imagetype($src);
-
-    // if no valid type or no handler found -> exit
-    if (!$type || !IMAGE_HANDLERS[$type]) {
-        return null;
+function createThumbnail(string $src, string $dest, int $targetWidth, ?int $targetHeight = null): bool {
+    // Validate source file exists and is readable
+    if (!is_file($src) || !is_readable($src)) {
+        echo "Error: Cannot read source file: {$src}\n";
+        return false;
     }
 
-    // load the image with the correct loader
-    $image = call_user_func(IMAGE_HANDLERS[$type]['load'], $src);
+    // Get the type of the image using EXIF data (more secure than extension)
+    $type = @exif_imagetype($src);
 
-    // no image found at supplied location -> exit
-    if (!$image) {
-        return null;
+    // Validate image type
+    if ($type === false || !isset(IMAGE_HANDLERS[$type])) {
+        echo "Error: Invalid or unsupported image type: {$src}\n";
+        return false;
     }
 
+    // Load the image with the correct loader
+    $handler = IMAGE_HANDLERS[$type];
+    $image = @call_user_func($handler['load'], $src);
 
-    // 2. Create a thumbnail and resize the loaded $image
-    // - get the image dimensions
-    // - define the output size appropriately
-    // - create a thumbnail based on that size
-    // - set alpha transparency for GIFs and PNGs
-    // - draw the final thumbnail
+    if ($image === false) {
+        echo "Error: Failed to load image: {$src}\n";
+        return false;
+    }
 
-    // get original image width and height
+    // Get original image dimensions
     $width = imagesx($image);
     $height = imagesy($image);
 
-    // maintain aspect ratio when no height set
-    if ($targetHeight == null) {
+    if ($width === 0 || $height === 0) {
+        echo "Error: Invalid image dimensions: {$src}\n";
+        imagedestroy($image);
+        return false;
+    }
 
-        // get width to height ratio
+    // Maintain aspect ratio when no height set
+    if ($targetHeight === null) {
         $ratio = $width / $height;
 
-        // if is portrait
-        // use ratio to scale height to fit in square
         if ($width > $height) {
-            $targetHeight = floor($targetWidth / $ratio);
-        }
-        // if is landscape
-        // use ratio to scale width to fit in square
-        else {
+            // Landscape orientation
+            $targetHeight = (int)floor($targetWidth / $ratio);
+        } else {
+            // Portrait or square orientation
             $targetHeight = $targetWidth;
-            $targetWidth = floor($targetWidth * $ratio);
+            $targetWidth = (int)floor($targetWidth * $ratio);
         }
     }
 
-    // create duplicate image based on calculated target size
+    // Ensure minimum dimensions
+    $targetWidth = max(1, $targetWidth);
+    $targetHeight = max(1, $targetHeight);
+
+    // Create duplicate image based on calculated target size
     $thumbnail = imagecreatetruecolor($targetWidth, $targetHeight);
 
-    // set transparency options for GIFs and PNGs
-    if ($type == IMAGETYPE_GIF || $type == IMAGETYPE_PNG) {
+    if ($thumbnail === false) {
+        echo "Error: Failed to create thumbnail canvas\n";
+        imagedestroy($image);
+        return false;
+    }
 
-        // make image transparent
+    // Set transparency options for GIFs and PNGs
+    if ($type === IMAGETYPE_GIF || $type === IMAGETYPE_PNG) {
+        // Make image transparent
         imagecolortransparent(
             $thumbnail,
             imagecolorallocate($thumbnail, 0, 0, 0)
         );
 
-        // additional settings for PNGs
-        if ($type == IMAGETYPE_PNG) {
+        // Additional settings for PNGs
+        if ($type === IMAGETYPE_PNG) {
             imagealphablending($thumbnail, false);
             imagesavealpha($thumbnail, true);
         }
     }
 
-    // copy entire source image to duplicate image and resize
-    imagecopyresampled(
+    // Copy and resize source image to thumbnail
+    $success = imagecopyresampled(
         $thumbnail,
         $image,
         0, 0, 0, 0,
@@ -108,70 +138,116 @@ function createThumbnail($src, $dest, $targetWidth, $targetHeight = null) {
         $width, $height
     );
 
+    if (!$success) {
+        echo "Error: Failed to resample image\n";
+        imagedestroy($image);
+        imagedestroy($thumbnail);
+        return false;
+    }
 
-    // 3. Save the $thumbnail to disk
-    // - call the correct save method
-    // - set the correct quality level
+    // Save the thumbnail to disk
+    if ($handler['quality'] !== null) {
+        $result = call_user_func($handler['save'], $thumbnail, $dest, $handler['quality']);
+    } else {
+        // GIF doesn't use quality parameter
+        $result = call_user_func($handler['save'], $thumbnail, $dest);
+    }
 
-    // save the duplicate version of the image to disk
-    return call_user_func(
-        IMAGE_HANDLERS[$type]['save'],
-        $thumbnail,
-        $dest,
-        IMAGE_HANDLERS[$type]['quality']
-    );
+    // Clean up resources
+    imagedestroy($image);
+    imagedestroy($thumbnail);
+
+    return (bool)$result;
 }
 
-
-// Use the thumbnail function on each file to create thumbnails that are missing.
-
-// this file acts on the same directory as itself.
-
-
-if (is_dir('/home/u321706752/public_html/git_site/public_html/profile_pics')) {
-    // if this is the test website, the test directory doesn't work
-    echo "Using test directory for thumbnails.\n";
-    $directory = '/home/u321706752/public_html/git_site/public_html/profile_pics';
-} else {
-    // if not found, use the current directory
-    echo "Using current directory for thumbnails.\n";
-    $directory = __DIR__;
+/**
+ * Validate that a filename is safe (no path traversal)
+ *
+ * @param string $filename The filename to validate
+ * @return bool True if safe, false if potentially malicious
+ */
+function isValidFilename(string $filename): bool {
+    // Reject any path components
+    if (strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
+        return false;
+    }
+    // Reject parent directory references
+    if (strpos($filename, '..') !== false) {
+        return false;
+    }
+    // Reject null bytes
+    if (strpos($filename, "\0") !== false) {
+        return false;
+    }
+    return true;
 }
+
+// Main script execution
+echo "=== Profile Picture Thumbnail Generator ===\n";
+echo "Mode: " . ($FORCE_CREATE ? "Force recreate all" : "Create missing only") . "\n";
+
+// Use the script's directory (no external input for path)
 $directory = __DIR__;
+echo "Directory: {$directory}\n\n";
 
-$FORCE_CREATE = false; // set to true to force creation of thumbnails even if they already exist
+// Validate directory exists and is readable
+if (!is_dir($directory) || !is_readable($directory)) {
+    echo "Error: Cannot read directory\n";
+    exit(1);
+}
 
-// fetch the .jpeg files in the directory
-// this will return an array of file paths
+// Find source images (only .jpeg files)
 $items = glob($directory . '/*.jpeg');
-$existing_thumbnails = glob($directory . '/*.jpg');
 
-echo "running create_thumbnails.php\n";
-echo "Found " . count($items) . " files to process.\n";
+if ($items === false) {
+    echo "Error: Failed to list files\n";
+    exit(1);
+}
 
-// iterate over each file
+echo "Found " . count($items) . " source images to process.\n\n";
+
+$created = 0;
+$skipped = 0;
+$failed = 0;
+
+// Process each file
 foreach ($items as $item) {
-    echo "Processing file: {$item}\n";
-    // extract the filename without the path
-    $path_array = explode('/', $item);
-    $filename = array_pop($path_array);
-    $file_base = explode('.', $filename)[0];
-    
-    $thumb_name = implode("/", $path_array) ."/". $file_base. '_thumbnail.jpg';
-    echo "Processing thumbnail: {$thumb_name}\n";
+    // Extract just the filename
+    $filename = basename($item);
 
-    // check whether a thumbnail already exists
-    if (is_file($thumb_name) && !$FORCE_CREATE) {
-        echo "Thumbnail exists: {$thumb_name}\n";
+    // Validate filename safety
+    if (!isValidFilename($filename)) {
+        echo "[SKIP] Invalid filename: {$filename}\n";
+        $failed++;
+        continue;
     }
-    // if not, create a thumbnail
-    else {
-        $result = createThumbnail($item, $thumb_name, 75);
-        if ($result) {
-            echo "Created thumbnail: {$thumb_name}\n";
-        } else {
-            echo "Failed to create thumbnail for: {$item}\n";
-        }
+
+    // Generate thumbnail filename
+    $fileBase = pathinfo($filename, PATHINFO_FILENAME);
+    $thumbName = $directory . '/' . $fileBase . '_thumbnail.jpg';
+
+    // Check whether a thumbnail already exists
+    if (is_file($thumbName) && !$FORCE_CREATE) {
+        echo "[SKIP] Thumbnail exists: {$fileBase}_thumbnail.jpg\n";
+        $skipped++;
+        continue;
+    }
+
+    // Create the thumbnail
+    echo "[PROC] Creating thumbnail for: {$filename}... ";
+
+    if (createThumbnail($item, $thumbName, 75)) {
+        echo "OK\n";
+        $created++;
+    } else {
+        echo "FAILED\n";
+        $failed++;
     }
 }
 
+echo "\n=== Summary ===\n";
+echo "Created: {$created}\n";
+echo "Skipped: {$skipped}\n";
+echo "Failed:  {$failed}\n";
+
+exit($failed > 0 ? 1 : 0);

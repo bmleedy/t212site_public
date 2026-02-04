@@ -11,7 +11,12 @@
       "Bash(curl:*)",
       "Bash(done)",
       "Bash(grep:*)",
-      "Bash(node --check:*)"
+      "Bash(node --check:*)",
+      "Bash(ls:*)",
+      "Bash(for:*)",
+      "Bash(do if ! grep -q 'require_ajax\\\\|order_create\\\\|order_getconfig\\\\|register\\\\|tshirt_createorder\\\\|tshirt_getconfig' \"$f\")",
+      "Bash(then echo \"$f\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []
