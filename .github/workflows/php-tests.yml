@@ -68,7 +68,7 @@ jobs:
           tools: phpstan
 
       - name: Run PHPStan
-        run: phpstan analyse public_html/ --level=0 --no-progress
+        run: phpstan analyse --no-progress
 
   e2e:
     runs-on: ubuntu-latest

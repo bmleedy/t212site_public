@@ -1,0 +1,6 @@
+parameters:
+    paths:
+        - public_html
+    excludePaths:
+        - public_html/login/libraries
+    level: 0
