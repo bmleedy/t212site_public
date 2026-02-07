@@ -16,8 +16,7 @@ $current_user_id = require_authentication();
 // Check if user has webmaster or super admin access
 require_permission(['wm', 'sa']);
 
-// Verify CSRF token
-require_csrf();
+// Note: CSRF not required for this read-only endpoint
 
 header('Content-Type: application/json');
 require 'connect.php';
