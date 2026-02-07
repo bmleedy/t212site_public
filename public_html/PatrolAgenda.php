@@ -7,8 +7,8 @@ require "includes/authHeader.php";
 $patrol_name = "";
 if ($user_type == "Scout" && isset($userID)) {
   require_once "api/connect.php";
-  $patrol_query = "SELECT p.name FROM patrols p
-                   INNER JOIN scout_info si ON p.patrol_id = si.patrol_id
+  $patrol_query = "SELECT p.label FROM patrols p
+                   INNER JOIN scout_info si ON p.id = si.patrol_id
                    WHERE si.user_id = ?";
   $patrol_stmt = $mysqli->prepare($patrol_query);
   if ($patrol_stmt) {
@@ -16,7 +16,7 @@ if ($user_type == "Scout" && isset($userID)) {
     $patrol_stmt->execute();
     $patrol_result = $patrol_stmt->get_result();
     if ($patrol_row = $patrol_result->fetch_assoc()) {
-      $patrol_name = $patrol_row['name'];
+      $patrol_name = $patrol_row['label'];
     }
     $patrol_stmt->close();
   }
