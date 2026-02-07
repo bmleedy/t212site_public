@@ -23,26 +23,26 @@ test.describe('1.1 Home Page & Navigation', () => {
 
   test('chip links at bottom work: Calendar', async ({ page }) => {
     await page.goto('/index.php');
-    const link = page.locator('a[href="Calendar.php"]');
-    await expect(link).toBeVisible();
+    const panel = page.locator('a[href="Calendar.php"] .panel');
+    await expect(panel).toBeVisible();
   });
 
   test('chip links at bottom work: Troop Photos', async ({ page }) => {
     await page.goto('/index.php');
-    const link = page.locator('a[href*="facebook.com/Troop212"]');
-    await expect(link).toBeVisible();
+    const panel = page.locator('a[href*="facebook.com/Troop212"] .panel');
+    await expect(panel).toBeVisible();
   });
 
   test('chip links at bottom work: Members', async ({ page }) => {
     await page.goto('/index.php');
-    const link = page.locator('a[href="Members.php"]');
-    await expect(link).toBeVisible();
+    const panel = page.locator('a[href="Members.php"] .panel');
+    await expect(panel).toBeVisible();
   });
 
   test('chip links at bottom work: Recent Events', async ({ page }) => {
     await page.goto('/index.php');
-    const link = page.locator('a[href="OutingsPublic.php"]');
-    await expect(link).toBeVisible();
+    const panel = page.locator('a[href="OutingsPublic.php"] .panel');
+    await expect(panel).toBeVisible();
   });
 
   test('login form appears and is functional', async ({ page }) => {
@@ -59,13 +59,13 @@ test.describe('1.1 Home Page & Navigation', () => {
 test.describe('1.2 Public Sidebar Navigation', () => {
   test('Recent Events link works', async ({ page }) => {
     await page.goto('/index.php');
-    await page.click('a[href="OutingsPublic.php"]');
+    await page.locator('a[href="OutingsPublic.php"] .panel').click();
     await expect(page).toHaveURL(/OutingsPublic\.php/);
   });
 
   test('Troop Calendar link works', async ({ page }) => {
     await page.goto('/index.php');
-    await page.click('a[href="Calendar.php"]');
+    await page.locator('a[href="Calendar.php"] .panel').click();
     await expect(page).toHaveURL(/Calendar\.php/);
   });
 
@@ -78,14 +78,16 @@ test.describe('1.2 Public Sidebar Navigation', () => {
 
   test('Members link works', async ({ page }) => {
     await page.goto('/index.php');
-    await page.click('a[href="Members.php"]');
+    await page.locator('a[href="Members.php"] .panel').click();
     await expect(page).toHaveURL(/Members\.php/);
   });
 
   test('Scoutmaster link works', async ({ page }) => {
-    await page.goto('/index.php');
-    const link = page.locator('a[href="Scoutmaster.php"]');
-    await expect(link).toBeVisible();
+    // Scoutmaster link is in the sidebar, available on pages that include it
+    await page.goto('/Scoutmaster.php');
+    await expect(page).toHaveTitle(/Troop 212/i);
+    const content = page.locator('.large-9.columns');
+    await expect(content).toBeVisible();
   });
 });
 

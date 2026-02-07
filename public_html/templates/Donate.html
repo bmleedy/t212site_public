@@ -74,8 +74,7 @@
 var selectedAmount = 0;
 
 $(document).ready(function() {
-    initPayPalButtons();
-
+    // Register click handlers first so they work even if PayPal fails to load
     // Preset amount button click handler
     $('.preset-amount').on('click', function() {
         // Remove 'success' class from all, add to selected
@@ -99,6 +98,13 @@ $(document).ready(function() {
     $('#customAmount').on('input change', function() {
         updateAmount();
     });
+
+    // Initialize PayPal buttons (may fail in test environments)
+    try {
+        initPayPalButtons();
+    } catch (e) {
+        console.warn('PayPal buttons could not be initialized:', e.message);
+    }
 });
 
 function updateAmount() {

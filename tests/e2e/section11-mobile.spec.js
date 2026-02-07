@@ -29,12 +29,18 @@ test.describe('Section 11: Mobile Responsiveness', () => {
   test('large-screen sidebar is hidden on mobile', async ({ page }) => {
     await page.setViewportSize(mobileViewport);
     await page.goto('/index.php');
-    // The visible-for-large-up wrapper should hide its content on mobile
+    // Foundation uses clip technique (1x1px, position:absolute) instead of
+    // display:none for visible-for-large-up at small viewports.
+    // Check that these elements are effectively invisible by verifying
+    // their bounding box is tiny (clipped to 1x1px).
     const largeOnly = page.locator('.visible-for-large-up');
-    // Elements with this class should not be visible at mobile widths
     const count = await largeOnly.count();
     for (let i = 0; i < count; i++) {
-      await expect(largeOnly.nth(i)).toBeHidden();
+      const box = await largeOnly.nth(i).boundingBox();
+      // Element should be clipped to 1x1px or have no bounding box
+      if (box) {
+        expect(box.width <= 1 && box.height <= 1).toBeTruthy();
+      }
     }
   });
 

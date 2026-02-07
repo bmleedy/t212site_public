@@ -38,7 +38,7 @@ if ($login->isUserLoggedIn()) {
 	// User is logged in - show the logged in view
 	include("views/logged_in.php");
 } else {
-	// User is not logged in - redirect to main index page
-	header("Location: ../index.php");
+	// User is not logged in - show the login form
+	include("views/not_logged_in.php");
 }
 ?>
