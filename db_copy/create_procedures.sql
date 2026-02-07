@@ -1,4 +1,4 @@
---Create the table with the orders
+-- Create the table with the orders
 CREATE TABLE IF NOT EXISTS orders (
     order_id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'Auto generated unique key for every order',
     user_id INT NOT NULL COMMENT 'id from users table of who made the order',
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS orders (
     page VARCHAR(100) COMMENT 'the page which this order is assoicated with.'
 );
 
---Create the table with the items in the orders
+-- Create the table with the items in the orders
 CREATE TABLE IF NOT EXISTS order_items (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'unique id for every item per user per page - not really used',
     order_id INT COMMENT 'order id this item is associated with - must always be populated',
@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     item_quantity INT COMMENT 'The number of these items that a user currently has in their card for this order.'
 );
 
---DROP PROCEDURE IF EXISTS update_order_item;
+-- DROP PROCEDURE IF EXISTS update_order_item;
 DELIMITER //
 CREATE PROCEDURE IF NOT EXISTS update_order_item (
     IN in_order_id INT,
