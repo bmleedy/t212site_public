@@ -13,11 +13,11 @@ require "includes/authHeader.php";
 $user_id = $_SESSION['user_id'];
 
 // Check if user has permission to access this page
-// Allowed: webmaster (wm), outing editors (oe), super admin (sa)
-$hasAccess = (in_array("wm", $access) || in_array("oe", $access) || in_array("sa", $access));
+// Allowed: webmaster (wm), outing editors (oe), super admin (sa), scoutmaster (sm)
+$hasAccess = (in_array("wm", $access) || in_array("oe", $access) || in_array("sa", $access) || in_array("sm", $access));
 
 // Check if user has extended permissions (scoutmaster or webmaster can edit attendance)
-$canEditAttendance = (in_array("wm", $access) || in_array("sa", $access));
+$canEditAttendance = (in_array("wm", $access) || in_array("sa", $access) || in_array("sm", $access));
 ?>
 <input type="hidden" id="user_id" value="<?php echo htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8'); ?>">
 <input type="hidden" id="canEditAttendance" value="<?php echo $canEditAttendance ? '1' : '0'; ?>">
@@ -36,7 +36,7 @@ $canEditAttendance = (in_array("wm", $access) || in_array("sa", $access));
       if ($login->isUserLoggedIn() == true) {
         if (!$hasAccess) {
           echo "<h3>Access Denied</h3>";
-          echo "<p>You are not authorized to view this page. This page is only available to webmasters, outing editors, and super admins.</p>";
+          echo "<p>You are not authorized to view this page. This page is only available to webmasters, outing editors, scoutmasters, and super admins.</p>";
         } else {
           include("templates/AttendanceReport.html");
         }

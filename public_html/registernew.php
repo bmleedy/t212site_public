@@ -16,8 +16,8 @@ require "includes/authHeader.php";
     <div class="panel">
       <?php
       if ($login->isUserLoggedIn()) {
-        // Only super admins (sa) or webmasters (wm) can register new users
-        if (in_array('sa', $access, true) || in_array('wm', $access, true)) {
+        // Only super admins (sa), webmasters (wm), or scoutmasters (sm) can register new users
+        if (in_array('sa', $access, true) || in_array('wm', $access, true) || in_array('sm', $access, true)) {
           // Include required registration dependencies
           require_once('login/config/config.php');
           require_once('login/translations/en.php');

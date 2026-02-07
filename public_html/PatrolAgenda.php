@@ -20,7 +20,7 @@ if ($user_type == "Scout" && isset($userID)) {
     }
     $patrol_stmt->close();
   }
-  $mysqli->close();
+  // Note: Don't close $mysqli here as it may be needed by other includes
 }
 ?>
 <br />
