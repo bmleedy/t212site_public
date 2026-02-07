@@ -17,6 +17,11 @@ public_html/profile_pics/*.jpeg
 
 # Ignore node modules (if using Node.js)
 node_modules/
+package-lock.json
+
+# Ignore Playwright test artifacts
+test-results/
+playwright-report/
 
 # Ignore composer dependencies (if using PHP Composer)
 vendor/

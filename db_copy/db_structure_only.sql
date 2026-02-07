@@ -140,6 +140,28 @@ CREATE TABLE `invoices` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `item_prices`
+--
+
+CREATE TABLE `item_prices` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `item_category` varchar(50) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `item_code` varchar(20) NOT NULL,
+  `price` decimal(10,2) NOT NULL DEFAULT 15.00,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(11) NOT NULL DEFAULT 0,
+  `created_date` datetime DEFAULT CURRENT_TIMESTAMP,
+  `modified_date` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_item_code` (`item_code`),
+  KEY `idx_category` (`item_category`),
+  KEY `idx_active` (`active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `leadership`
 --
 
@@ -172,6 +194,56 @@ CREATE TABLE `mb_list` (
   `mb_name` varchar(40) NOT NULL,
   `eagle_req` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `orders`
+--
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `order_type` varchar(50) NOT NULL DEFAULT 'merchandise',
+  `customer_email` varchar(255) NOT NULL,
+  `customer_phone` varchar(20) NOT NULL,
+  `customer_name` varchar(255) NOT NULL,
+  `shipping_address` text NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `paid` tinyint(1) NOT NULL DEFAULT 0,
+  `paid_date` datetime DEFAULT NULL,
+  `paypal_order_id` varchar(100) DEFAULT NULL,
+  `fulfilled` tinyint(1) NOT NULL DEFAULT 0,
+  `fulfilled_date` datetime DEFAULT NULL,
+  `fulfilled_by` int(11) DEFAULT NULL,
+  `source_ip` varchar(45) NOT NULL,
+  `notes` text DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_paid` (`paid`),
+  KEY `idx_fulfilled` (`fulfilled`),
+  KEY `idx_order_date` (`order_date`),
+  KEY `idx_order_type` (`order_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_items`
+--
+
+CREATE TABLE `order_items` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `order_id` int(11) NOT NULL,
+  `item_code` varchar(20) NOT NULL,
+  `item_name` varchar(100) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
+  `unit_price` decimal(10,2) NOT NULL,
+  `line_total` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_order_id` (`order_id`),
+  KEY `idx_item_code` (`item_code`),
+  CONSTRAINT `fk_order_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -289,6 +361,18 @@ CREATE TABLE `scout_info` (
   `rechartered` tinyint(1) DEFAULT 0,
   `boyslife` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `store_config`
+--
+
+CREATE TABLE `store_config` (
+  `config_key` varchar(50) NOT NULL,
+  `config_value` varchar(255) NOT NULL,
+  PRIMARY KEY (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 

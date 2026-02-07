@@ -34,19 +34,143 @@ jobs:
 
       - name: Create test credentials
         run: |
-          cat > public_html/CREDENTIALS.json <<EOF
+          cat > public_html/CREDENTIALS.json <<'EOF'
           {
-            "db_host": "127.0.0.1",
-            "db_user": "root",
-            "db_pass": "root",
-            "db_name": "t212test"
+            "database_user": {"root": "root"},
+            "database_host": "127.0.0.1",
+            "database_name": "t212test"
           }
           EOF
 
       - name: Import DB schema
         run: |
           mysql -h 127.0.0.1 -uroot -proot t212test \
-            < db_copy/u104214272_t212.sql
+            < db_copy/db_structure_only.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/store_tables.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/create_procedures.sql
 
       - name: Run tests
         run: php tests/test_runner.php
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: php
+      - uses: github/codeql-action/analyze@v3
+
+  e2e:
+    runs-on: ubuntu-latest
+    needs: test
+
+    services:
+      mysql:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: t212test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mysqli, pdo_mysql
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create test credentials
+        run: |
+          cat > public_html/CREDENTIALS.json <<'EOF'
+          {
+            "database_user": {"root": "root"},
+            "database_host": "127.0.0.1",
+            "database_name": "t212test",
+            "paypal_client_id": "test-sandbox-id",
+            "paypal_sandbox_client_id": "test-sandbox-id",
+            "paypal_environment": "sandbox"
+          }
+          EOF
+
+      - name: Import DB schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/db_structure_only.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/store_tables.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/create_procedures.sql
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start PHP server
+        run: php -S localhost:8000 -t public_html &
+
+      - name: Wait for PHP server
+        run: |
+          for i in $(seq 1 30); do
+            curl -s http://localhost:8000/ > /dev/null && break
+            sleep 1
+          done
+
+      - name: Run public e2e tests
+        env:
+          BASE_URL: http://localhost:8000
+        run: |
+          npx playwright test \
+            --config=tests/e2e/playwright.config.js \
+            tests/e2e/section1-public-pages.spec.js \
+            tests/e2e/section10-browser-compat.spec.js \
+            tests/e2e/section11-mobile.spec.js
+
+      - name: Run authenticated e2e tests
+        if: ${{ secrets.TEST_SA_USERNAME != '' }}
+        env:
+          BASE_URL: http://localhost:8000
+          TEST_SA_USERNAME: ${{ secrets.TEST_SA_USERNAME }}
+          TEST_SA_PASSWORD: ${{ secrets.TEST_SA_PASSWORD }}
+          TEST_USER_USERNAME: ${{ secrets.TEST_USER_USERNAME }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: |
+          npx playwright test \
+            --config=tests/e2e/playwright.config.js \
+            tests/e2e/section2-authentication.spec.js \
+            tests/e2e/section3-core-features.spec.js \
+            tests/e2e/section4-leader-tools.spec.js \
+            tests/e2e/section5-attendance.spec.js \
+            tests/e2e/section6-treasurer.spec.js \
+            tests/e2e/section6a-tshirt-store.spec.js \
+            tests/e2e/section7-admin-menu.spec.js \
+            tests/e2e/section8-permissions.spec.js \
+            tests/e2e/section8a-impersonation.spec.js \
+            tests/e2e/section9-event-registration.spec.js
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
