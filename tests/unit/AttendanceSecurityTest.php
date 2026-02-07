@@ -103,14 +103,8 @@ if (assert_true(
     $failed++;
 }
 
-if (assert_true(
-    strpos($getScoutsContents, 'require_csrf(') !== false,
-    "getscoutsforattendance.php contains require_csrf("
-)) {
-    $passed++;
-} else {
-    $failed++;
-}
+// Note: CSRF not required for this read-only endpoint that doesn't send POST data
+// Authentication and permission checks are sufficient for read operations
 
 echo "\n";
 

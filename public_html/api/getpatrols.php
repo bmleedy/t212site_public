@@ -21,8 +21,7 @@ require_ajax();
 // Verify authentication
 $current_user_id = require_authentication();
 
-// Validate CSRF token
-require_csrf();
+// Note: CSRF not required for this read-only endpoint that returns non-sensitive patrol list
 
 header('Content-Type: application/json');
 require 'connect.php';
