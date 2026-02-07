@@ -59,10 +59,16 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
         with:
-          languages: php
-      - uses: github/codeql-action/analyze@v3
+          php-version: 8.2
+          extensions: mysqli, pdo_mysql
+          tools: phpstan
+
+      - name: Run PHPStan
+        run: phpstan analyse public_html/ --level=0 --no-progress
 
   e2e:
     runs-on: ubuntu-latest
