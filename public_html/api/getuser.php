@@ -26,6 +26,9 @@ $edit = validate_bool_post('edit', false);
 $wm = validate_bool_post('wm', false);  // wm=1 means user has webmaster-like edit access, wm=0 means limited access
 $isAdmin = validate_bool_post('userAdmin', false);
 
+// Users can edit their own profile, or admins can edit anyone's profile
+$canEdit = $wm || ($id == $current_user_id);
+
 // Authorization check - user can only view their own data unless they have permission
 if ($id != $current_user_id) {
   require_user_access($id, $current_user_id);
@@ -54,32 +57,34 @@ $family_id = $row->family_id;
 $notif_preferences = $row->notif_preferences;
 $stmt->close();
 
-if ($edit && $wm) {
+if ($edit && $canEdit) {
   $varFirst = '<input type="text" id="user_first" name="user_first_' . $id . '" autocomplete="off" required value="'. escape_html($user_first) . '"/>';
   $varLast = '<input type="text" id="user_last" name="user_last_' . $id . '" autocomplete="off" required value="'. escape_html($user_last) . '"/>';
   $varEmail = '<input type="text" id="user_email" name="user_email_' . $id . '" autocomplete="off" required value="'. escape_html($user_email) . '"/>';
 
-  $isScout='';
-  $isAlumni='';
-  $isDad='';
-  $isMom='';
-  $isOther='';
-  $isDelete='';
-  if ($user_type=="Scout") {
-    $isScout =  "SELECTED" ;
-  } elseif ($user_type == "Alumni") {
-    $isAlumni =  "SELECTED" ;
-  } elseif ($user_type == "Dad") {
-    $isDad =  "SELECTED" ;
-  } elseif ($user_type == "Mom") {
-    $isMom =  "SELECTED" ;
-  } elseif ($user_type == "Other") {
-    $isOther =  "SELECTED" ;
-  } elseif ($user_type == "Delete") {
-    $isDelete =  "SELECTED" ;
-  }
+  // User type dropdown is admin-only (wm permission required)
+  if ($wm) {
+    $isScout='';
+    $isAlumni='';
+    $isDad='';
+    $isMom='';
+    $isOther='';
+    $isDelete='';
+    if ($user_type=="Scout") {
+      $isScout =  "SELECTED" ;
+    } elseif ($user_type == "Alumni") {
+      $isAlumni =  "SELECTED" ;
+    } elseif ($user_type == "Dad") {
+      $isDad =  "SELECTED" ;
+    } elseif ($user_type == "Mom") {
+      $isMom =  "SELECTED" ;
+    } elseif ($user_type == "Other") {
+      $isOther =  "SELECTED" ;
+    } elseif ($user_type == "Delete") {
+      $isDelete =  "SELECTED" ;
+    }
 
-        $varUserType = '
+    $varUserType = '
     <select id="user_type">
       <option value="">-Type-</option>
       <option value="Scout" '.$isScout .'>Scout</option>
@@ -89,14 +94,18 @@ if ($edit && $wm) {
       <option value="Other" '.$isOther .'>Other</option>
       <option value="Delete" '.$isDelete .'>Delete</option>
     </select>';
-        $varUserName = '<p>' . escape_html($user_name) . '</p>';
-    if ($isAdmin) {
-        $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. escape_html($family_id) . '"/></label></div>';
-    $varFamilyID = '';
-    } else {
-        $varFamilyID = '<input type="hidden" id="family_id" value="'. escape_html($family_id) . '" />';
-    $varFamilyIDData = '';
-    }
+  } else {
+    // Non-admins see read-only user type with hidden input to preserve value
+    $varUserType = '<p>'.escape_html($user_type).'</p>'.'<input type="hidden" id="user_type" value="'. escape_html($user_type) . '" />';
+  }
+  $varUserName = '<p>' . escape_html($user_name) . '</p>';
+  if ($isAdmin) {
+      $varFamilyIDData = '<div class="large-6 columns end"><label>Family ID (do not edit unless you are sure!)<input type="text" id="family_id" required value="'. escape_html($family_id) . '"/></label></div>';
+  $varFamilyID = '';
+  } else {
+      $varFamilyID = '<input type="hidden" id="family_id" value="'. escape_html($family_id) . '" />';
+  $varFamilyIDData = '';
+  }
 } else {
   if ($user_type=="Scout") {
     $mailTo = '<a href="mailto:' . escape_html($user_email) ;
@@ -147,7 +156,7 @@ $varID = [];
 for ($i = 1; $i <= 3; $i++) {
   $row = $results->fetch_assoc();
   if (!$row) {
-    if ($edit && $wm) {
+    if ($edit && $canEdit) {
       $varID[] = "";
       $varPhone[] = '<input type="text" id="user_phone_'.$i.'" value=""/>';
       $varType[] = '
@@ -167,7 +176,7 @@ for ($i = 1; $i <= 3; $i++) {
     $isWork = "";
     $isHome = "";
     $varID[] = $row["id"];
-    if ($edit && $wm) {
+    if ($edit && $canEdit) {
       $varPhone[] = '<input type="text" id="user_phone_'.$i.'" value="'. escape_html($row["phone"]) . '"/>';
       if ($row["type"]=="My Cell") {
         $isCell =  "SELECTED" ;
@@ -257,7 +266,7 @@ foreach ($filtered_notification_types as $index => $notif) {
     $is_checked = 'checked';
   }
 
-  if ($edit && $wm) {
+  if ($edit && $canEdit) {
     $varNotifPrefs .= '<label title="' . escape_html($tooltip) . '" style="margin-bottom:4px;display:block;">';
     $varNotifPrefs .= '<input type="checkbox" class="notifPrefCheckbox" name="notif_' . escape_html($key) . '" id="notif_' . escape_html($key) . '" value="' . escape_html($key) . '" ' . $is_checked . ' />';
     $varNotifPrefs .= ' ' . escape_html($display_name);

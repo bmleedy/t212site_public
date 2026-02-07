@@ -106,7 +106,8 @@ require_user_access($id, $current_user_id);
 
 // Security: Check permissions server-side instead of trusting client-side $wm parameter
 // Users with admin-like permissions (ue=user editor, sa=scoutmaster, wm=webmaster) can edit name/email/phone
-$has_edit_permission = has_permission('ue') || has_permission('sa') || has_permission('wm');
+// Users can also edit their own profile
+$has_edit_permission = has_permission('ue') || has_permission('sa') || has_permission('wm') || ($id == $current_user_id);
 
 if ($has_edit_permission) {
   validateField($first , "First Name" , "user_first");
@@ -211,6 +212,20 @@ if ($user_type != "Scout" && array_key_exists("family_id", $_POST) && array_key_
   }
 } else {
   error_log("Address update SKIPPED - condition not met");
+}
+
+// Security: Only admins can change user_type - regular users editing their own profile keep their current type
+$has_admin_permission = has_permission('ue') || has_permission('sa') || has_permission('wm');
+if (!$has_admin_permission) {
+  // Fetch current user_type from database to prevent tampering
+  $type_stmt = $mysqli->prepare("SELECT user_type FROM users WHERE user_id = ?");
+  $type_stmt->bind_param('i', $id);
+  $type_stmt->execute();
+  $type_result = $type_stmt->get_result();
+  if ($type_row = $type_result->fetch_assoc()) {
+    $user_type = $type_row['user_type'];
+  }
+  $type_stmt->close();
 }
 
 $query = "UPDATE users SET user_first=?, user_last=?, user_email=?, user_type=?, notif_preferences=? WHERE user_id=?";

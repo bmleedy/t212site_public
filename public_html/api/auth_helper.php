@@ -76,17 +76,10 @@ function require_permission($permissions): void {
  * @return bool True if access is allowed
  */
 function can_access_user_data(int $requested_user_id, int $current_user_id): bool {
-    // Users can always access their own data
-    if ($requested_user_id == $current_user_id) {
-        return true;
-    }
-
-    // Users with admin permissions can access any data
-    if (has_permission('ue') || has_permission('sa') || has_permission('wm')) {
-        return true;
-    }
-
-    return false;
+    // All logged-in users can view any other user's profile information
+    // This function is only called after require_authentication() verifies login
+    // Edit permissions are controlled separately (wm flag in getuser.php)
+    return true;
 }
 
 /**
