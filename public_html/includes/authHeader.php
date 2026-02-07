@@ -167,6 +167,8 @@ Boy Scout Troop 212 - Gig Harbor, WA
 </ul>
 </li>
 <li class="divider"></li>
+<li><a href="Donate.php" class="button success" style="margin-top:7px;"><i class="fi-heart"></i> Donate</a></li>
+<li class="divider"></li>
 <li><a id="logout" href="login/index.php?logout" style="display:block;">Logoff</a></li>
 </ul>
 

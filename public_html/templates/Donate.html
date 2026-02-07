@@ -1,0 +1,188 @@
+<!-- PayPal JavaScript SDK with Venmo, Card support -->
+<script src="https://www.paypal.com/sdk/js?client-id=<?php echo htmlspecialchars($paypal_client_id); ?>&enable-funding=venmo&currency=USD"></script>
+
+<h2><i class="fi-heart"></i> Donate to Troop 212</h2>
+
+<p>Your donation helps support Troop 212's activities, equipment, and programs.
+   Thank you for your generosity!</p>
+
+<div id="donationForm">
+    <h4>Select a Donation Amount</h4>
+
+    <div class="row" id="presetAmounts">
+        <div class="large-3 medium-3 small-6 columns">
+            <a class="button expand secondary preset-amount" data-amount="25">$25</a>
+        </div>
+        <div class="large-3 medium-3 small-6 columns">
+            <a class="button expand secondary preset-amount" data-amount="50">$50</a>
+        </div>
+        <div class="large-3 medium-3 small-6 columns">
+            <a class="button expand secondary preset-amount" data-amount="100">$100</a>
+        </div>
+        <div class="large-3 medium-3 small-6 columns">
+            <a class="button expand secondary preset-amount" data-amount="custom">Custom</a>
+        </div>
+    </div>
+
+    <div id="customAmountSection" style="display:none;">
+        <div class="row">
+            <div class="large-4 medium-6 columns">
+                <label>Enter Amount
+                    <div class="row collapse">
+                        <div class="small-2 columns">
+                            <span class="prefix">$</span>
+                        </div>
+                        <div class="small-10 columns">
+                            <input type="number" id="customAmount" min="1.00"
+                                   step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="selectedAmountDisplay" style="display:none; margin: 20px 0;">
+        <h4>Donation Amount: $<span id="donationTotal">0.00</span></h4>
+    </div>
+
+    <hr>
+
+    <div id="paymentSection" style="display:none;">
+        <h4>Payment</h4>
+        <p><em>Pay securely with PayPal, Venmo, or Credit/Debit Card.</em></p>
+
+        <div id="validationError" style="display:none;" data-alert class="alert-box alert">
+            <span id="validationErrorText"></span>
+        </div>
+
+        <div id="paypal-button-container"></div>
+    </div>
+</div>
+
+<div id="thankYouMessage" style="display:none;">
+    <div data-alert class="alert-box success">
+        <h4><i class="fi-check"></i> Thank You for Your Donation!</h4>
+        <p>Your generous donation of $<span id="thankYouAmount">0.00</span>
+           to Boy Scout Troop 212 has been received.</p>
+        <p>A receipt has been sent to your PayPal/Venmo account.</p>
+    </div>
+    <p><a href="index.php" class="button">Return to Home Page</a></p>
+</div>
+
+<script type="text/javascript">
+var selectedAmount = 0;
+
+$(document).ready(function() {
+    initPayPalButtons();
+
+    // Preset amount button click handler
+    $('.preset-amount').on('click', function() {
+        // Remove 'success' class from all, add to selected
+        $('.preset-amount').removeClass('success').addClass('secondary');
+        $(this).removeClass('secondary').addClass('success');
+
+        var amount = $(this).data('amount');
+
+        if (amount === 'custom') {
+            $('#customAmountSection').show();
+            $('#customAmount').focus();
+            updateAmount();
+        } else {
+            $('#customAmountSection').hide();
+            selectedAmount = parseFloat(amount);
+            showAmount();
+        }
+    });
+
+    // Custom amount input handler
+    $('#customAmount').on('input change', function() {
+        updateAmount();
+    });
+});
+
+function updateAmount() {
+    var val = parseFloat($('#customAmount').val());
+    if (!isNaN(val) && val >= 1.00) {
+        selectedAmount = val;
+        showAmount();
+    } else {
+        selectedAmount = 0;
+        $('#selectedAmountDisplay').hide();
+        $('#paymentSection').hide();
+    }
+}
+
+function showAmount() {
+    if (selectedAmount >= 1.00) {
+        $('#donationTotal').text(selectedAmount.toFixed(2));
+        $('#selectedAmountDisplay').show();
+        $('#paymentSection').show();
+    }
+}
+
+function validateDonation() {
+    if (selectedAmount < 1.00) {
+        $('#validationErrorText').text(
+            'Please select or enter a donation amount of at least $1.00.');
+        $('#validationError').show();
+        return false;
+    }
+    if (selectedAmount > 10000) {
+        $('#validationErrorText').text(
+            'For donations over $10,000, please contact us directly.');
+        $('#validationError').show();
+        return false;
+    }
+    $('#validationError').hide();
+    return true;
+}
+
+function initPayPalButtons() {
+    paypal.Buttons({
+        style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'donate'
+        },
+
+        createOrder: function(data, actions) {
+            if (!validateDonation()) {
+                return Promise.reject(new Error('Validation failed'));
+            }
+
+            return actions.order.create({
+                purchase_units: [{
+                    description: 'Donation to Boy Scout Troop 212',
+                    amount: {
+                        currency_code: 'USD',
+                        value: selectedAmount.toFixed(2)
+                    }
+                }]
+            });
+        },
+
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(details) {
+                // Payment successful - show thank you message
+                $('#thankYouAmount').text(selectedAmount.toFixed(2));
+                $('#donationForm').hide();
+                $('#thankYouMessage').show();
+                window.scrollTo(0, 0);
+            });
+        },
+
+        onError: function(err) {
+            console.error('PayPal error:', err);
+            if (err.message !== 'Validation failed') {
+                alert('There was an error processing your donation. Please try again.');
+            }
+        },
+
+        onCancel: function(data) {
+            console.log('Donation cancelled by user');
+        }
+    }).render('#paypal-button-container');
+}
+</script>

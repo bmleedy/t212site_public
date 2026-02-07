@@ -30,6 +30,7 @@ $publicPages = [
   'Links.php',
   'NewScoutInfo.php',
   'ParentInfo.php',
+  'Donate.php',
 ];
 
 // ============================================================================

@@ -37,7 +37,16 @@ Log out completely before starting this section.
 - [ ] Members link works → Members.php
 - [ ] Scoutmaster link works → Scoutmaster.php
 
-### 1.3 Public Content Pages
+### 1.3 Donate Page (Donate.php)
+- [ ] Donate button visible in header bar (green with heart icon)
+- [ ] Click Donate button → Donate.php loads without errors
+- [ ] Preset amount buttons display ($25, $50, $100, Custom)
+- [ ] Clicking a preset highlights it and shows PayPal buttons
+- [ ] Clicking "Custom" reveals amount input field
+- [ ] PayPal/Venmo/Card buttons load correctly
+- [ ] Form validation prevents amounts below $1.00
+
+### 1.4 Public Content Pages
 - [ ] OutingsPublic.php: Table displays recent events (past 2 months + future)
 - [ ] OutingsPublic.php: "Please log in" message appears at bottom
 - [ ] Calendar.php: Google calendar iframe loads
@@ -389,7 +398,7 @@ The following features/scenarios CANNOT be fully tested with this method:
 11. **Item Price Changes** - Would affect live pricing for customers
 
 ### Cannot Test (External Dependencies)
-1. **PayPal Integration** - Requires real payment flow (use sandbox for T-shirt order testing)
+1. **PayPal Integration** - Requires real payment flow (use sandbox for T-shirt order and donation testing)
 2. **Google Calendar** - Depends on external Google API
 3. **Facebook Links** - External site, can only verify link works
 4. **Password Reset Email** - Would require testing email delivery
@@ -413,6 +422,6 @@ The following features/scenarios CANNOT be fully tested with this method:
 
 ---
 
-*Document Version: 1.1*
-*Last Updated: January 2026*
-*Added: T-Shirt Store feature tests (Section 6A)*
+*Document Version: 1.2*
+*Last Updated: February 2026*
+*Added: Donate page tests (Section 1.3)*
