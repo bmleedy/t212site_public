@@ -155,7 +155,7 @@ $result = $mysqli->query("SELECT COUNT(*) as count FROM activity_log");
 $count_after = $result->fetch_assoc()['count'];
 
 if (assert_true($log_result, "log_activity returned true") &&
-    assert_equals($count_before + 1, $count_after, "Activity log entry was created")) {
+    assert_equals((int)$count_before + 1, (int)$count_after, "Activity log entry was created")) {
     $passed += 2;
 } else {
     $failed += 2;
@@ -182,7 +182,7 @@ if (assert_equals('test_action', $log_entry['action'], "Action field is correct"
     $tests_failed++;
 }
 
-if (assert_equals(1, $log_entry['success'], "Success field is correct (1)")) {
+if (assert_equals(1, (int)$log_entry['success'], "Success field is correct (1)")) {
     $tests_passed++;
 } else {
     $tests_failed++;
@@ -194,7 +194,7 @@ if (assert_equals('This is a test log entry', $log_entry['freetext'], "Freetext 
     $tests_failed++;
 }
 
-if (assert_equals(123, $log_entry['user'], "User field is correct")) {
+if (assert_equals(123, (int)$log_entry['user'], "User field is correct")) {
     $tests_passed++;
 } else {
     $tests_failed++;
@@ -232,7 +232,7 @@ $result = $mysqli->query("SELECT * FROM activity_log WHERE action='test_failed_a
 $log_entry = $result->fetch_assoc();
 
 if (assert_true($log_result, "log_activity returned true for failed action") &&
-    assert_equals(0, $log_entry['success'], "Success field is 0 for failed action")) {
+    assert_equals(0, (int)$log_entry['success'], "Success field is 0 for failed action")) {
     $passed += 2;
 } else {
     $failed += 2;
@@ -351,7 +351,7 @@ $log_result = log_activity(
 $result = $mysqli->query("SELECT user FROM activity_log WHERE action='test_no_session' ORDER BY timestamp DESC LIMIT 1");
 $log_entry = $result->fetch_assoc();
 
-if (assert_equals(777, $log_entry['user'], "User ID falls back to POST parameter when no session")) {
+if (assert_equals(777, (int)$log_entry['user'], "User ID falls back to POST parameter when no session")) {
     $passed++;
 } else {
     $failed++;

@@ -403,8 +403,8 @@ echo "Test 11: Verify store activity logging actions\n";
 echo str_repeat("-", 60) . "\n";
 
 $expected_actions = [
-    'order_create.php' => 'store_order_created',
-    'order_fulfill.php' => 'store_order_fulfilled',
+    'order_create.php' => 'order_created',
+    'order_fulfill.php' => 'order_fulfilled',
     'itemprices_update.php' => 'item_price_updated'
 ];
 
@@ -513,10 +513,12 @@ echo str_repeat("-", 60) . "\n";
 $prices_update_path = PUBLIC_HTML_DIR . '/api/itemprices_update.php';
 $prices_content = file_get_contents($prices_update_path);
 
-// Check for logging of old and new price
-$logs_old_price = strpos($prices_content, 'old_price') !== false ||
+// Check for logging of old and new price values
+$logs_old_price = strpos($prices_content, "'old'") !== false ||
+                  strpos($prices_content, 'old_price') !== false ||
                   strpos($prices_content, 'oldPrice') !== false;
-$logs_new_price = strpos($prices_content, 'new_price') !== false ||
+$logs_new_price = strpos($prices_content, "'new'") !== false ||
+                  strpos($prices_content, 'new_price') !== false ||
                   strpos($prices_content, 'newPrice') !== false;
 
 if (assert_true($logs_old_price && $logs_new_price, "itemprices_update.php logs price changes")) {

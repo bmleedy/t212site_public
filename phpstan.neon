@@ -3,4 +3,6 @@ parameters:
         - public_html
     excludePaths:
         - public_html/login/libraries
+    scanDirectories:
+        - public_html/login/libraries
     level: 0

@@ -462,8 +462,8 @@ echo "Test 8: Display vs Edit mode\n";
 echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
-    strpos($getUserContents, 'if ($edit && $wm)') !== false,
-    "getuser.php checks edit mode with webmaster access for preferences display"
+    strpos($getUserContents, 'if ($edit && $canEdit)') !== false,
+    "getuser.php checks edit mode with edit access for preferences display"
 )) {
     $passed++;
 } else {

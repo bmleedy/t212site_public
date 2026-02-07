@@ -38,7 +38,13 @@ jobs:
           {
             "database_user": {"root": "root"},
             "database_host": "127.0.0.1",
-            "database_name": "t212test"
+            "database_name": "t212test",
+            "cookie_secret_key": "test_cookie_secret_key_1234567890",
+            "smtp_email": {"testsmtp@example.com": "testsmtppassword123"},
+            "google": {"testgoogle@gmail.com": "testgooglepassword123"},
+            "paypal_client_id": "AUD7UKAgmjEJ0bAkdjRfHGkOc2IWHhYC61lGy8foPQpq74eG-cWoQn8KWrvYG85b",
+            "paypal_sandbox_client_id": "AWW6UGuBzF55iIUojsyH6v9LWZwdrL3WWpWghxgPvRC4WoFhZ8IY2XENBQgg1o_r",
+            "paypal_environment": "sandbox"
           }
           EOF
 

@@ -25,7 +25,7 @@ echo "\n--- Test 1: Patrol API Files Existence ---\n";
 $api_files = [
     'getPatrolEmails.php',
     'GetPatrolMembersForUser.php',
-    'getPatrolMembers.php'  // existing file for attendance
+    'getpatrolmembers.php'  // existing file for attendance (lowercase on Linux)
 ];
 
 foreach ($api_files as $file) {

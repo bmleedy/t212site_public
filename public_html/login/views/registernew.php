@@ -1,5 +1,5 @@
 <?php include('_header.php'); 
-require('./api/connect.php');
+require(__DIR__ . '/../../api/connect.php');
 $query="SELECT MAX(family_id) AS max FROM users";
 $results = $mysqli->query($query);
 $row = $results->fetch_assoc();

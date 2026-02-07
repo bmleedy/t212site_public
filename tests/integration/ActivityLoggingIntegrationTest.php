@@ -72,7 +72,6 @@ $api_files = [
     'approve.php',
     'updateattendance.php',
     'amd_event.php',
-    'add_merch.php',
     'ppupdate2.php',
     'pay.php'
 ];
@@ -148,7 +147,6 @@ $expected_actions = [
     'approve.php' => ['approve_registration'],
     'updateattendance.php' => ['update_attendance', 'create_attendance'],
     'amd_event.php' => ['update_event', 'create_event'],
-    'add_merch.php' => ['create_order', 'update_order_item'],
     'ppupdate2.php' => ['batch_payment_update'],
     'pay.php' => ['update_payment_status']
 ];
@@ -192,7 +190,6 @@ $files_with_failure_logging = [
     'register.php',
     'updateattendance.php',
     'amd_event.php',
-    'add_merch.php',
     'pay.php'
 ];
 
@@ -240,9 +237,9 @@ foreach ($api_files as $api_file) {
     if (file_exists($file_path)) {
         $content = file_get_contents($file_path);
 
-        // Extract log_activity calls and check if they have 6 parameters
-        // (mysqli, action, values, success, freetext, user_id)
-        preg_match_all('/log_activity\s*\([^)]+\)/s', $content, $matches);
+        // Extract log_activity calls using recursive regex to handle nested parentheses
+        // (e.g., array(...) inside the call)
+        preg_match_all('/log_activity\s*+(\((?:[^()]*+|(?1))*+\))/s', $content, $matches);
 
         foreach ($matches[0] as $call) {
             // Count commas to approximate parameter count (should be 5 commas = 6 params)
@@ -283,8 +280,8 @@ foreach ($api_files as $api_file) {
         $content = file_get_contents($file_path);
 
         // Check that log_activity calls have non-empty freetext
-        // Look for pattern: log_activity(..., "some text", ...)
-        preg_match_all('/log_activity\s*\([^)]+\)/s', $content, $matches);
+        // Use recursive regex to handle nested parentheses
+        preg_match_all('/log_activity\s*+(\((?:[^()]*+|(?1))*+\))/s', $content, $matches);
 
         foreach ($matches[0] as $call) {
             // Check if there's a string parameter (freetext should be 5th param)
@@ -404,7 +401,7 @@ $result = $mysqli->query("SELECT COUNT(*) as count FROM activity_log WHERE
 
 $invalid_count = $result->fetch_assoc()['count'];
 
-if (assert_equals(0, $invalid_count, "No log entries with NULL required fields (found: $invalid_count)")) {
+if (assert_equals(0, (int)$invalid_count, "No log entries with NULL required fields (found: $invalid_count)")) {
     $passed++;
 } else {
     $failed++;

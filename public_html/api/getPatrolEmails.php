@@ -148,7 +148,7 @@ if (!empty($family_ids)) {
     $query = "SELECT DISTINCT user_id, user_email
               FROM users
               WHERE family_id IN ($placeholders)
-              AND user_type IN ('Dad', 'Mom')
+              AND user_type IN ('Mom', 'Dad', 'Other')
               AND user_active = 1";
 
     $stmt = $mysqli->prepare($query);
