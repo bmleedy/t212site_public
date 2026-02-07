@@ -1,0 +1,52 @@
+name: PHP Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: t212test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mysqli, pdo_mysql
+          coverage: none
+
+      - name: Create test credentials
+        run: |
+          cat > public_html/CREDENTIALS.json <<EOF
+          {
+            "db_host": "127.0.0.1",
+            "db_user": "root",
+            "db_pass": "root",
+            "db_name": "t212test"
+          }
+          EOF
+
+      - name: Import DB schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/u104214272_t212.sql
+
+      - name: Run tests
+        run: php tests/test_runner.php
