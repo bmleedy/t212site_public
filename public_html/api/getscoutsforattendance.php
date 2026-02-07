@@ -6,7 +6,6 @@ require 'validation_helper.php';
 require_ajax();
 $current_user_id = require_authentication();
 require_permission(['pl', 'oe', 'sa', 'wm']);
-require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
