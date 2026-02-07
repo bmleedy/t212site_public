@@ -13,11 +13,11 @@ require "includes/authHeader.php";
 $user_id = $_SESSION['user_id'];
 
 // Check if user has permission to access this page
-// Allowed: webmaster (wm), outing editors (oe), super admin (sa), scoutmaster (sm)
-$hasAccess = (in_array("wm", $access) || in_array("oe", $access) || in_array("sa", $access) || in_array("sm", $access));
+// Allowed: webmaster (wm), outing editors (oe), super admin (sa)
+$hasAccess = (in_array("wm", $access) || in_array("oe", $access) || in_array("sa", $access));
 
-// Check if user has extended permissions (scoutmaster or webmaster can edit attendance)
-$canEditAttendance = (in_array("wm", $access) || in_array("sa", $access) || in_array("sm", $access));
+// Check if user has extended permissions (outing editors or webmaster can edit attendance)
+$canEditAttendance = (in_array("wm", $access) || in_array("sa", $access) || in_array("oe", $access));
 ?>
 <input type="hidden" id="user_id" value="<?php echo htmlspecialchars($user_id, ENT_QUOTES, 'UTF-8'); ?>">
 <input type="hidden" id="canEditAttendance" value="<?php echo $canEditAttendance ? '1' : '0'; ?>">
