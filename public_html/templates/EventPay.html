@@ -119,8 +119,8 @@ function initPayPalButtons() {
   }).render('#paypal-button');
 }
 
-function writeCell(strData, strWidth, strLink) {
-  var safeData = escapeHtml(strData);
+function writeCell(strData, strWidth, strLink, isRawHtml) {
+  var safeData = isRawHtml ? strData : escapeHtml(strData);
   if (strLink == null) {
     return "<td style='width:" +strWidth+ ";'>" + safeData + "</td>" ;
   } else {
@@ -137,7 +137,7 @@ function writeRowApprove(element, index, array) {
   strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
   strTable = strTable + writeCell(startDate.toDateString(), "150px");
   strTable = strTable + writeCell("$" + element["cost"], "75px");
-  strTable = strTable + writeCell("<a onclick=approve('" + element["regid"] + "') class='round tiny button'>Approve</a>", "100px");
+  strTable = strTable + writeCell("<a onclick=approve('" + element["regid"] + "') class='round tiny button'>Approve</a>", "100px", null, true);
   strTable = strTable + "</tr>";
 }
 
@@ -152,7 +152,7 @@ function writeRow(element, index, array) {
   var startDate = new Date(strStart);
   objEvents.push( {sku: element['regid'], name: (element["eventname"] + element["scoutname"]), description: element["eventname"], quantity: "1", price: element["cost"], currency: "USD"} );
   strTable = strTable + "<tr>";
-  strTable = strTable + writeCell("<input type='checkbox' name='pay_cb' id='" + element['regid'] + "' value='" + element['cost'] + "'>", "50px");
+  strTable = strTable + writeCell("<input type='checkbox' name='pay_cb' id='" + element['regid'] + "' value='" + element['cost'] + "'>", "50px", null, true);
   strTable = strTable + writeCell(element["scoutname"], "150px");
   strTable = strTable + writeCell(element["eventname"], "150px", "Event.php?id=" + element["eventid"]);
   strTable = strTable + writeCell(startDate.toDateString(), "150px" );
