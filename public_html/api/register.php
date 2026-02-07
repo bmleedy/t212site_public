@@ -1,7 +1,4 @@
 <?php
-$activity_log_prefix = __DIR__ . '/../registration_logs/event_';
-$activity_log_suffix = '.log';
-
 if( isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest' ){
   // respond to Ajax request
 } else {
@@ -20,11 +17,8 @@ $paid = $_POST['paid'];
 $drive = $_POST['drive'];
 $pay_id = 0;
 
-error_log("you have reached here with action: " . $action . " for user_id: " . $user_id . " event_id: " . $event_id);
-
 // Log the registration actions taken on each event.
-$message = date('Y-m-d H:i:s') . " - User ID " . $user_id . " Action: " . $action . " Event ID: " . $event_id . " Seat Belts: " . $seat_belts . " Paid: " . $paid . " Drive: " . $drive . "\n";
-file_put_contents($activity_log_prefix . $event_id . $activity_log_suffix, $message, FILE_APPEND | LOCK_EX);
+error_log("register.php - User ID $user_id Action: $action Event ID: $event_id Seat Belts: $seat_belts Paid: $paid Drive: $drive");
 
 
 if ($action=="cancel") {
