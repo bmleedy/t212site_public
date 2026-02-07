@@ -10,7 +10,7 @@ require 'validation_helper.php';
 // Validate request
 require_ajax();
 require_authentication();
-require_csrf();
+// Note: CSRF not required for read-only endpoints
 
 date_default_timezone_set('America/Los_Angeles');
 header('Content-Type: application/json');
