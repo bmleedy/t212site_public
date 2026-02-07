@@ -5,7 +5,7 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
-require_permission(['ue', 'sa', 'wm']);
+// All logged-in users can view the adult roster
 
 header('Content-Type: application/json');
 require_once(__DIR__ . '/../includes/activity_logger.php');
