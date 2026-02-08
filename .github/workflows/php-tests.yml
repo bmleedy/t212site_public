@@ -121,6 +121,7 @@ jobs:
             "database_user": {"root": "root"},
             "database_host": "127.0.0.1",
             "database_name": "t212test",
+            "cookie_secret_key": "test_cookie_secret_key_1234567890",
             "paypal_client_id": "test-sandbox-id",
             "paypal_sandbox_client_id": "test-sandbox-id",
             "paypal_environment": "sandbox"
@@ -135,6 +136,9 @@ jobs:
             < db_copy/store_tables.sql
           mysql -h 127.0.0.1 -uroot -proot t212test \
             < db_copy/create_procedures.sql
+
+      - name: Seed test users
+        run: php tests/e2e/seed_test_users.php
 
       - name: Install Node dependencies
         run: npm install

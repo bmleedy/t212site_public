@@ -20,7 +20,6 @@ test.describe('2.1 Login/Logout', () => {
 
   test('sidebar changes to logged-in menu after login', async ({ page }) => {
     await loginAsSA(page);
-    await page.goto('/index.php');
     // Authenticated sidebar should have "My Profile" link
     const sidebar = page.locator('.large-3.panel.columns');
     await expect(sidebar.locator('text=My Profile')).toBeVisible();
