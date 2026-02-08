@@ -162,6 +162,14 @@ jobs:
             tests/e2e/section10-browser-compat.spec.js \
             tests/e2e/section11-mobile.spec.js
 
+      - name: Run snapshot tests
+        env:
+          BASE_URL: http://localhost:8000
+        run: |
+          npx playwright test \
+            --config=tests/e2e/playwright.config.js \
+            tests/e2e/snapshot-homepage.spec.js
+
       - name: Run authenticated e2e tests
         if: env.TEST_SA_USERNAME != ''
         env:

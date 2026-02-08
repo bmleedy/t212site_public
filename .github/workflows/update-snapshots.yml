@@ -1,0 +1,104 @@
+name: Update Visual Snapshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update-snapshots:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mariadb:10.6
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: t212test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.2
+          extensions: mysqli, pdo_mysql
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create test credentials
+        run: |
+          cat > public_html/CREDENTIALS.json <<'EOF'
+          {
+            "database_user": {"root": "root"},
+            "database_host": "127.0.0.1",
+            "database_name": "t212test",
+            "paypal_client_id": "test-sandbox-id",
+            "paypal_sandbox_client_id": "test-sandbox-id",
+            "paypal_environment": "sandbox"
+          }
+          EOF
+
+      - name: Import DB schema
+        run: |
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/db_structure_only.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/store_tables.sql
+          mysql -h 127.0.0.1 -uroot -proot t212test \
+            < db_copy/create_procedures.sql
+
+      - name: Install Node dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start PHP server
+        run: php -S localhost:8000 -t public_html &
+
+      - name: Wait for PHP server
+        run: |
+          for i in $(seq 1 30); do
+            curl -s http://localhost:8000/ > /dev/null && break
+            sleep 1
+          done
+
+      - name: Update snapshots
+        env:
+          BASE_URL: http://localhost:8000
+        run: |
+          npx playwright test \
+            --update-snapshots \
+            --config=tests/e2e/playwright.config.js \
+            tests/e2e/snapshot-homepage.spec.js
+
+      - name: Create PR with updated baselines
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          BRANCH="update-snapshots-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git add tests/e2e/__screenshots__/
+          if git diff --cached --quiet; then
+            echo "No snapshot changes detected."
+            exit 0
+          fi
+          git commit -m "Update visual snapshot baselines"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Update visual snapshot baselines" \
+            --body "Automated update of Playwright visual snapshot baselines." \
+            --base main
