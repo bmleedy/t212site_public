@@ -1,4 +1,4 @@
-# Troop 212 Website - Pre-Release Testing Checklist
+# Troop 212 Website - Pre-Release Manual Testing Checklist
 
 **Date:** _______________
 
@@ -8,7 +8,19 @@
 
 
 **Test Environment:** Production Site
-**Estimated Time:** 15-30 minutes
+**Estimated Time:** 10-15 minutes
+
+---
+
+## What's Automatically Tested
+
+The following are verified by GitHub Actions on every push/PR and do **not** need manual testing:
+
+- **Unit tests** (PHP): validation, activity logging, credentials, auth helpers
+- **Static analysis**: PHPStan
+- **E2E tests** (Playwright): Page loads, navigation, sidebar menus, login/logout, mobile responsiveness, browser console errors, visual snapshot regression, and basic UI element presence for all pages
+
+See `.github/workflows/php-tests.yml` for full details.
 
 ---
 
@@ -16,204 +28,84 @@
 
 - [ ] SA user account credentials ready
 - [ ] Test user account credentials ready (separate from SA account)
-- [ ] Browser dev tools available (for checking console errors)
 
 ---
 
-## SECTION 1: Public Pages (Logged Out)
+## SECTION 1: Interactive Workflows (as SA User)
 
-Log out completely before starting this section.
+These test form submissions and data interactions that the automated tests do not exercise.
 
-### 1.1 Home Page & Navigation
-- [ ] Home page (index.php) loads without errors
-- [ ] Gig Harbor image displays correctly
-- [ ] Four chip links at bottom work: Calendar, Troop Photos, Members, Recent Events
-- [ ] Login form appears and is functional
-
-### 1.2 Public Sidebar Navigation
-- [ ] Recent Events link works → OutingsPublic.php
-- [ ] Troop Calendar link works → Calendar.php
-- [ ] Troop Photos link opens Facebook
-- [ ] Members link works → Members.php
-- [ ] Scoutmaster link works → Scoutmaster.php
-
-### 1.3 Donate Page (Donate.php)
-- [ ] Donate button visible in header bar (green with heart icon)
-- [ ] Click Donate button → Donate.php loads without errors
-- [ ] Preset amount buttons display ($25, $50, $100, Custom)
-- [ ] Clicking a preset highlights it and shows PayPal buttons
-- [ ] Clicking "Custom" reveals amount input field
-- [ ] PayPal/Venmo/Card buttons load correctly
-- [ ] Form validation prevents amounts below $1.00
-
-### 1.4 Public Content Pages
-- [ ] OutingsPublic.php: Table displays recent events (past 2 months + future)
-- [ ] OutingsPublic.php: "Please log in" message appears at bottom
-- [ ] Calendar.php: Google calendar iframe loads
-- [ ] CurrentInfo.php: All sections display (Charter, Meetings, Committee table)
-
----
-
-## SECTION 2: Authentication
-
-### 2.1 Login/Logout
-- [ ] Login with SA account succeeds
-- [ ] Sidebar changes to logged-in menu
-- [ ] "Logoff" link works and returns to public view
-- [ ] Login with Test User account succeeds
-
----
-
-## SECTION 3: Core User Features (as SA User)
-
-### 3.1 My Profile
-- [ ] User.php loads with your profile data
+### 1.1 Profile Editing (User.php)
 - [ ] Profile fields are editable (Name, Email, Phone, etc.)
-- [ ] Save changes works (make a minor change, save, verify)
+- [ ] Save changes works (make a minor change, save, verify it persisted)
 - [ ] Revert any test changes
 
-### 3.2 Pay or Approve Outings
-- [ ] EventPay.php loads without errors
-- [ ] Displays pending payments/approvals (if any exist)
-
-### 3.3 Troop Events & Outings
-- [ ] ListEvents.php: Event list loads
-- [ ] Events with closed registration appear greyed out
-- [ ] Click an event → Event.php loads with details
-- [ ] "New Entry" button appears (SA permission)
-- [ ] "View ALL Events" link works → ListEventsAll.php
-
-### 3.4 Event Details (Event.php)
-- [ ] Event details display correctly
+### 1.2 Event Details (Event.php)
+- [ ] Click an event from ListEvents.php → Event.php loads with details
 - [ ] Attending Scouts table displays (if applicable)
 - [ ] Attending Adults table displays (if applicable)
-- [ ] "Download CSV" button works
+- [ ] "Download CSV" button works (downloads a file)
+- [ ] Events with closed registration appear greyed out on ListEvents.php
 
-### 3.5 Directories
-- [ ] Scout Directory (ListScouts.php): Lists scouts
-- [ ] Adult Directory (ListAdults.php): Lists adults
-- [ ] Merit Badge Counselors (MB_Counselors.php): List loads
-
-### 3.6 Calendar
-- [ ] Calendar.php: Google calendar displays correctly
-
----
-
-## SECTION 4: Leader Tools Menu (Expand & Test)
-
-### 4.1 Menu Functionality
-- [ ] "Leader Tools" expandable menu appears in sidebar
-- [ ] Click expands/collapses the submenu
-- [ ] Arrow icon toggles direction
-
-### 4.2 New User (registernew.php)
-- [ ] Page loads without errors
-- [ ] Form fields display correctly
-- [ ] DO NOT submit (would create database clutter)
-
-### 4.3 Deleted Users (ListDeletes.php)
-- [ ] Page loads and displays deleted users (if any)
-
-### 4.4 Event Signups (EventSignups.php)
-- [ ] Page loads and displays signup summary
-
-### 4.5 Attendance Report (AttendanceReport.php)
-- [ ] Page loads without errors
+### 1.3 Attendance Report (AttendanceReport.php)
 - [ ] Date range selector works
-- [ ] Report data displays
+- [ ] Report data displays after selecting a range
 
-### 4.6 Manage Committee (ManageCommittee.php)
-- [ ] Page loads with committee roles table
+### 1.4 Attendance Tracker (Attendance.php)
+- [ ] Scout attendance checkboxes toggle correctly
+- [ ] DO NOT save changes that affect real data
+
+### 1.5 Manage Committee (ManageCommittee.php)
 - [ ] Add form displays (Role Name, User dropdown, Sort Order)
 - [ ] User dropdown excludes scouts and alumni
 - [ ] DO NOT add/delete roles (database impact)
 
----
+### 1.6 Manage Patrols (Patrols.php)
+- [ ] Add new patrol form displays
+- [ ] Existing patrols are editable
+- [ ] DO NOT add/delete patrols (database impact)
 
-## SECTION 5: Attendance Features
+### 1.7 Activity Log (ActivityLog.php)
+- [ ] Recent activity entries display
+- [ ] Pagination/filtering works (if applicable)
 
-### 5.1 Attendance Tracker (Attendance.php)
-- [ ] Page loads without errors
-- [ ] Patrol tabs display
-- [ ] Scout attendance checkboxes work
-- [ ] DO NOT save changes that affect real data
-
-### 5.2 Patrol Agenda (PatrolAgenda.php)
-- [ ] Page loads without errors
-- [ ] Patrol information displays
+### 1.8 Permissions (Permissions.php)
+- [ ] Permission checkboxes display for each user
 
 ---
 
-## SECTION 6: Treasurer Features
+## SECTION 2: T-Shirt Store Interactions
 
-### 6.1 Payment Report (TreasurerReport.php)
-- [ ] Page loads without errors
-- [ ] Payment data displays in table format
-
----
-
-## SECTION 6A: T-Shirt Store Features
-
-### 6A.1 Public Order Page (TShirtOrder.php) - Logged Out
-- [ ] Page loads without errors (no login required)
-- [ ] T-shirt image displays
+### 2.1 Public Order Page (TShirtOrder.php)
 - [ ] Size selection dropdowns appear (XS through XXL)
-- [ ] Customer information form displays (Name, Email, Phone, Address)
-- [ ] PayPal buttons load
 - [ ] Selecting quantities updates total automatically
 - [ ] Form validation prevents empty submissions
 
-### 6A.2 Order Management (ManageTShirtOrders.php) - Requires trs/wm/sa
-- [ ] Page loads with order list
+### 2.2 Order Management (ManageTShirtOrders.php)
 - [ ] Statistics panel shows: Total, Unfulfilled, Fulfilled, Revenue
 - [ ] Filter dropdown works (All/Unfulfilled/Fulfilled)
 - [ ] Clicking order number opens details modal
 - [ ] Export CSV button downloads file
 - [ ] DO NOT mark orders fulfilled on production unless intended
 
-### 6A.3 Item Price Management (ManageItemPrices.php) - Requires wm/sa ONLY
-- [ ] "Item Prices" link appears in Admin menu (for wm/sa users)
-- [ ] Page loads with T-shirt sizes and prices
+### 2.3 Item Price Management (ManageItemPrices.php)
 - [ ] Price edit functionality works
 - [ ] DO NOT change prices unless intended
 
-### 6A.4 Notification Preferences (User Profile)
+### 2.4 Notification Preferences (User Profile)
 - [ ] Treasurer users see "Notification Preferences" section
 - [ ] T-shirt order notification toggle works
 - [ ] Preference saves correctly
 
 ---
 
-## SECTION 7: Admin Menu (Expand & Test)
+## SECTION 3: Permission-Based Access Testing
 
-### 7.1 Menu Functionality
-- [ ] "Admin" expandable menu appears in sidebar
-- [ ] Click expands/collapses the submenu
-- [ ] Arrow icon toggles direction
-
-### 7.2 Manage Patrols (Patrols.php)
-- [ ] Page loads with patrols table
-- [ ] Add new patrol form displays
-- [ ] Existing patrols are editable
-- [ ] DO NOT add/delete patrols (database impact)
-
-### 7.3 Activity Log (ActivityLog.php)
-- [ ] Page loads without errors
-- [ ] Recent activity entries display
-- [ ] Pagination/filtering works (if applicable)
-
-### 7.4 Permissions (Permissions.php)
-- [ ] Page loads with users list
-- [ ] Permission checkboxes display for each user
-- [ ] Test User's permissions are visible
-
----
-
-## SECTION 8: Permission-Based Access Testing
+The automated tests verify menu visibility for SA users but cannot test permission toggling workflows.
 
 Use your Test User account for these tests. Modify permissions via Permissions.php as SA user.
 
-### 8.1 Remove All Permissions from Test User
+### 3.1 Remove All Permissions from Test User
 - [ ] As SA: Remove all permissions from Test User
 - [ ] Login as Test User
 - [ ] Verify: No "Leader Tools" menu appears
@@ -221,88 +113,65 @@ Use your Test User account for these tests. Modify permissions via Permissions.p
 - [ ] Verify: No "[Treasurer]" link appears
 - [ ] Verify: No "[Patrol Leader]" links appear
 
-### 8.2 Test Patrol Leader (pl) Permission
+### 3.2 Test Patrol Leader (pl) Permission
 - [ ] As SA: Grant only 'pl' permission to Test User
 - [ ] Login as Test User
 - [ ] Verify: Attendance Tracker link appears
 - [ ] Verify: Patrol Agenda link appears
 - [ ] Verify: Leader Tools menu does NOT appear (pl only doesn't grant this)
 
-### 8.3 Test Outing Editor (oe) Permission
+### 3.3 Test Outing Editor (oe) Permission
 - [ ] As SA: Grant only 'oe' permission to Test User
 - [ ] Login as Test User
 - [ ] Verify: Leader Tools menu appears
 - [ ] Verify: Event Signups appears in Leader Tools
 - [ ] Verify: Attendance Report appears in Leader Tools
 
-### 8.4 Restore Test User Permissions
+### 3.4 Restore Test User Permissions
 - [ ] As SA: Restore Test User's original permissions
 
 ---
 
-## SECTION 8A: User Impersonation (SA Only)
+## SECTION 4: User Impersonation Workflow (SA Only)
 
-This section tests the user impersonation feature for Super Admins.
+The automated tests verify access control (SA can access, non-SA gets denied) but do not test the actual impersonation workflow.
 
-### 8A.1 Access Control
-- [ ] As SA: Navigate to Admin > Impersonate User
-- [ ] Verify: Page loads with user list
-- [ ] As non-SA user: Try to access Impersonate.php directly
-- [ ] Verify: "Access Denied" message appears
-
-### 8A.2 Start Impersonation
+### 4.1 Start Impersonation
 - [ ] As SA: Go to Impersonate.php
 - [ ] Use search filter to find a test user (non-SA)
-- [ ] Click "Impersonate" button
-- [ ] Verify: Confirmation dialog appears
-- [ ] Confirm impersonation
+- [ ] Click "Impersonate" button → confirm dialog
 - [ ] Verify: Redirected to home page
-- [ ] Verify: Blue banner appears at top with impersonated user's name
+- [ ] Verify: Blue banner appears with impersonated user's name
 - [ ] Verify: "Exit Impersonation" link is visible in banner
-- [ ] Verify: Welcome message shows impersonated user's name
 
-### 8A.3 Verify Impersonation Behavior
-- [ ] Navigate to "My Profile"
-- [ ] Verify: You see the impersonated user's profile (not your admin profile)
-- [ ] Navigate to ListEvents.php
-- [ ] Verify: Site behaves as if logged in as that user
-- [ ] Verify: Blue banner persists on all pages
+### 4.2 Verify Impersonation Behavior
+- [ ] Navigate to "My Profile" → see impersonated user's profile
+- [ ] Navigate to ListEvents.php → site behaves as that user
+- [ ] Blue banner persists on all pages
 
-### 8A.4 Activity Log During Impersonation
-- [ ] While impersonating, perform an action that logs to activity log
-  - Example: Update a setting on profile page (if available)
-- [ ] Exit impersonation (see 8A.5)
+### 4.3 Activity Log During Impersonation
+- [ ] Perform an action that logs to activity log (e.g., update profile)
+- [ ] Exit impersonation
 - [ ] Navigate to Admin > Activity Log
-- [ ] Search for the action you performed
-- [ ] Verify: Activity log entry contains "impersonated_by" in values JSON
-- [ ] Verify: impersonated_by shows your admin username
+- [ ] Verify: Entry contains "impersonated_by" with your admin username
 
-### 8A.5 Exit Impersonation
+### 4.4 Exit Impersonation
 - [ ] Click "Exit Impersonation" link in blue banner
-- [ ] Verify: Redirected to Impersonate.php
-- [ ] Verify: Blue banner no longer appears
+- [ ] Verify: Redirected to Impersonate.php, banner gone
 - [ ] Verify: Welcome message shows your admin name
-- [ ] Navigate to "My Profile"
-- [ ] Verify: You see your admin profile again
+- [ ] Navigate to "My Profile" → see your admin profile
 
-### 8A.6 Logout During Impersonation
+### 4.5 Logout During Impersonation
 - [ ] Start impersonating a user
-- [ ] Click "Logoff" in sidebar or top menu
+- [ ] Click "Logoff"
 - [ ] Verify: Impersonation ends (NOT logged out)
 - [ ] Verify: Redirected to Impersonate.php as admin
-- [ ] Verify: Blue banner no longer appears
-
-### 8A.7 Session Expiry (Optional)
-- [ ] Start impersonating a user
-- [ ] Close the browser tab completely
-- [ ] Open a new tab and navigate to site
-- [ ] Verify: Not impersonating (session expired)
 
 ---
 
-## SECTION 9: Event Registration Flow (Non-Destructive)
+## SECTION 5: Event Registration Flow
 
-### 9.1 View-Only Event Test
+### 5.1 View-Only Event Test
 - [ ] Navigate to an existing event
 - [ ] If registered: "I can't go" button appears
 - [ ] If not registered: "Sign Me Up!" button appears
@@ -310,24 +179,14 @@ This section tests the user impersonation feature for Super Admins.
 
 ---
 
-## SECTION 10: Browser Compatibility Check
+## SECTION 6: External Dependency Checks
 
-Open browser developer tools (F12) and check console.
+### 6.1 PayPal/Payment Integration
+- [ ] Donate page: PayPal/Venmo/Card buttons load correctly
+- [ ] T-Shirt order page: PayPal buttons render and are interactive
 
-- [ ] No JavaScript errors on home page
-- [ ] No JavaScript errors on ListEvents.php
-- [ ] No JavaScript errors on Event.php
-- [ ] No JavaScript errors on sidebar menu toggle
-
----
-
-## SECTION 11: Mobile Responsiveness
-
-Resize browser or use mobile emulation.
-
-- [ ] Home page displays correctly on mobile
-- [ ] Sidebar collapses appropriately
-- [ ] Tables are readable/scrollable
+### 6.2 Google Calendar
+- [ ] Calendar.php: Google calendar iframe loads with actual calendar content
 
 ---
 
@@ -341,33 +200,19 @@ Resize browser or use mobile emulation.
 
 ## Test Summary
 
-| Section                     | Pass | Fail | Notes |
-|-----------------------------|------|------|-------|
-| 1. Public Pages             |      |      |       |
-|                             |      |      |       |
-| 2. Authentication           |      |      |       |
-|                             |      |      |       |
-| 3. Core Features            |      |      |       |
-|                             |      |      |       |
-| 4. Leader Tools             |      |      |       |
-|                             |      |      |       |
-| 5. Attendance               |      |      |       |
-|                             |      |      |       |
-| 6. Treasurer                |      |      |       |
-|                             |      |      |       |
-| 6A. T-Shirt Store           |      |      |       |
-|                             |      |      |       |
-| 7. Admin                    |      |      |       |
-|                             |      |      |       |
-| 8. Permissions              |      |      |       |
-|                             |      |      |       |
-| 8A. Impersonation           |      |      |       |
-|                             |      |      |       |
-| 9. Event Registration       |      |      |       |
-|                             |      |      |       |
-| 10. Browser Compat          |      |      |       |
-|                             |      |      |       |
-| 11. Mobile                  |      |      |       |
+| Section                        | Pass | Fail | Notes |
+|--------------------------------|------|------|-------|
+| 1. Interactive Workflows       |      |      |       |
+|                                |      |      |       |
+| 2. T-Shirt Store Interactions  |      |      |       |
+|                                |      |      |       |
+| 3. Permissions                 |      |      |       |
+|                                |      |      |       |
+| 4. Impersonation               |      |      |       |
+|                                |      |      |       |
+| 5. Event Registration          |      |      |       |
+|                                |      |      |       |
+| 6. External Dependencies       |      |      |       |
 
 **Overall Result:** [ ] PASS  [ ] FAIL
 
@@ -398,11 +243,9 @@ The following features/scenarios CANNOT be fully tested with this method:
 11. **Item Price Changes** - Would affect live pricing for customers
 
 ### Cannot Test (External Dependencies)
-1. **PayPal Integration** - Requires real payment flow (use sandbox for T-shirt order and donation testing)
-2. **Google Calendar** - Depends on external Google API
-3. **Facebook Links** - External site, can only verify link works
-4. **Password Reset Email** - Would require testing email delivery
-5. **T-Shirt Order Emails** - Sends real emails to customers and treasurers
+1. **PayPal Integration** - Requires real payment flow (use sandbox for testing)
+2. **Password Reset Email** - Would require testing email delivery
+3. **T-Shirt Order Emails** - Sends real emails to customers and treasurers
 
 ### Cannot Test (Requires Specific Conditions)
 1. **Registration Conflict Detection** - Requires overlapping events
@@ -415,13 +258,8 @@ The following features/scenarios CANNOT be fully tested with this method:
 2. **Bulk Operations** - Risky on production
 3. **Error Handling Edge Cases** - May cause visible errors
 
-### Tested Implicitly
-1. **Activity Logging** - Verified by checking Activity Log after operations
-2. **Session Management** - Tested during login/logout
-3. **AJAX Endpoints** - Tested when pages load data successfully
-
 ---
 
-*Document Version: 1.2*
+*Document Version: 2.0*
 *Last Updated: February 2026*
-*Added: Donate page tests (Section 1.3)*
+*Revised to remove items covered by automated CI/CD (GitHub Actions e2e + unit tests)*
