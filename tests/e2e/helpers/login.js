@@ -30,10 +30,10 @@ async function login(page, username, password) {
   await page.fill('#user_password', password);
   await page.click('input[type="submit"]');
   // Wait for the form submission to complete
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
   // Navigate to main page so authenticated content is available
   await page.goto('/index.php');
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('load');
 }
 
 async function logout(page) {
