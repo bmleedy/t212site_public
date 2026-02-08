@@ -13,7 +13,7 @@ const { loginAsSA } = require('./helpers/login');
 test.describe('Section 4: Leader Tools Menu', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsSA(page);
-    await page.goto('/index.php');
+    await page.goto('/ListEvents.php');
   });
 
   // -------------------------------------------------------------------------

@@ -31,8 +31,8 @@ async function login(page, username, password) {
   await page.click('input[type="submit"]');
   // Wait for the form submission to complete
   await page.waitForLoadState('load');
-  // Navigate to main page so authenticated content is available
-  await page.goto('/index.php');
+  // Navigate to an authenticated page so sidebar and session are available
+  await page.goto('/ListEvents.php');
   await page.waitForLoadState('load');
 }
 

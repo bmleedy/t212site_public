@@ -70,7 +70,7 @@ test.describe('Section 3: Core User Features', () => {
     test('View ALL Events link works', async ({ page }) => {
       await page.goto('/ListEvents.php');
       await page.waitForSelector('#userdata', { timeout: 10000 });
-      const allEventsLink = page.locator('a[href="ListEventsAll.php"]');
+      const allEventsLink = page.locator('a[href="/ListEventsAll.php"]');
       await expect(allEventsLink).toBeVisible();
     });
   });

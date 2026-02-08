@@ -14,8 +14,8 @@ const { loginAsSA, loginAsTestUser, logout } = require('./helpers/login');
 test.describe('2.1 Login/Logout', () => {
   test('login with SA account succeeds', async ({ page }) => {
     await loginAsSA(page);
-    // Should see Welcome message in the nav bar
-    await expect(page.locator('text=Welcome')).toBeVisible();
+    // Should see Welcome greeting in the nav bar
+    await expect(page.locator('text=Welcome').first()).toBeVisible();
   });
 
   test('sidebar changes to logged-in menu after login', async ({ page }) => {
@@ -35,6 +35,6 @@ test.describe('2.1 Login/Logout', () => {
 
   test('login with test user account succeeds', async ({ page }) => {
     await loginAsTestUser(page);
-    await expect(page.locator('text=Welcome')).toBeVisible();
+    await expect(page.locator('text=Welcome').first()).toBeVisible();
   });
 });
