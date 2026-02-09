@@ -27,18 +27,16 @@ $reg_open = validate_string_post('reg_open', false, '0');
 $sic = validate_int_post('sic', false, 0);
 $aic = validate_int_post('aic', false, 0);
 
-// Append seconds to datetime strings
-$startdate = $startdate_raw . ':00';
-$enddate = $enddate_raw . ':00';
-
-// Validate that startdate is before enddate
-$start_ts = strtotime($startdate);
-$end_ts = strtotime($enddate);
+// Validate and normalize datetime strings to MySQL format (Y-m-d H:i:s)
+$start_ts = strtotime($startdate_raw);
+$end_ts = strtotime($enddate_raw);
 if ($start_ts === false || $end_ts === false) {
     http_response_code(400);
     echo json_encode(['status' => 'validation', 'message' => 'Invalid date format', 'field' => 'startdate']);
     die();
 }
+$startdate = date('Y-m-d H:i:s', $start_ts);
+$enddate = date('Y-m-d H:i:s', $end_ts);
 if ($start_ts > $end_ts) {
     echo json_encode(['status' => 'validation', 'message' => 'Start date must be before end date', 'field' => 'startdate']);
     die();
