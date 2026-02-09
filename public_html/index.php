@@ -92,6 +92,15 @@ $mysqli->close();
       </div>
     </div>
   </a>
+  </a>
+
+  <a href="Documents.php">
+    <div class="large-3 columns">
+      <div class="panel">
+        <p><i class="fi-mountains" style="font-size:20px"></i>Documents</p>
+      </div>
+    </div>
+  </a>
 </div>
 
 <?php if ($tshirt_orders_enabled): ?>
