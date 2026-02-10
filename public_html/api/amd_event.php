@@ -27,18 +27,16 @@ $reg_open = validate_string_post('reg_open', false, '0');
 $sic = validate_int_post('sic', false, 0);
 $aic = validate_int_post('aic', false, 0);
 
-// Append seconds to datetime strings
-$startdate = $startdate_raw . ':00';
-$enddate = $enddate_raw . ':00';
-
-// Validate that startdate is before enddate
-$start_ts = strtotime($startdate);
-$end_ts = strtotime($enddate);
+// Validate and normalize datetime strings to MySQL format (Y-m-d H:i:s)
+$start_ts = strtotime($startdate_raw);
+$end_ts = strtotime($enddate_raw);
 if ($start_ts === false || $end_ts === false) {
     http_response_code(400);
     echo json_encode(['status' => 'validation', 'message' => 'Invalid date format', 'field' => 'startdate']);
     die();
 }
+$startdate = date('Y-m-d H:i:s', $start_ts);
+$enddate = date('Y-m-d H:i:s', $end_ts);
 if ($start_ts > $end_ts) {
     echo json_encode(['status' => 'validation', 'message' => 'Start date must be before end date', 'field' => 'startdate']);
     die();
@@ -78,7 +76,7 @@ if ($id != 'New') {
     die();
   }
   // Fix: sic and aic are integers (i), not strings (s)
-  $rs = $statement->bind_param('ssssiissssii', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type, $event_id);
+  $rs = $statement->bind_param('sssssiisssii', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type, $event_id);
   if ($rs == false) {
     log_activity(
       $mysqli,
@@ -96,7 +94,7 @@ if ($id != 'New') {
     log_activity(
       $mysqli,
       'update_event',
-      array('event_id' => $event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+      array('event_id' => $event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate, 'enddate' => $enddate),
       true,
       "Event $event_id updated: $name",
       $current_user_id
@@ -139,7 +137,7 @@ if ($id != 'New') {
     die();
   }
   // Fix: sic and aic are integers (i), not strings (s)
-  $rs = $statement->bind_param('ssssiissssi', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type);
+  $rs = $statement->bind_param('sssssiisssi', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type);
   if ($rs == false) {
     log_activity(
       $mysqli,
@@ -162,7 +160,7 @@ if ($id != 'New') {
     log_activity(
       $mysqli,
       'create_event',
-      array('event_id' => $new_event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+      array('event_id' => $new_event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate, 'enddate' => $enddate),
       true,
       "New event created: $name (ID: $new_event_id)",
       $current_user_id
