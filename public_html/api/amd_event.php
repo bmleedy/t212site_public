@@ -76,7 +76,7 @@ if ($id != 'New') {
     die();
   }
   // Fix: sic and aic are integers (i), not strings (s)
-  $rs = $statement->bind_param('ssssiissssii', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type, $event_id);
+  $rs = $statement->bind_param('sssssiisssii', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type, $event_id);
   if ($rs == false) {
     log_activity(
       $mysqli,
@@ -137,7 +137,7 @@ if ($id != 'New') {
     die();
   }
   // Fix: sic and aic are integers (i), not strings (s)
-  $rs = $statement->bind_param('ssssiissssi', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type);
+  $rs = $statement->bind_param('sssssiisssi', $name, $location, $description, $startdate, $enddate, $sic, $aic, $cost, $adult_cost, $reg_open, $type);
   if ($rs == false) {
     log_activity(
       $mysqli,
