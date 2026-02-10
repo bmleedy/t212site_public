@@ -94,7 +94,7 @@ if ($id != 'New') {
     log_activity(
       $mysqli,
       'update_event',
-      array('event_id' => $event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+      array('event_id' => $event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate, 'enddate' => $enddate),
       true,
       "Event $event_id updated: $name",
       $current_user_id
@@ -160,7 +160,7 @@ if ($id != 'New') {
     log_activity(
       $mysqli,
       'create_event',
-      array('event_id' => $new_event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate),
+      array('event_id' => $new_event_id, 'name' => $name, 'location' => $location, 'startdate' => $startdate, 'enddate' => $enddate),
       true,
       "New event created: $name (ID: $new_event_id)",
       $current_user_id
