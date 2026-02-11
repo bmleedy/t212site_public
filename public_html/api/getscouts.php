@@ -6,7 +6,6 @@ require_once(__DIR__ . '/../includes/activity_logger.php');
 
 require_ajax();
 $current_user_id = require_authentication();
-require_permission(['ue', 'sa', 'wm', 'pl', 'oe']);
 
 header('Content-Type: application/json');
 require 'connect.php';
