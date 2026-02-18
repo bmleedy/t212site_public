@@ -177,6 +177,19 @@ The automated tests verify access control (SA can access, non-SA gets denied) bu
 - [ ] If not registered: "Sign Me Up!" button appears
 - [ ] DO NOT click registration buttons on real events
 
+### 5.2 Parent Approval Flow
+- [ ] As SA: Ensure a scout has a pending (unapproved) event registration
+- [ ] Login as the scout's parent (a user in the same family with no 'oe'/'sa' permissions)
+- [ ] Open the approval link for the scout's registration
+- [ ] Verify: Approval form loads with scout name, event details, and special instructions fields
+- [ ] Fill in optional medical/special instruction fields and click Approve
+- [ ] Verify: Approval succeeds with confirmation message
+- [ ] Login as a different parent (not in the scout's family, no 'oe'/'sa' permissions)
+- [ ] Attempt to open the same approval link
+- [ ] Verify: Access is denied ("You are not listed as an Approver for this scout")
+- [ ] Login as SA user
+- [ ] Verify: SA can still view and submit approvals for any scout
+
 ---
 
 ## SECTION 6: External Dependency Checks
@@ -234,13 +247,12 @@ The following features/scenarios CANNOT be fully tested with this method:
 2. **Event Creation** - Creating test events visible to all users
 3. **Event Sign-up/Cancel** - Would affect real event rosters and send emails
 4. **Payment Processing** - Cannot test marking payments without affecting real data
-5. **Approval Workflow** - Would require pending registrations from real scouts
-6. **Delete User** - Cannot safely test user deletion
-7. **Email Notifications** - Would send real emails to users
-8. **Patrol/Committee Create/Delete** - Would affect production reference data
-9. **T-Shirt Order Payment** - Would create real orders in production database
-10. **T-Shirt Order Fulfillment** - Would affect real order status
-11. **Item Price Changes** - Would affect live pricing for customers
+5. **Delete User** - Cannot safely test user deletion
+6. **Email Notifications** - Would send real emails to users
+7. **Patrol/Committee Create/Delete** - Would affect production reference data
+8. **T-Shirt Order Payment** - Would create real orders in production database
+9. **T-Shirt Order Fulfillment** - Would affect real order status
+10. **Item Price Changes** - Would affect live pricing for customers
 
 ### Cannot Test (External Dependencies)
 1. **PayPal Integration** - Requires real payment flow (use sandbox for testing)

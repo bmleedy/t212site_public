@@ -5,7 +5,6 @@ require 'validation_helper.php';
 
 require_ajax();
 $current_user_id = require_authentication();
-require_permission(['oe', 'sa']);
 
 header('Content-Type: application/json');
 require 'connect.php';
@@ -59,8 +58,6 @@ $stmt->close();
 // Check if adult is in same family as scout
 // Authorization: Parent/guardian must be in same family as the scout
 // This ensures only family members can VIEW the approval form for their children
-// Note: The actual approve.php endpoint requires 'oe' or 'sa' permission,
-// allowing admins to process approvals on behalf of any family
 $continue = false;
 if ($scout_family_id == $adult_family_id) {
   $continue = true;
