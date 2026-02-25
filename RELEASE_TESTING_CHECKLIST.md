@@ -189,6 +189,16 @@ The automated tests verify access control (SA can access, non-SA gets denied) bu
 - [ ] Verify: Access is denied ("You are not listed as an Approver for this scout")
 - [ ] Login as SA user
 - [ ] Verify: SA can still view and submit approvals for any scout
+- [ ] Verify: SA can still view and submit approvals for any scout
+
+### 5.3 Browser Compatibility Check
+
+Open browser developer tools (F12) and check console.
+
+- [ ] No JavaScript errors on home page
+- [ ] No JavaScript errors on ListEvents.php
+- [ ] No JavaScript errors on Event.php
+- [ ] No JavaScript errors on sidebar menu toggle
 
 ---
 

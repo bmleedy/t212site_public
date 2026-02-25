@@ -21,7 +21,8 @@
       "Bash(/usr/local/bin/node:*)",
       "Bash(/opt/homebrew/bin/node:*)",
       "Bash(do /usr/local/bin/claude_code/node --check \"$f\")",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "ask": []

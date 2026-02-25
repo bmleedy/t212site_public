@@ -90,6 +90,21 @@ if ($id != 'New') {
     die();
   }
   if ($statement->execute()) {
+    if ($statement->affected_rows === 0) {
+      // UPDATE succeeded but matched no rows - event ID doesn't exist
+      log_activity(
+        $mysqli,
+        'update_event',
+        array('event_id' => $event_id),
+        false,
+        "Event $event_id not found - no rows updated",
+        $current_user_id
+      );
+      http_response_code(404);
+      echo json_encode(['status' => 'error', 'message' => 'Event not found. It may have been deleted.']);
+      die();
+    }
+
     // Log successful event update
     log_activity(
       $mysqli,
