@@ -197,8 +197,15 @@ function submitDoc() {
     type: "post",
     datatype: 'json',
     data: fieldData,
-    error: function(errorThrown) {
-      console.log(errorThrown);
+    error: function(xhr) {
+      var msg = 'An error occurred while saving the event.';
+      try {
+        var resp = JSON.parse(xhr.responseText);
+        if (resp && resp.message) {
+          msg = resp.message;
+        }
+      } catch(e) {}
+      alert(msg);
     },
     success: function(data){
       console.log(data);
@@ -213,6 +220,8 @@ function submitDoc() {
           strURL = "Event.php?id=" + event_id
         }
         location.href = strURL;
+      } else if (data["status"]=="error") {
+        alert(data["message"] || "An error occurred while saving the event.");
       }
     }
   })

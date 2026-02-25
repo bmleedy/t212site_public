@@ -2,10 +2,16 @@
 session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
 session_start();
 require "includes/authHeader.php";
-$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$id_raw = isset($_GET['id']) ? $_GET['id'] : '';
 $varEdit = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 $showEdit = 0;
 $user_id = $_SESSION['user_id'];
+if ($id_raw === 'New') {
+  $id = 'New';
+  $varEdit = 1;
+} else {
+  $id = (int)$id_raw;
+}
 if ((!in_array("oe",$access)) && (!in_array("sa",$access))) {
   $varEdit=0;
 } else if($varEdit <> 1) {
