@@ -7,7 +7,7 @@ require_ajax();
 $current_user_id = require_authentication();
 // Only treasurer, webmaster, or super admin can access
 require_permission(['trs', 'wm', 'sa']);
-// Note: CSRF not required for this read-only endpoint
+require_csrf();
 
 header('Content-Type: application/json');
 require 'connect.php';
