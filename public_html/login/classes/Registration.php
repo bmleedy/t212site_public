@@ -40,7 +40,9 @@ class Registration
 	 */
 	public function __construct()
 	{
-		session_start();
+		if (session_status() === PHP_SESSION_NONE) {
+			session_start();
+		}
 
 		// if we have such a POST request, call the registerNewUser() method
 		if (isset($_POST["register"])) {
@@ -165,13 +167,6 @@ class Registration
 
 		if ($family_id === '') {
 			$family_id = 0;
-		}
-
-		// Validate CAPTCHA first (prevents automated registration attempts)
-		if (!isset($_POST['captcha']) || !isset($_SESSION['captcha']) ||
-			strtoupper(trim($_POST['captcha'])) !== strtoupper($_SESSION['captcha'])) {
-			$this->errors[] = MESSAGE_CAPTCHA_WRONG;
-			return;
 		}
 
 		// Validate user_type against whitelist

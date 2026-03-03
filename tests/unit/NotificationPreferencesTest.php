@@ -463,7 +463,7 @@ echo str_repeat("-", 60) . "\n";
 
 if (assert_true(
     strpos($getUserContents, 'if ($edit && $canEdit)') !== false,
-    "getuser.php checks edit mode with edit access for preferences display"
+    "getuser.php checks edit mode with canEdit access for preferences display"
 )) {
     $passed++;
 } else {

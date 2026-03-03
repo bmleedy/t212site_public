@@ -10,7 +10,8 @@ session_set_cookie_params([
 session_start();
 require "includes/authHeader.php";
 $user_id = $_SESSION['user_id'];
-$family_id = isset($_GET['familyID']) ? (int)$_GET['familyID'] : null;
+$family_id = isset($_GET['familyID']) ? (int)$_GET['familyID'] :
+             (isset($_POST['family_id']) ? (int)$_POST['family_id'] : null);
 $user_first = $_SESSION['user_first'];
 
 // Validate CSRF token for POST requests
@@ -53,7 +54,13 @@ if ($family_id !== null) {
 <br />
 
 <div class='row'>
-  <?php require "includes/sidebar.html"; ?>
+  <?php
+    if ($login->isUserLoggedIn() == true) {
+        require "includes/m_sidebar.html";
+    } else {
+        require "includes/sidebar.html";
+    }
+  ?>
   <div class="large-9 columns">
     <div class="panel">
 <?php
