@@ -21,8 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Validate family relationship - user can only add members to their own family
-if ($family_id !== null) {
+// Validate family relationship - admins can add to any family, others only their own
+$is_admin = in_array('sa', $access, true) || in_array('wm', $access, true) || in_array('ue', $access, true);
+if ($family_id !== null && !$is_admin) {
     require_once('includes/credentials.php');
     $creds = Credentials::getInstance();
     $mysqli = new mysqli(
