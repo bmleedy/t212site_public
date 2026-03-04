@@ -12,7 +12,7 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || $_SERVER['HTTP_X_REQUESTED_WITH
     die();
 }
 
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 header('Content-Type: application/json');
 
 // Check authentication

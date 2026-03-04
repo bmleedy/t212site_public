@@ -12,7 +12,7 @@
  *   end_date - (optional) End date filter (YYYY-MM-DD)
  */
 
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 require 'validation_helper.php';
 

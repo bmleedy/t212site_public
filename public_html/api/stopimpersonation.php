@@ -6,7 +6,7 @@
  * This is a direct navigation endpoint (not AJAX).
  */
 
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 
 // Must have a session
 if (!isset($_SESSION['user_id'])) {

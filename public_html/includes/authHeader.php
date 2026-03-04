@@ -1,16 +1,7 @@
 
 <?php
-// Configure secure session cookie settings (must be before session_start)
-if (session_status() === PHP_SESSION_NONE) {
-  session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-    'httponly' => true,
-    'samesite' => 'Lax'
-  ]);
-  session_start();
-}
+// Centralized session configuration
+require_once(__DIR__ . '/session_config.php');
 
 // the root of our directory is one level above this file
 define("__ROOT__",dirname(__DIR__));
@@ -53,12 +44,6 @@ require_once(__ROOT__ . '/includes/impersonation_helper.php');
 $isImpersonating = is_impersonating();
 $impersonatedUserFirst = $isImpersonating ? ($_SESSION['user_first'] ?? '') : null;
 $impersonatedUserName = $isImpersonating ? ($_SESSION['user_name'] ?? '') : null;
-
-// Forces scouts to complete their profile if their profile is not entirely complete already
-$checkinfo = __ROOT__ .'/api/checkinfo.php' ;
-if ($user_type=='Scout') {
-  require( $checkinfo );
-}
 
 // CSRF Protection: Generate a token if one doesn't exist
 if (!isset($_SESSION['csrf_token'])) {

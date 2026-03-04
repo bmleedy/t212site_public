@@ -16,7 +16,7 @@ if (!extension_loaded('gd')) {
     die("It looks like GD is not installed");
 } 
 
-session_start();
+require_once(__DIR__ . '/../../includes/session_config.php');
 
 // target captcha string length
 $iCaptchaLength = 4;

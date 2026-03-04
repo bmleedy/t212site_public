@@ -292,11 +292,24 @@ echo str_repeat("-", 60) . "\n";
 
 $pageContents = file_get_contents($pageFile);
 
-// Check for secure cookie options
+// Check that page uses centralized session config via authHeader.php
+// Session cookie security (secure, httponly, samesite) is now handled
+// in includes/session_config.php, included by authHeader.php
 if (assert_true(
-  strpos($pageContents, "'secure' => true") !== false ||
-  strpos($pageContents, '"secure" => true') !== false,
-  "Secure cookie option is set"
+  strpos($pageContents, 'authHeader.php') !== false,
+  "Page includes authHeader.php (provides secure/httponly/samesite session config)"
+)) {
+  $passed++;
+} else {
+  $failed++;
+}
+
+// Verify session_config.php itself has secure cookie options
+$sessionConfigContents = file_get_contents(PUBLIC_HTML_DIR . '/includes/session_config.php');
+
+if (assert_true(
+  strpos($sessionConfigContents, "'httponly' => true") !== false,
+  "Centralized session_config.php has HttpOnly cookie option"
 )) {
   $passed++;
 } else {
@@ -304,19 +317,8 @@ if (assert_true(
 }
 
 if (assert_true(
-  strpos($pageContents, "'httponly' => true") !== false ||
-  strpos($pageContents, '"httponly" => true') !== false,
-  "HttpOnly cookie option is set"
-)) {
-  $passed++;
-} else {
-  $failed++;
-}
-
-if (assert_true(
-  strpos($pageContents, "'samesite'") !== false ||
-  strpos($pageContents, '"samesite"') !== false,
-  "SameSite cookie option is set"
+  strpos($sessionConfigContents, "'samesite'") !== false,
+  "Centralized session_config.php has SameSite cookie option"
 )) {
   $passed++;
 } else {

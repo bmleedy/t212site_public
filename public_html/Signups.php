@@ -1,6 +1,5 @@
 
-<?php session_set_cookie_params(0, '/', '.t212.org');
-session_start();
+<?php
 require_once "includes/authHeader.php";
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 ?>

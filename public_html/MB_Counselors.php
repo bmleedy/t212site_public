@@ -1,13 +1,4 @@
 <?php
-session_set_cookie_params([
-  'lifetime' => 0,
-  'path' => '/',
-  'domain' => '.t212.org',
-  'secure' => true,
-  'httponly' => true,
-  'samesite' => 'Strict'
-]);
-session_start();
 require "includes/authHeader.php"; ?>
 
 <br>

@@ -12,17 +12,7 @@ require_once(__DIR__ . '/api/connect.php');
 require_once(__DIR__ . '/includes/activity_logger.php');
 
 // Start session with secure cookie settings
-if (session_status() === PHP_SESSION_NONE) {
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'domain' => '',
-        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
-    session_start();
-}
+require_once(__DIR__ . '/includes/session_config.php');
 
 // Get source IP - use REMOTE_ADDR only to prevent IP spoofing
 $source_ip = $_SERVER['REMOTE_ADDR'];

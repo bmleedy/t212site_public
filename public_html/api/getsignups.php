@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 require 'validation_helper.php';
 
@@ -52,7 +52,7 @@ $adults = null;
 $query = "SELECT u.user_id, u.user_first, u.user_last, u.user_type, si.patrol_id,
                  r.approved_by, r.attending, r.paid, r.seat_belts
           FROM users AS u
-          INNER JOIN scout_info AS si ON u.user_id = si.user_id
+          LEFT JOIN scout_info AS si ON u.user_id = si.user_id
           LEFT JOIN registration AS r ON u.user_id = r.user_id AND r.event_id = ?
           WHERE u.user_type = 'Scout'
           ORDER BY si.patrol_id, u.user_last, u.user_first";

@@ -5,7 +5,7 @@
  * Returns list of merit badge counselors with their contact information.
  * Requires authentication - counselor list is login-protected.
  */
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 require 'validation_helper.php';
 require_ajax();

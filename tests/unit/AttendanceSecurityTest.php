@@ -287,8 +287,8 @@ if (assert_file_exists($attendancePhpFile, "Attendance.php exists")) {
 $attendancePhpContents = file_get_contents($attendancePhpFile);
 
 if (assert_true(
-    stripos($attendancePhpContents, 'httponly') !== false,
-    "Attendance.php contains httponly session cookie parameter"
+    stripos($attendancePhpContents, 'authHeader.php') !== false,
+    "Attendance.php includes authHeader.php (which provides httponly session config)"
 )) {
     $passed++;
 } else {
@@ -305,8 +305,8 @@ if (assert_file_exists($attendanceReportPhpFile, "AttendanceReport.php exists"))
 $attendanceReportPhpContents = file_get_contents($attendanceReportPhpFile);
 
 if (assert_true(
-    stripos($attendanceReportPhpContents, 'httponly') !== false,
-    "AttendanceReport.php contains httponly session cookie parameter"
+    stripos($attendanceReportPhpContents, 'authHeader.php') !== false,
+    "AttendanceReport.php includes authHeader.php (which provides httponly session config)"
 )) {
     $passed++;
 } else {

@@ -15,14 +15,7 @@ ini_set('display_errors', '0');
 header('Content-Type: application/json');
 
 // Use same session cookie settings as main pages
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 
 require 'connect.php';
 require 'auth_helper.php';

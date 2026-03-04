@@ -12,7 +12,7 @@
  * - HTML escaping for email content
  */
 
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 require 'validation_helper.php';
 

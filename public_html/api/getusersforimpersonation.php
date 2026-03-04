@@ -6,7 +6,7 @@
  * Requires Super Admin (sa) permission.
  */
 
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 
 require_ajax();

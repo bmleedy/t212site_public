@@ -1,6 +1,4 @@
 <?php
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
 require "includes/authHeader.php";
 $id = isset($_GET["id"]) ? htmlspecialchars($_GET["id"], ENT_QUOTES, 'UTF-8') : '';
 $user_id = isset($_SESSION['user_id']) ? htmlspecialchars($_SESSION['user_id'], ENT_QUOTES, 'UTF-8') : '';

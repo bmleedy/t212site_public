@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once(__DIR__ . '/../includes/session_config.php');
 require 'auth_helper.php';
 require 'validation_helper.php';
 require_ajax();
@@ -36,7 +36,7 @@ $stmt->close();
 $returnData = '<h5>' . escape_html($name) . ' -  *****with Special Instructions - Adult Leader Copy*****</h5>';
 
 $attendingScouts = null;
-$stmt = $mysqli->prepare("SELECT reg.user_id, spec_instructions, paid, seat_belts, user_first, user_last, patrol_id, reg.id as register_id, reg.approved_by FROM registration AS reg, users AS u, scout_info AS si WHERE reg.attending=1 AND u.user_type='Scout' AND reg.user_id = u.user_id AND reg.user_id = si.user_id AND reg.event_id=? ORDER BY patrol_id, user_last, user_first");
+$stmt = $mysqli->prepare("SELECT reg.user_id, spec_instructions, paid, seat_belts, user_first, user_last, si.patrol_id, reg.id as register_id, reg.approved_by FROM registration AS reg INNER JOIN users AS u ON reg.user_id = u.user_id LEFT JOIN scout_info AS si ON reg.user_id = si.user_id WHERE reg.attending=1 AND u.user_type='Scout' AND reg.event_id=? ORDER BY si.patrol_id, user_last, user_first");
 $stmt->bind_param("i", $event_id);
 $stmt->execute();
 $result = $stmt->get_result();

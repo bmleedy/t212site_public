@@ -1,15 +1,6 @@
 <?php
-// Secure session configuration (must be before session_start)
-if (session_status() === PHP_SESSION_NONE) {
-	session_set_cookie_params([
-		'lifetime' => 0,
-		'path' => '/',
-		'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-		'httponly' => true,
-		'samesite' => 'Lax'
-	]);
-	session_start();
-}
+// Centralized session configuration
+require_once(__DIR__ . '/includes/session_config.php');
 
 // CSRF Protection: Generate a token if one doesn't exist
 if (!isset($_SESSION['csrf_token'])) {

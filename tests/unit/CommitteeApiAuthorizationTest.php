@@ -314,8 +314,8 @@ foreach ($committee_apis as $api_file) {
     $api_path = PUBLIC_HTML_DIR . '/api/' . $api_file;
     $content = file_get_contents($api_path);
 
-    $has_session_start = (strpos($content, 'session_start()') !== false);
-    if (assert_true($has_session_start, "$api_file starts session")) {
+    $has_session_start = (strpos($content, 'session_config.php') !== false);
+    if (assert_true($has_session_start, "$api_file uses centralized session config")) {
         $passed++;
     } else {
         $failed++;

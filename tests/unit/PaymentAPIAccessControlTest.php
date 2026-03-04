@@ -260,8 +260,8 @@ if (assert_true($escapes_error, "pay.php escapes database error messages")) {
 // =============================================================================
 echo "\n--- Test 11: Session Management ---\n";
 
-$has_session_start = (strpos($api_content, 'session_start()') !== false);
-if (assert_true($has_session_start, "pay.php starts session")) {
+$has_session_start = (strpos($api_content, 'session_config.php') !== false);
+if (assert_true($has_session_start, "pay.php uses centralized session config")) {
     $passed++;
 } else {
     $failed++;

@@ -1,6 +1,5 @@
 <?php
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
+require_once(__DIR__ . '/includes/session_config.php');
 require( $_SERVER['DOCUMENT_ROOT'] . '/login/inc_login.php');
 
 // Validate input

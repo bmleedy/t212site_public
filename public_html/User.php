@@ -1,6 +1,4 @@
-<?php 
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
+<?php
 require "includes/authHeader.php";
 if ( array_key_exists("edit", $_GET) ) {
   $varEdit = intval($_GET["edit"]);

@@ -33,9 +33,7 @@ require_once 'validation_helper.php';
 require_once(__DIR__ . '/../includes/activity_logger.php');
 
 // Start session if not already started (needed for auth checks)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once(__DIR__ . '/../includes/session_config.php');
 
 // Authentication: Verify user is logged in
 $current_user_id = require_authentication();

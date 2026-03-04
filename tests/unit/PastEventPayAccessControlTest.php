@@ -268,8 +268,8 @@ if (assert_true($closes_statements, "getpasteventpay.php closes prepared stateme
 // =============================================================================
 echo "\n--- Test 13: Session Management ---\n";
 
-$has_session_start = (strpos($api_content, 'session_start()') !== false);
-if (assert_true($has_session_start, "getpasteventpay.php starts session")) {
+$has_session_start = (strpos($api_content, 'session_config.php') !== false);
+if (assert_true($has_session_start, "getpasteventpay.php uses centralized session config")) {
     $passed++;
 } else {
     $failed++;

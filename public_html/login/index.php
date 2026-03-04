@@ -1,15 +1,6 @@
 <?php
-// Secure session configuration (must be before session_start)
-if (session_status() === PHP_SESSION_NONE) {
-	session_set_cookie_params([
-		'lifetime' => 0,
-		'path' => '/',
-		'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-		'httponly' => true,
-		'samesite' => 'Lax'
-	]);
-	session_start();
-}
+// Centralized session configuration
+require_once(__DIR__ . '/../includes/session_config.php');
 
 // Check for minimum PHP version
 if (version_compare(PHP_VERSION, '5.3.7', '<')) {

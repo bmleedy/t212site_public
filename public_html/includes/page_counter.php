@@ -7,9 +7,7 @@
  */
 
 // Start session if needed for error logging context
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once(__DIR__ . '/session_config.php');
 
 // Get the page URL from the request
 $pageUrl = isset($_POST['page_url']) ? trim($_POST['page_url']) : '';

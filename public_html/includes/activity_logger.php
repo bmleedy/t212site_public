@@ -19,9 +19,7 @@
  */
 function log_activity($mysqli, $action, $values = null, $success = true, $freetext = null, $post_user_id = null) {
     // Start session if not already started
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
+    require_once(__DIR__ . '/session_config.php');
 
     // Get user ID from session (preferred) or fall back to POST
     $session_user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : null;

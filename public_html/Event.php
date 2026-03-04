@@ -1,6 +1,4 @@
 <?php
-session_set_cookie_params(0, '/', $_SERVER['SERVER_NAME']);
-session_start();
 require "includes/authHeader.php";
 $id_raw = isset($_GET['id']) ? $_GET['id'] : '';
 $varEdit = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;

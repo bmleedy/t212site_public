@@ -1,13 +1,4 @@
 <?php
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path' => '/',
-    'domain' => $_SERVER['SERVER_NAME'],
-    'secure' => isset($_SERVER['HTTPS']),
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-session_start();
 require "includes/authHeader.php";
 
 $user_id = $_SESSION['user_id'];
