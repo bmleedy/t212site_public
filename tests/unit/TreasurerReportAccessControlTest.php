@@ -54,12 +54,12 @@ if (assert_true($has_require_auth, "gettreasurerreport.php requires authenticati
 }
 
 // =============================================================================
-// Test 3: gettreasurerreport.php intentionally skips CSRF (read-only endpoint)
+// Test 3: gettreasurerreport.php requires CSRF token
 // =============================================================================
 echo "\n--- Test 3: API CSRF Token Requirement ---\n";
 
-$has_csrf_comment = (strpos($api_content, 'CSRF not required') !== false);
-if (assert_true($has_csrf_comment, "gettreasurerreport.php documents CSRF skip (read-only endpoint)")) {
+$has_csrf = (strpos($api_content, 'require_csrf()') !== false);
+if (assert_true($has_csrf, "gettreasurerreport.php requires CSRF token")) {
     $passed++;
 } else {
     $failed++;
