@@ -168,12 +168,11 @@
     })
   }
 
-  function setButtons(varEdit, showEdit, user_type, webMaster) {
+  function setButtons(varEdit, showEdit, user_type, webMaster, family_id) {
     if ((varEdit == "1") || (strID == "New")) {
       buttonData = '<a onclick="submitDoc()" class="round small button">Submit</a><div class="clearfix"></div>';
     } else {
       if (showEdit == "1") {
-        var family_id = $('#family_id').val();
         buttonData = '<a href="addfamilymember.php?familyID=' + family_id + '" class="round small button">Add Family Member</a>&nbsp;';
         buttonData = buttonData + '<a onclick="editDoc();" class="round small button">Edit</a>';
 
@@ -356,7 +355,7 @@
         }
 
         user_type = data['user_type'];
-        setButtons(varEdit, showEdit, user_type, webMaster);
+        setButtons(varEdit, showEdit, user_type, webMaster, data['family_id']);
         $('#scoutData').append(data['scoutData']);
         $('#scoutData').append(data['addressData']);
         if (data['notifData']) {

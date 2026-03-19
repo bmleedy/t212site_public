@@ -260,6 +260,7 @@ if ($user_type == 'Scout') {
 $returnMsg = array(
     'profile' => $profile,
     'user_type' => $user_type,
+    'family_id' => $family_id,
     'scoutData' => $scoutData,
     'addressData' => $addressData,
     'mbData' => $mbData
