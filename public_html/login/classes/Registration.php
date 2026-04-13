@@ -84,7 +84,8 @@ class Registration
 			$this->db_connection = new PDO(
 				'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8',
 				DB_USER,
-				DB_PASS
+				DB_PASS,
+				[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 			);
 			return true;
 		} catch (PDOException $e) {
@@ -300,17 +301,19 @@ class Registration
 			$query_new_user_insert->bindValue(':user_activation_hash', $user_activation_hash, PDO::PARAM_STR);
 			$query_new_user_insert->bindValue(':user_registration_ip', $_SERVER['REMOTE_ADDR'], PDO::PARAM_STR);
 			$query_new_user_insert->bindValue(':user_access', '', PDO::PARAM_STR);
-			$query_new_user_insert->execute();
+			$insert_result = $query_new_user_insert->execute();
 		} catch (PDOException $e) {
 			error_log("Registration insert failed: " . $e->getMessage());
 			$this->errors[] = MESSAGE_DATABASE_ERROR;
 			return;
 		}
 
-		if ($query_new_user_insert) {
+		if ($insert_result) {
 			$this->messages[] = "User " . $user_name . " registered. ";
 			$this->registration_successful = true;
 		} else {
+			$error_info = $query_new_user_insert->errorInfo();
+			error_log("Registration insert failed silently - SQLSTATE: " . $error_info[0] . ", Error: " . ($error_info[2] ?? 'unknown'));
 			$this->errors[] = MESSAGE_REGISTRATION_FAILED;
 		}
 	}
